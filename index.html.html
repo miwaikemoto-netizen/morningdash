@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MorningDash — オフライン版（症状カスタム）</title>
+<meta name="theme-color" content="#0f172a">
+<style>
+  :root{ --bg1:#ffffff;--bg2:#f1f5f9;--fg:#0f172a;--muted:#64748b;--accent:#0f172a;--card:#ffffff;--border:#e5e7eb; }
+  html,body{height:100%;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";color:var(--fg);
+       background:linear-gradient(var(--bg1),var(--bg2));}
+  .container{max-width:960px;margin:0 auto;padding:16px;}
+  h1{font-size:28px;margin:0 0 8px 0;font-weight:700}
+  h2{font-size:18px;margin:0 0 8px 0;font-weight:600}
+  .muted{opacity:.7}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .row{display:flex;gap:16px;flex-wrap:wrap}
+  .btn{appearance:none;border:1px solid var(--border);border-radius:14px;padding:10px 14px;background:#fff;cursor:pointer}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.small{font-size:12px;padding:6px 10px}
+  .chip{border:1px solid var(--border);border-radius:999px;padding:6px 10px;background:#fff;cursor:pointer;font-size:13px}
+  .chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .input{border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:14px}
+  .text{font-size:14px}
+  .list{list-style:none;padding:0;margin:0}
+  .list li{display:flex;align-items:center;gap:8px;padding:4px 0}
+  .strike{ text-decoration: line-through; opacity:.6 }
+  .footer{font-size:12px;opacity:.6;margin-top:24px;line-height:1.6}
+  .titlebar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .number{width:64px;text-align:center}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="titlebar">
+      <h1>MorningDash ☀️</h1>
+      <div id="today" class="muted"></div>
+    </div>
+
+    <section class="card">
+      <div class="titlebar">
+        <h2>天気（現在地）</h2>
+        <span id="wxLoading" class="muted" style="display:none">取得中…</span>
+      </div>
+      <div id="wxError" class="text" style="color:#dc2626;"></div>
+      <div id="wxBlock" class="row"></div>
+      <div class="row" style="margin-top:8px">
+        <button id="retryWx" class="btn small">再取得</button>
+      </div>
+    </section>
+
+    <section class="row" style="margin-top:16px">
+      <div class="card" style="flex:1 1 300px;min-width:280px">
+        <h2>気分</h2>
+        <div id="moodBtns" class="row"></div>
+      </div>
+      <div class="card" style="flex:1 1 300px;min-width:280px">
+        <h2>エネルギー</h2>
+        <div id="energyBtns" class="row"></div>
+      </div>
+    </section>
+
+    <section class="row" style="margin-top:16px">
+      <div class="card" style="flex:1 1 300px;min-width:280px">
+        <h2>体調メモ</h2>
+        <div id="symptomBtns" class="row" style="margin-bottom:8px"></div>
+        <textarea id="note" class="input" rows="3" style="width:100%" placeholder="自由メモ（例：首の張り強め／冷え気味 など）"></textarea>
+      </div>
+      <div class="card" style="flex:1 1 300px;min-width:280px">
+        <h2>睡眠</h2>
+        <div class="row" style="align-items:center;margin-bottom:8px">
+          <input id="sleepH" class="input number" type="number" min="0" max="23" value="0">
+          <span>時間</span>
+          <input id="sleepM" class="input number" type="number" min="0" max="59" value="0">
+          <span>分</span>
+        </div>
+        <div class="text muted" style="margin-bottom:6px">※ 将来的にショートカット連携で自動入力（sleepMin=合計分）</div>
+        <div class="text">合計：<b id="sleepTotal">0時間0分</b></div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <div class="titlebar">
+        <h2>今日のタスク</h2>
+        <button id="copyURL" class="btn small">URL連携例をコピー</button>
+      </div>
+      <div class="row" style="margin-bottom:8px">
+        <input id="taskInput" class="input" placeholder="タスクを入力" style="flex:1">
+        <button id="addTask" class="btn primary">追加</button>
+      </div>
+      <ul id="taskList" class="list"></ul>
+    </section>
+
+    <section class="row" style="margin-top:16px">
+      <button id="saveLog" class="btn primary">今日の記録を保存</button>
+      <button id="exportCSV" class="btn">CSVを書き出す</button>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <h2>履歴</h2>
+      <div id="history"></div>
+    </section>
+
+    <div class="footer">
+      <p>Tips: 共有 → ホーム画面に追加 でアプリ風に使えます。</p>
+      <p>拡張：ショートカットから <code>?sleepMin=480&mood=🙂&energy=中&symptoms=首・肩こり,頭痛</code> のように開くと自動入力できます。</p>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const $ = (s) => document.querySelector(s);
+  const todayKey = new Date().toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" });
+  $("#today").textContent = todayKey;
+
+  const state = {
+    mood: "",
+    energy: "",
+    symptoms: [],
+    sleepH: 0,
+    sleepM: 0,
+    note: "",
+    weather: null,
+  };
+
+  // Query params
+  const url = new URL(window.location.href);
+  const qp = k => url.searchParams.get(k);
+  const sleepMin = qp("sleepMin");
+  if (sleepMin) { const total = parseInt(sleepMin,10)||0; state.sleepH = Math.floor(total/60); state.sleepM = total%60; }
+  state.mood = qp("mood") || state.mood;
+  state.energy = qp("energy") || state.energy;
+  const symptomsQ = qp("symptoms"); if (symptomsQ) state.symptoms = symptomsQ.split(",").filter(Boolean);
+  state.note = qp("note") || state.note;
+
+  // UI helpers
+  function buildChips(root, options, isActive, onClick){
+    root.innerHTML = "";
+    options.forEach(opt => {
+      const v = typeof opt === "string" ? opt : opt.v;
+      const label = typeof opt === "string" ? opt : (opt.v+" "+opt.label);
+      const b = document.createElement("button");
+      b.className = "chip" + (isActive(v) ? " active" : "");
+      b.textContent = label;
+      b.addEventListener("click", () => onClick(v));
+      root.appendChild(b);
+    });
+  }
+
+  const moods = [{v:"🙂",label:"良い"},{v:"😐",label:"ふつう"},{v:"🙁",label:"いまいち"}];
+  const energies = ["高","中","低"];
+  const symptomOptions = [
+    "首・肩こり",
+    "頭痛",
+    "腰の張り／腰痛",
+    "胃腸弱め（胃もたれ・下痢・便秘など）",
+    "むくみ",
+    "目の疲れ／ドライアイ",
+    "花粉・アレルギー症状",
+    "生理",
+    "PMS（生理前症状）",
+    "冷え（手足の冷え・全身）",
+    "暑さバテ／熱っぽさ",
+    "喉の痛み・声枯れ",
+    "鼻水・鼻づまり",
+    "肌荒れ／かゆみ",
+    "睡眠の質低下（浅い眠り・途中覚醒）",
+    "集中力低下",
+    "イライラ／不安感",
+    "だるさ／倦怠感",
+    "モチベーション低下"
+  ];
+
+  buildChips($("#moodBtns"), moods, v => state.mood===v, v => { state.mood=v; buildChips($("#moodBtns"), moods, x=>state.mood===x, ()=>{}); });
+  buildChips($("#energyBtns"), energies, v => state.energy===v, v => { state.energy=v; buildChips($("#energyBtns"), energies, x=>state.energy===x, ()=>{}); });
+  buildChips($("#symptomBtns"), symptomOptions, v => state.symptoms.includes(v), v => {
+    if (state.symptoms.includes(v)) state.symptoms = state.symptoms.filter(x=>x!==v);
+    else state.symptoms = [...state.symptoms, v];
+    buildChips($("#symptomBtns"), symptomOptions, x => state.symptoms.includes(x), ()=>{});
+  });
+
+  // Note & Sleep
+  const sleepH = $("#sleepH"), sleepM = $("#sleepM"), note = $("#note"), sleepTotal = $("#sleepTotal");
+  function updateSleepLabel(){ sleepTotal.textContent = Math.floor(state.sleepH)+"時間"+(state.sleepM%60)+"分"; }
+  sleepH.value = state.sleepH; sleepM.value = state.sleepM; note.value = state.note; updateSleepLabel();
+  sleepH.addEventListener("input", () => { state.sleepH = parseInt(sleepH.value||"0",10); updateSleepLabel(); });
+  sleepM.addEventListener("input", () => { state.sleepM = parseInt(sleepM.value||"0",10); updateSleepLabel(); });
+  note.addEventListener("input", () => { state.note = note.value; });
+
+  // Tasks
+  const tasksKey = "md_tasks", logsKey = "md_logs";
+  const tasks = JSON.parse(localStorage.getItem(tasksKey) || "[]");
+  function saveTasks(){ localStorage.setItem(tasksKey, JSON.stringify(tasks)); }
+  function todayTasks(){ return tasks.filter(t => t.date === todayKey); }
+  const taskList = $("#taskList");
+  function renderTasks(){
+    taskList.innerHTML = "";
+    const list = todayTasks();
+    if (list.length === 0){ const p=document.createElement("p"); p.className="text muted"; p.textContent="今日はまだタスクがありません"; taskList.appendChild(p); return; }
+    list.forEach(t => {
+      const li = document.createElement("li");
+      const cb = document.createElement("input"); cb.type="checkbox"; cb.checked=!!t.done;
+      cb.addEventListener("change", () => { t.done=!t.done; saveTasks(); renderTasks(); });
+      const span = document.createElement("span"); span.textContent=t.title; span.className="text "+(t.done?"strike":""); span.style.flex="1";
+      const del = document.createElement("button"); del.className="btn small"; del.textContent="削除";
+      del.addEventListener("click", () => { const idx=tasks.findIndex(x=>x.id===t.id); if(idx>-1){ tasks.splice(idx,1); saveTasks(); renderTasks(); } });
+      li.appendChild(cb); li.appendChild(span); li.appendChild(del);
+      taskList.appendChild(li);
+    });
+  }
+  renderTasks();
+  $("#addTask").addEventListener("click", () => {
+    const inp = document.getElementById("taskInput");
+    const val = (inp.value||"").trim();
+    if (!val) return;
+    tasks.unshift({ id: Date.now(), title: val, done: false, date: todayKey });
+    inp.value = ""; saveTasks(); renderTasks();
+  });
+  $("#copyURL").addEventListener("click", async () => {
+    const u = new URL(window.location.href); u.search="";
+    u.searchParams.set("mood", state.mood||"");
+    u.searchParams.set("energy", state.energy||"");
+    try { await navigator.clipboard.writeText(u.toString()); alert("URLをコピーしました（mood/energy付き）"); }
+    catch(e){ alert(u.toString()); }
+  });
+
+  // Weather
+  const wxLoading = document.getElementById("wxLoading"), wxError = document.getElementById("wxError"), wxBlock = document.getElementById("wxBlock");
+  function wxCodeToText(code){ const map={0:"快晴",1:"晴れ",2:"薄曇り",3:"曇り",45:"霧",48:"霧氷",51:"弱い霧雨",53:"霧雨",55:"強い霧雨",61:"弱い雨",63:"雨",65:"強い雨",71:"弱い雪",73:"雪",75:"大雪",95:"雷雨"}; return map[code]||"—"; }
+  function renderWeather(){
+    wxBlock.innerHTML="";
+    if (!state.weather){ const p=document.createElement("p"); p.className="text muted"; p.textContent="位置情報の許可後、自動表示されます。"; wxBlock.appendChild(p); return; }
+    const big=document.createElement("div"); big.style.fontSize="48px"; big.style.fontWeight="600"; big.textContent=Math.round(state.weather.temp)+"°C";
+    const small=document.createElement("div"); small.className="text"; small.innerHTML="状況："+state.weather.condition+"<br>風速："+Math.round(state.weather.wind)+" m/s<br><span class='muted'>更新："+new Date(state.weather.time).toLocaleTimeString("ja-JP",{timeZone:"Asia/Tokyo"})+"</span>";
+    const wrap=document.createElement("div"); wrap.className="row"; wrap.appendChild(big); wrap.appendChild(small);
+    wxBlock.appendChild(wrap);
+  }
+  function fetchWeatherFromGeo(lat, lon){
+    wxLoading.style.display="inline"; wxError.textContent="";
+    const u = new URL("https://api.open-meteo.com/v1/forecast");
+    u.searchParams.set("latitude", lat);
+    u.searchParams.set("longitude", lon);
+    u.searchParams.set("current_weather","true");
+    u.searchParams.set("hourly","precipitation_probability");
+    u.searchParams.set("timezone","Asia/Tokyo");
+    fetch(u.toString()).then(r=>r.json()).then(data=>{
+      const c=data.current_weather;
+      state.weather={ temp:c.temperature, wind:c.windspeed, code:c.weathercode, condition:wxCodeToText(c.weathercode), time:c.time };
+      renderWeather();
+    }).catch(e=>{ wxError.textContent="天気の取得に失敗しました。"; }).finally(()=>{ wxLoading.style.display="none"; });
+  }
+  function askGeo(){
+    wxLoading.style.display="inline"; wxError.textContent="";
+    if (!("geolocation" in navigator)){ wxError.textContent="この端末は位置情報に対応していません。"; wxLoading.style.display="none"; return; }
+    navigator.geolocation.getCurrentPosition(
+      pos => { const {latitude, longitude}=pos.coords; fetchWeatherFromGeo(latitude, longitude); },
+      err => { wxError.textContent="位置情報を取得できませんでした。設定→プライバシー→位置情報サービス→Safari Websitesを許可 にしてください。"; wxLoading.style.display="none"; },
+      { enableHighAccuracy:false, timeout:8000 }
+    );
+  }
+  document.getElementById("retryWx").addEventListener("click", askGeo);
+  askGeo();
+
+  // Logs
+  const historyRoot = document.getElementById("history");
+  function renderHistory(){
+    const logs = JSON.parse(localStorage.getItem("md_logs") || "[]");
+    historyRoot.innerHTML="";
+    if (logs.length===0){ const p=document.createElement("p"); p.className="text muted"; p.textContent="まだ記録がありません"; historyRoot.appendChild(p); return; }
+    logs.forEach(l => {
+      const box=document.createElement("div"); box.className="card"; box.style.marginTop="8px";
+      const head=document.createElement("div"); head.className="muted text"; head.textContent=l.date;
+      const row=document.createElement("div"); row.className="row text"; row.style.marginTop="6px";
+      row.innerHTML = `<div>気分：${l.mood||"—"}</div>
+                       <div>エネルギー：${l.energy||"—"}</div>
+                       <div>睡眠：${Math.floor((l.sleepMin||0)/60)}時間${(l.sleepMin||0)%60}分</div>
+                       <div>天気：${l.weather ? (l.weather.condition+' / '+Math.round(l.weather.temp)+'°C') : "—"}</div>`;
+      box.appendChild(head); box.appendChild(row);
+      if (l.symptoms && l.symptoms.length){ const d=document.createElement("div"); d.className="text"; d.textContent="体調："+l.symptoms.join("、 "); box.appendChild(d); }
+      if (l.note){ const d=document.createElement("div"); d.className="text"; d.textContent="メモ："+l.note; box.appendChild(d); }
+      if (l.tasks && l.tasks.length){ const ul=document.createElement("ul"); ul.style.marginLeft="20px"; ul.className="text"; l.tasks.forEach(t=>{ const li=document.createElement("li"); li.textContent=(t.done?'✅ ':'⬜ ')+t.title; ul.appendChild(li); }); box.appendChild(ul); }
+      historyRoot.appendChild(box);
+    });
+  }
+  renderHistory();
+
+  document.getElementById("saveLog").addEventListener("click", () => {
+    const logs = JSON.parse(localStorage.getItem("md_logs") || "[]");
+    const todayTasks = JSON.parse(localStorage.getItem("md_tasks") || "[]").filter(t => t.date === todayKey);
+    const payload = {
+      date: todayKey,
+      mood: state.mood,
+      energy: state.energy,
+      symptoms: state.symptoms,
+      sleepMin: (parseInt(state.sleepH,10)||0)*60 + (parseInt(state.sleepM,10)||0),
+      note: state.note,
+      weather: state.weather,
+      tasks: todayTasks,
+      ts: Date.now()
+    };
+    const newLogs = [payload, ...logs.filter(l => l.date !== todayKey)];
+    localStorage.setItem("md_logs", JSON.stringify(newLogs));
+    alert("今日の記録を保存しました");
+    renderHistory();
+  });
+
+  document.getElementById("exportCSV").addEventListener("click", () => {
+    const logs = JSON.parse(localStorage.getItem("md_logs") || "[]");
+    const rows = [
+      ["date","mood","energy","symptoms","sleep_min","weather","task_count","note"],
+      ...logs.map(l => [
+        l.date, l.mood, l.energy, (l.symptoms||[]).join(" "),
+        l.sleepMin, l.weather ? (l.weather.condition+'/'+l.weather.temp) : "",
+        (l.tasks||[]).length, String(l.note||"").replace(/\n/g," ")
+      ])
+    ];
+    const csv = rows.map(r => r.map(x => `"${String(x ?? "").replace(/"/g,'""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type:"text/csv;charset=utf-8;" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `morning_logs_${Date.now()}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+})();
+</script>
+</body>
+</html>
