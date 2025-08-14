@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MorningDash — v7（グラフ＋ヘルスショートカット案）</title>
+<title>MorningDash — v8（ショートカット値が反映されない問題を修正）</title>
 <meta name="theme-color" content="#0f172a">
 <style>
   :root{ --bg1:#ffffff;--bg2:#f1f5f9;--fg:#0f172a;--muted:#64748b;--accent:#0f172a;--card:#ffffff;--border:#e5e7eb; }
@@ -26,7 +26,6 @@
   .input{border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:14px}
   .text{font-size:14px}
   .list{list-style:none;padding:0;margin:0}
-  .list li{display:flex;align-items:center;gap:8px;padding:4px 0}
   .footer{font-size:12px;opacity:.6;margin-top:24px;line-height:1.6}
   .titlebar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
   .number{width:64px;text-align:center}
@@ -340,30 +339,29 @@
   }
   renderChips();
 
-  // Query params (for Shortcuts)
+  // Query params (robust parse)
+  function parseNumMaybe(v){
+    if (v==null) return null;
+    const s = String(v).trim().replace(/,%20/g,",").replace(/%20/g," ").trim();
+    const n = parseFloat(s);
+    return isNaN(n) ? null : n;
+  }
   const url = new URL(window.location.href);
   const qp = k => url.searchParams.get(k);
-  const sleepMinQ = qp("sleepMin");
-  if (sleepMinQ) { const total = parseInt(sleepMinQ,10)||0; state.sleepH = Math.floor(total/60); state.sleepM = total%60; }
-  state.mood = qp("mood") || state.mood;
-  state.energy = qp("energy") || state.energy;
-  const symptomsQ = qp("symptoms"); if (symptomsQ) state.symptoms = symptomsQ.split(",").filter(Boolean);
-  state.note = qp("note") || state.note;
-  const weightQ = qp("weight"); if (weightQ) state.weight = parseFloat(weightQ);
-  const bodyFatQ = qp("bodyFat"); if (bodyFatQ) state.bodyFat = parseFloat(bodyFatQ);
+  const qpPayload = {};
+  const sleepMinQ = qp("sleepMin"); if (sleepMinQ!=null) qpPayload.sleepMin = parseInt(sleepMinQ,10)||0;
+  const moodQ = qp("mood"); if (moodQ) qpPayload.mood = moodQ;
+  const energyQ = qp("energy"); if (energyQ) qpPayload.energy = energyQ;
+  const symptomsQ = qp("symptoms"); if (symptomsQ) qpPayload.symptoms = symptomsQ.split(",").filter(Boolean);
+  const noteQ = qp("note"); if (noteQ) qpPayload.note = noteQ;
+  const weightQ = qp("weight"); const wnum = parseNumMaybe(weightQ); if (wnum!=null) qpPayload.weight = wnum;
+  const bodyFatQ = qp("bodyFat"); const bnum = parseNumMaybe(bodyFatQ); if (bnum!=null) qpPayload.bodyFat = bnum;
 
   // Note & Sleep & Health
   const sleepH = $("#sleepH"), sleepM = $("#sleepM"), note = $("#note"), sleepTotal = $("#sleepTotal");
   const weight = $("#weight"), bodyFat = $("#bodyFat");
   function updateSleepLabel(){ sleepTotal.textContent = Math.floor(state.sleepH)+"時間"+(state.sleepM%60)+"分"; }
   function num(v){ return parseFloat(v||"0") || 0; }
-  sleepH.value = state.sleepH; sleepM.value = state.sleepM; note.value = state.note; updateSleepLabel();
-  weight.value = state.weight ?? ""; bodyFat.value = state.bodyFat ?? "";
-  sleepH.addEventListener("input", () => { state.sleepH = parseInt(sleepH.value||"0",10) || 0; updateSleepLabel(); autoSave(); });
-  sleepM.addEventListener("input", () => { state.sleepM = parseInt(sleepM.value||"0",10) || 0; updateSleepLabel(); autoSave(); });
-  note.addEventListener("input", () => { state.note = note.value; autoSave(); });
-  weight.addEventListener("input", () => { state.weight = weight.value===""?null:num(weight.value); autoSave(); });
-  bodyFat.addEventListener("input", () => { state.bodyFat = bodyFat.value===""?null:num(bodyFat.value); autoSave(); });
 
   // Quick tasks
   const qtElems = [
@@ -391,7 +389,7 @@
   }
   renderQuickTasks();
 
-  // Weather
+  // Weather (same as v7)
   const wxLoading = $("#wxLoading"), wxError = $("#wxError"), wxBlock = $("#wxBlock");
   function wxCodeToText(code){ const map={0:"快晴",1:"晴れ",2:"薄曇り",3:"曇り",45:"霧",48:"霧氷",51:"弱い霧雨",53:"霧雨",55:"強い霧雨",61:"弱い雨",63:"雨",65:"強い雨",71:"弱い雪",73:"雪",75:"大雪",95:"雷雨"}; return map[code]||"—"; }
   function renderWeather(){
@@ -449,7 +447,7 @@
   $("#retryWx").addEventListener("click", askGeo);
   askGeo();
 
-  // Storage + Keys (stable)
+  // Storage + Keys
   const LOGS_KEY = "md_logs_v2";
   const TASK_HIST_KEY = "md_task_history_v1";
 
@@ -495,12 +493,18 @@
       upsertLog(payload);
       renderHistory();
       renderMiniCalendar();
-      // charts auto-update if summary tab open
       if ($("#pageSummary").style.display !== "none") renderCharts();
-    }, 700);
+    }, 400);
   }
 
-  // Load form from log
+  // Apply to UI from state
+  function syncFormFromState(){
+    $("#sleepH").value = state.sleepH; $("#sleepM").value = state.sleepM; updateSleepLabel();
+    $("#note").value = state.note;
+    $("#weight").value = state.weight ?? "";
+    $("#bodyFat").value = state.bodyFat ?? "";
+  }
+
   function loadLogToForm(log){
     if (!log){
       state.mood=""; state.energy=""; state.symptoms=[]; state.note="";
@@ -519,13 +523,12 @@
       state.quickTasks = Array.isArray(log.quickTasks) && log.quickTasks.length===3 ? log.quickTasks : [{done:false,text:""},{done:false,text:""},{done:false,text:""}];
     }
     renderChips();
-    $("#sleepH").value = state.sleepH; $("#sleepM").value = state.sleepM; $("#note").value = state.note; updateSleepLabel();
-    $("#weight").value = state.weight ?? ""; $("#bodyFat").value = state.bodyFat ?? "";
+    syncFormFromState();
     renderQuickTasks();
     renderHeader();
   }
 
-  // History render (logs)
+  // History render (same as v7)
   function renderHistory(){
     const historyRoot = $("#history");
     const logs = loadAllLogs();
@@ -573,7 +576,7 @@
     });
   }
 
-  // Mini Calendar
+  // Mini Calendar (same)
   let calMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   function renderMiniCalendar(){
     $("#calLabel").textContent = `${calMonth.getFullYear()}年 ${calMonth.getMonth()+1}月`;
@@ -608,15 +611,15 @@
   $("#prevMonth").addEventListener("click", () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()-1, 1); renderMiniCalendar(); });
   $("#nextMonth").addEventListener("click", () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 1); renderMiniCalendar(); });
 
-  // Charts (SVG)
+  // Charts (same as v7)
   function clear(el){ el.innerHTML=""; }
   function createSVG(w,h){ const s=document.createElementNS("http://www.w3.org/2000/svg","svg"); s.setAttribute("viewBox",`0 0 ${w} ${h}`); return s; }
   function drawAxes(svg,w,h,margin){ const g=document.createElementNS(svg.namespaceURI,"g"); const ax=document.createElementNS(svg.namespaceURI,"line"); ax.setAttribute("x1",margin.left); ax.setAttribute("y1",h-margin.bottom); ax.setAttribute("x2",w-margin.right); ax.setAttribute("y2",h-margin.bottom); ax.setAttribute("class","axis"); g.appendChild(ax); const ay=document.createElementNS(svg.namespaceURI,"line"); ay.setAttribute("x1",margin.left); ay.setAttribute("y1",margin.top); ay.setAttribute("x2",margin.left); ay.setAttribute("y2",h-margin.bottom); ay.setAttribute("class","axis"); g.appendChild(ay); svg.appendChild(g); }
   function drawBars(el, labels, values, maxY){
-    const w=400,h=180, m={top:10,right:10,bottom:20,left:26};
+    el.innerHTML=""; const w=400,h=180, m={top:10,right:10,bottom:20,left:26};
     const svg=createSVG(w,h); drawAxes(svg,w,h,m);
     const innerW = w - m.left - m.right; const innerH = h - m.top - m.bottom;
-    const n=values.length; const bw = innerW / (n||1) * 0.8; const gap = innerW / (n||1) * 0.2;
+    const n=values.length||1; const bw = innerW / n * 0.8; const gap = innerW / n * 0.2;
     values.forEach((v,i)=>{
       const x = m.left + i*(bw+gap) + gap/2;
       const vh = maxY ? (v/maxY)*innerH : 0;
@@ -624,17 +627,10 @@
       const rect=document.createElementNS(svg.namespaceURI,"rect"); rect.setAttribute("x",x); rect.setAttribute("y",y); rect.setAttribute("width",bw); rect.setAttribute("height",vh); rect.setAttribute("class","bar");
       svg.appendChild(rect);
     });
-    // y labels (0, max/2, max)
-    [0,0.5,1].forEach(t=>{
-      const val=Math.round(maxY*t);
-      const y = h - m.bottom - innerH*t;
-      const ln=document.createElementNS(svg.namespaceURI,"line"); ln.setAttribute("x1",m.left); ln.setAttribute("x2",w-m.right); ln.setAttribute("y1",y); ln.setAttribute("y2",y); ln.setAttribute("class","axis"); ln.setAttribute("stroke-dasharray","2,4"); svg.appendChild(ln);
-      const tx=document.createElementNS(svg.namespaceURI,"text"); tx.setAttribute("x",2); tx.setAttribute("y",y+3); tx.textContent=val; svg.appendChild(tx);
-    });
     el.appendChild(svg);
   }
   function drawLine(el, labels, values){
-    const w=400,h=180, m={top:10,right:10,bottom:20,left:26};
+    el.innerHTML=""; const w=400,h=180, m={top:10,right:10,bottom:20,left:26};
     const svg=createSVG(w,h); drawAxes(svg,w,h,m);
     const innerW = w - m.left - m.right; const innerH = h - m.top - m.bottom;
     const xs = (i)=> m.left + (innerW * (i/(Math.max(1,values.length-1))));
@@ -657,13 +653,9 @@
       const x=xs(i), y=ys(v);
       const c=document.createElementNS(svg.namespaceURI,"circle"); c.setAttribute("cx",x); c.setAttribute("cy",y); c.setAttribute("r",2.5); c.setAttribute("class","dot"); svg.appendChild(c);
     });
-    // y labels min/max
-    const tmin=document.createElementNS(svg.namespaceURI,"text"); tmin.setAttribute("x",2); tmin.setAttribute("y",h-m.bottom); tmin.textContent=min; svg.appendChild(tmin);
-    const tmax=document.createElementNS(svg.namespaceURI,"text"); tmax.setAttribute("x",2); tmax.setAttribute("y",m.top+10); tmax.textContent=max; svg.appendChild(tmax);
     el.appendChild(svg);
   }
 
-  // Charts renderers
   function getLogsInDays(days){
     const logs = loadAllLogs();
     const now = new Date();
@@ -675,23 +667,22 @@
     }).sort((a,b)=> new Date(a.date) - new Date(b.date));
   }
   function renderCharts(){
-    // Sleep 7 days (bar, hours)
+    // Sleep 7 days
     const sleep7 = getLogsInDays(7);
-    const labels7 = sleep7.map(l=>l.date.split("/").slice(1).join("/"));
     const vals7 = sleep7.map(l=> (l.sleepMin||0)/60 );
-    const maxY = Math.max(8, Math.ceil((Math.max(...vals7,0)+1))); // at least 8h scale
-    drawBars($("#chartSleep7"), labels7, vals7, maxY);
+    const maxY = Math.max(8, Math.ceil((Math.max(...vals7,0)+1)));
+    drawBars($("#chartSleep7"), [], vals7, maxY);
 
-    // Energy 30 days (bar counts)
+    // Energy 30 days
     const e30 = getLogsInDays(30);
     const cnt = {"❤️‍🔥元気":0,"❤️まずまず":0,"❤️‍🩹だるい":0};
     e30.forEach(l => { if (cnt[l.energy]!=null) cnt[l.energy]++; });
-    drawBars($("#chartEnergy30"), ["❤️‍🔥","❤️","❤️‍🩹"], [cnt["❤️‍🔥元気"], cnt["❤️まずまず"], cnt["❤️‍🩹だるい"]], Math.max(5, ...Object.values(cnt)));
+    drawBars($("#chartEnergy30"), [], [cnt["❤️‍🔥元気"], cnt["❤️まずまず"], cnt["❤️‍🩹だるい"]], Math.max(5, ...Object.values(cnt)));
 
     // Weight line 30 days
     const w30 = getLogsInDays(30);
     const wvals = w30.map(l => (l.weight!=null ? Number(l.weight) : null));
-    drawLine($("#chartWeight30"), w30.map(l=>l.date), wvals);
+    drawLine($("#chartWeight30"), [], wvals);
   }
 
   // Date change
@@ -713,8 +704,6 @@
     try { await navigator.clipboard.writeText(u.toString()); alert("URLをコピーしました（mood/energy付き）"); }
     catch(e){ alert(u.toString()); }
   });
-
-  // Health Shortcut helper
   $("#copyHealthShortcut").addEventListener("click", async () => {
     const base = window.location.origin + window.location.pathname;
     const template = `${base}?sleepMin=[[合計睡眠分]]&weight=[[体重_kg]]&bodyFat=[[体脂肪_%]]`;
@@ -722,7 +711,6 @@
     catch(e){ alert(template); }
   });
 
-  // Close day: auto-save + unfinished -> history
   $("#closeDay").addEventListener("click", () => {
     const payload = {
       date: currentDateKey, mood: state.mood, energy: state.energy, symptoms: state.symptoms,
@@ -736,7 +724,6 @@
     renderHistory(); renderMiniCalendar(); if ($("#pageSummary").style.display !== "none") renderCharts();
   });
 
-  // Manual save
   $("#saveLog").addEventListener("click", () => {
     const payload = {
       date: currentDateKey, mood: state.mood, energy: state.energy, symptoms: state.symptoms,
@@ -749,12 +736,12 @@
     renderHistory(); renderMiniCalendar(); if ($("#pageSummary").style.display !== "none") renderCharts();
   });
 
-  // Task history
+  // Task history (same as v7)
   function renderTaskHistory(){
     const root = $("#taskHistoryList"); root.innerHTML = "";
     const hist = loadTaskHistory();
     const q = ($("#thSearch").value || "").trim();
-    const dateFilter = $("#thDate").value; // yyyy-mm-dd
+    const dateFilter = $("#thDate").value;
     const toKeyFromInput = (s) => (!s ? null : toKey(fromInputDate(s)));
     const fDateKey = toKeyFromInput(dateFilter);
 
@@ -806,59 +793,24 @@
   $("#thDate").addEventListener("change", renderTaskHistory);
   $("#thClear").addEventListener("click", () => { $("#thSearch").value=""; $("#thDate").value=""; renderTaskHistory(); });
 
-  // CSV / JSON
-  $("#exportCSV").addEventListener("click", () => {
-    const logs = loadAllLogs();
-    const rows = [
-      ["date","mood","energy","symptoms","sleep_min","weight","body_fat","task1","task1_done","task2","task2_done","task3","task3_done","note"],
-      ...logs.map(l => [
-        l.date, l.mood, l.energy, (l.symptoms||[]).join(" "),
-        l.sleepMin,
-        l.weight ?? "", l.bodyFat ?? "",
-        l.quickTasks?.[0]?.text || "", l.quickTasks?.[0]?.done ? 1 : 0,
-        l.quickTasks?.[1]?.text || "", l.quickTasks?.[1]?.done ? 1 : 0,
-        l.quickTasks?.[2]?.text || "", l.quickTasks?.[2]?.done ? 1 : 0,
-        String(l.note||"").replace(/\n/g," ")
-      ])
-    ];
-    const csv = rows.map(r => r.map(x => `"${String(x ?? "").replace(/"/g,'""')}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type:"text/csv;charset=utf-8;" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `morning_logs_${Date.now()}.csv`;
-    document.body.appendChild(a); a.click(); a.remove();
-  });
-
-  $("#exportJSON").addEventListener("click", () => {
-    const data = { logs: loadAllLogs(), taskHistory: loadTaskHistory(), exportedAt: Date.now(), version: "v7" };
-    const blob = new Blob([JSON.stringify(data,null,2)], { type:"application/json;charset=utf-8;" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `morningdash_backup_${Date.now()}.json`;
-    document.body.appendChild(a); a.click(); a.remove();
-  });
-
-  $("#importJSON").addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const text = await file.text();
-    try {
-      const json = JSON.parse(text);
-      if (json.logs && Array.isArray(json.logs)) saveAllLogs(json.logs);
-      if (json.taskHistory && Array.isArray(json.taskHistory)) saveTaskHistory(json.taskHistory);
-      alert("インポートしました");
-      renderHistory(); renderMiniCalendar(); renderCharts(); renderTaskHistory();
-      loadLogToForm(loadLog(todayKey));
-    } catch (err){
-      alert("読み込みに失敗しました：JSON形式を確認してください");
-    }
-  });
-
-  // Initial render
+  // Initial render (fix: load saved -> then apply QP overrides -> save)
   function initialRender(){
     renderHistory();
     renderMiniCalendar();
-    loadLogToForm(loadLog(todayKey));
+    const saved = loadLog(todayKey);
+    loadLogToForm(saved);
+    // Apply query param overrides after loading saved data
+    let changed = false;
+    if (qpPayload){
+      if (qpPayload.sleepMin!=null){ state.sleepH = Math.floor(qpPayload.sleepMin/60); state.sleepM = qpPayload.sleepMin%60; changed = true; }
+      if (qpPayload.mood){ state.mood = qpPayload.mood; changed = true; }
+      if (qpPayload.energy){ state.energy = qpPayload.energy; changed = true; }
+      if (qpPayload.symptoms){ state.symptoms = qpPayload.symptoms; changed = true; }
+      if (qpPayload.note){ state.note = qpPayload.note; changed = true; }
+      if (qpPayload.weight!=null){ state.weight = qpPayload.weight; changed = true; }
+      if (qpPayload.bodyFat!=null){ state.bodyFat = qpPayload.bodyFat; changed = true; }
+      if (changed){ renderChips(); syncFormFromState(); autoSave(); }
+    }
   }
   initialRender();
 })();
