@@ -1,5 +1,113 @@
 <!doctype html>
 <html lang="ja">
+<style>
+/* ===== Morning Dash quick facelift ===== */
+:root{
+  --bg:#f8fafc;          /* ほの白 */
+  --card:#ffffff;        /* カード面 */
+  --line:#e5e7eb;        /* セクション境界 */
+  --text:#0f172a;        /* 文字色（濃紺） */
+  --muted:#64748b;       /* 補助テキスト */
+  --accent:#0ea5e9;      /* アクション色（Morning） */
+  --accent-press:#0284c7;
+  --radius:14px;         /* 角丸を少し大きめに */
+  --shadow:0 6px 20px rgba(2,8,23,.06);
+}
+
+/* 全体のトーン */
+html,body{background:var(--bg); color:var(--text);}
+body{font-family:system-ui,-apple-system,"SF Pro","Hiragino Sans",Arial,"Meiryo",sans-serif;}
+
+/* セクション（カード）を上品に */
+.section, .card, .panel{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:20px !important;      /* 16px → 20px 相当 */
+  margin-block:18px !important;  /* セクション間を少し広げる */
+}
+
+/* 見出しの字間とウェイト */
+.section h2, .card h2, .panel h2{
+  letter-spacing:.01em;
+  font-weight:700;
+  margin-bottom:10px;
+}
+
+/* 主要ボタンの統一 */
+button, .btn, input[type=button], input[type=submit]{
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  border-radius:12px;
+  padding:10px 14px;
+  font-weight:600;
+  box-shadow:0 4px 12px rgba(14,165,233,.25);
+  transition:.15s transform ease, .15s background ease;
+}
+button:hover, .btn:hover{background:var(--accent-press);}
+button:active, .btn:active{transform:translateY(1px);}
+
+/* サブボタン（枠のみ） */
+.btn-ghost, .ghost{
+  background:transparent !important;
+  color:var(--accent);
+  border:1px solid var(--accent);
+  box-shadow:none;
+}
+
+/* インプットの視認性 */
+input[type=text], input[type=number], textarea, select{
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:10px 12px;
+  background:#fff;
+}
+
+/* —— 日付を大きく（3〜5倍要望→程よく 2.5〜3倍） —— */
+/* 日付テキストに id がある場合（例: #todayStr / #md-date）を優先 */
+#md-date, #todayStr, .date-today{
+  font-size:clamp(24px, 3.2rem, 44px);
+  font-weight:800;
+  letter-spacing:.02em;
+  line-height:1.15;
+  margin:6px 0 2px;
+}
+
+/* —— ミニカレンダーを“キュッ”と —— */
+/* カレンダーの外枠に .mini-cal がある前提。なければ親に付けてOK */
+.mini-cal{ transform:scale(.92); transform-origin: top left; }
+.mini-cal .day{ 
+  width:2.1rem; height:2.1rem; 
+  border-radius:10px;
+}
+.mini-cal .day.today{
+  outline:1.5px solid var(--accent);   /* 今日の枠線を少し太く */
+  outline-offset:1px;
+  font-weight:800;
+}
+
+/* —— 元気（エネルギー）ラジオ／ボタンのアイコン化 —— */
+/* 値に data-energy を持つボタン/ラベルに絵文字を付与（HTML変更不要） */
+[data-energy="high"]::before{content:"❤️‍🔥 "; }
+[data-energy="mid"]::before{ content:"❤️ "; }
+[data-energy="low"]::before{ content:"❤️‍🩹 "; }
+
+/* —— クイックタスク右上ボタン（3つ）を小ぶりに —— */
+.quick-actions button, .quick-actions .btn{
+  padding:6px 8px;
+  border-radius:10px;
+  font-size:.9rem;
+}
+
+/* テーブル/リストの行間を少しだけ */
+.list, .table{--row-gap:8px;}
+.list li{margin-block:var(--row-gap);}
+
+/* 補助説明を落ち着いた色で */
+.muted, .help, .note{ color:var(--muted); }
+</style>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
