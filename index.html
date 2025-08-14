@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MorningDash — 改良版v3（タスク履歴＋コピー）</title>
+<title>MorningDash — v5（サマリー＋ミニカレンダー＋安定保存）</title>
 <meta name="theme-color" content="#0f172a">
 <style>
   :root{ --bg1:#ffffff;--bg2:#f1f5f9;--fg:#0f172a;--muted:#64748b;--accent:#0f172a;--card:#ffffff;--border:#e5e7eb; }
@@ -19,6 +19,7 @@
   .btn{appearance:none;border:1px solid var(--border);border-radius:14px;padding:10px 14px;background:#fff;cursor:pointer}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
   .btn.small{font-size:12px;padding:6px 10px}
+  .btn.tiny{font-size:11px;padding:4px 8px;border-radius:10px}
   .chip{border:1px solid var(--border);border-radius:999px;padding:6px 10px;background:#fff;cursor:pointer;font-size:13px}
   .chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
   .input{border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:14px}
@@ -41,6 +42,15 @@
   .tabs{display:flex;gap:8px;margin:8px 0}
   .tab{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#fff;cursor:pointer}
   .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .filterbar{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cal-cell{border:1px solid var(--border);border-radius:10px;padding:6px;text-align:center;cursor:pointer;background:#fff}
+  .cal-cell.today{border-color:#0f172a}
+  .cal-cell .dot{display:block;width:8px;height:8px;border-radius:50%;margin:4px auto 0 auto;background:#cbd5e1}
+  .cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+  .cal-head div{font-size:12px;text-align:center;opacity:.7}
+  .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .pill{display:inline-block;padding:2px 8px;border:1px solid var(--border);border-radius:999px;font-size:12px;margin-right:6px}
 </style>
 </head>
 <body>
@@ -57,10 +67,27 @@
     <div class="tabs">
       <button id="tabMain" class="tab active">メイン</button>
       <button id="tabTaskHistory" class="tab">タスク履歴</button>
+      <button id="tabSummary" class="tab">サマリー</button>
     </div>
 
     <div id="pageMain">
       <section class="card">
+        <div class="titlebar">
+          <h2>ミニカレンダー（月）</h2>
+          <div class="toolbar">
+            <button id="prevMonth" class="btn tiny">←</button>
+            <span id="calLabel" class="muted"></span>
+            <button id="nextMonth" class="btn tiny">→</button>
+          </div>
+        </div>
+        <div class="cal-head">
+          <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+        </div>
+        <div id="miniCalendar" class="calendar"></div>
+        <div class="text muted" style="margin-top:6px">●の色：❤️‍🔥元気=濃／❤️=中／❤️‍🩹=薄（記録なし=グレー）</div>
+      </section>
+
+      <section class="card" style="margin-top:16px">
         <div class="titlebar">
           <h2>天気（現在地）</h2>
           <span id="wxLoading" class="muted" style="display:none">取得中…</span>
@@ -118,9 +145,9 @@
         <div class="titlebar">
           <h2>今日のクイックタスク（3項目）</h2>
           <div class="toolbar">
-            <button id="resetToToday" class="btn small">今日に戻る</button>
-            <button id="closeDay" class="btn small">日を締める（未完了→タスク履歴）</button>
-            <button id="copyURL" class="btn small">URL連携例をコピー</button>
+            <button id="resetToToday" class="btn tiny">今日に戻る</button>
+            <button id="closeDay" class="btn tiny">日を締める（未完了→タスク履歴）</button>
+            <button id="copyURL" class="btn tiny">URL連携例をコピー</button>
           </div>
         </div>
         <div id="quickTasks">
@@ -132,7 +159,10 @@
 
       <section class="row" style="margin-top:16px">
         <button id="saveLog" class="btn primary">この日の記録を保存</button>
-        <button id="exportCSV" class="btn">CSVを書き出す</button>
+        <button id="exportCSV" class="btn">CSV</button>
+        <button id="exportJSON" class="btn">JSON</button>
+        <label class="btn small" for="importJSON" style="cursor:pointer">JSONを読み込み</label>
+        <input id="importJSON" type="file" accept="application/json" style="display:none">
       </section>
 
       <section class="card" style="margin-top:16px">
@@ -153,13 +183,36 @@
             <button id="backToMain" class="btn small">メインへ戻る</button>
           </div>
         </div>
+
+        <div class="filterbar">
+          <input id="thSearch" class="input" placeholder="キーワードで絞り込み（例：水やり）" style="flex:1">
+          <input id="thDate" type="date" class="input">
+          <button id="thClear" class="btn small">フィルタをクリア</button>
+        </div>
+
         <div id="taskHistoryList"></div>
+      </section>
+    </div>
+
+    <div id="pageSummary" style="display:none">
+      <section class="card">
+        <div class="titlebar"><h2>週間・月間サマリー</h2></div>
+        <div class="summary-grid">
+          <div>
+            <h3>直近7日</h3>
+            <div id="weeklySummary" class="text"></div>
+          </div>
+          <div>
+            <h3>直近30日</h3>
+            <div id="monthlySummary" class="text"></div>
+          </div>
+        </div>
       </section>
     </div>
 
     <div class="footer">
       <p>Tips: 共有 → ホーム画面に追加 でアプリ風に使えます。</p>
-      <p>拡張：ショートカットから <code>?sleepMin=480&mood=🙂&energy=❤️‍🔥元気&symptoms=首・肩こり,生理</code> のように開くと自動入力できます。</p>
+      <p class="muted">保存場所はこの端末のブラウザ（localStorage/IndexedDB）。バージョンアップしても同じURL/ドメインなら継続利用されます。</p>
     </div>
   </div>
 
@@ -173,11 +226,7 @@
     const z = n => String(n).padStart(2,"0");
     return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
   };
-  const fromInputDate = s => {
-    const [y,m,da] = s.split("-").map(Number);
-    const d = new Date(y, m-1, da);
-    return d;
-  };
+  const fromInputDate = s => { const [y,m,da] = s.split("-").map(Number); return new Date(y, m-1, da); };
 
   const todayKey = toKey(today);
   let currentDateKey = todayKey;
@@ -186,6 +235,7 @@
   const editBadge = $("#editBadge");
   const pageMain = $("#pageMain");
   const pageTaskHistory = $("#pageTaskHistory");
+  const pageSummary = $("#pageSummary");
 
   function renderHeader(){
     dateLabel.textContent = currentDateKey;
@@ -197,8 +247,17 @@
   renderHeader();
 
   // Tabs
-  $("#tabMain").addEventListener("click", () => { pageMain.style.display="block"; pageTaskHistory.style.display="none"; $("#tabMain").classList.add("active"); $("#tabTaskHistory").classList.remove("active"); });
-  $("#tabTaskHistory").addEventListener("click", () => { pageMain.style.display="none"; pageTaskHistory.style.display="block"; $("#tabTaskHistory").classList.add("active"); $("#tabMain").classList.remove("active"); renderTaskHistory(); });
+  $("#tabMain").addEventListener("click", () => { showPage("main"); });
+  $("#tabTaskHistory").addEventListener("click", () => { showPage("taskHistory"); renderTaskHistory(); });
+  $("#tabSummary").addEventListener("click", () => { showPage("summary"); renderSummaries(); });
+  function showPage(which){
+    pageMain.style.display = which==="main" ? "block":"none";
+    pageTaskHistory.style.display = which==="taskHistory" ? "block":"none";
+    pageSummary.style.display = which==="summary" ? "block":"none";
+    $("#tabMain").classList.toggle("active", which==="main");
+    $("#tabTaskHistory").classList.toggle("active", which==="taskHistory");
+    $("#tabSummary").classList.toggle("active", which==="summary");
+  }
 
   // State
   const state = {
@@ -212,24 +271,21 @@
     quickTasks: [{done:false,text:""},{done:false,text:""},{done:false,text:""}],
   };
 
-  // Query params (for Shortcuts)
-  const url = new URL(window.location.href);
-  const qp = k => url.searchParams.get(k);
-  const sleepMin = qp("sleepMin");
-  if (sleepMin) { const total = parseInt(sleepMin,10)||0; state.sleepH = Math.floor(total/60); state.sleepM = total%60; }
-  state.mood = qp("mood") || state.mood;
-  state.energy = qp("energy") || state.energy;
-  const symptomsQ = qp("symptoms"); if (symptomsQ) state.symptoms = symptomsQ.split(",").filter(Boolean);
-  state.note = qp("note") || state.note;
-
   // UI builders
   const moods = [{v:"🙂",label:"良い"},{v:"😐",label:"ふつう"},{v:"🙁",label:"いまいち"}];
   const energies = ["❤️‍🔥元気","❤️まずまず","❤️‍🩹だるい"];
 
-  // Symptom groups
-  const group1 = ["首・肩こり","頭痛","腰の張り／腰痛","胃腸弱め（胃もたれ・下痢・便秘など）","むくみ","目の疲れ／ドライアイ","花粉・アレルギー症状","腹痛／生理痛","生理","PMS（生理前症状）"];
-  const group2 = ["冷え（手足の冷え・全身）","暑さバテ／熱っぽさ","喉の痛み・声枯れ","鼻水・鼻づまり","肌荒れ／かゆみ","睡眠の質低下（浅い眠り・途中覚醒）"];
-  const group3 = ["集中力低下","イライラ／不安感","だるさ／倦怠感","モチベーション低下"];
+  // Symptom groups (spec from v4)
+  const group1 = [
+    "首・肩こり","頭痛","腹痛／お腹の張り","腰の張り／腰痛","胃腸弱め（胃もたれ・下痢・便秘など）","むくみ","目の疲れ／ドライアイ",
+    "自律神経の乱れ","睡眠の質低下（浅い眠り・途中覚醒）","生理"
+  ];
+  const group2 = [
+    "冷え（手足の冷え・全身）","暑さバテ／熱っぽさ","喉の痛み・声枯れ","鼻水・鼻づまり","肌荒れ／かゆみ","花粉・アレルギー症状"
+  ];
+  const group3 = [
+    "集中力低下","イライラ／不安感","だるさ／倦怠感","モチベーション低下","PMS（生理前症状）"
+  ];
   const allSymptoms = [...group1, ...group2, ...group3];
 
   function buildChips(root, options, isActive, onClick){
@@ -246,13 +302,13 @@
   }
 
   function renderChips(){
-    buildChips($("#moodBtns"), moods, v => state.mood===v, v => { state.mood=v; renderChips(); });
-    buildChips($("#energyBtns"), energies, v => state.energy===v, v => { state.energy=v; renderChips(); });
+    buildChips($("#moodBtns"), moods, v => state.mood===v, v => { state.mood=v; renderChips(); autoSave(); });
+    buildChips($("#energyBtns"), energies, v => state.energy===v, v => { state.energy=v; renderChips(); autoSave(); });
 
     const mk = (id, arr) => buildChips($(id), arr, v => state.symptoms.includes(v), v => {
       if (state.symptoms.includes(v)) state.symptoms = state.symptoms.filter(x=>x!==v);
       else state.symptoms = [...state.symptoms, v];
-      renderChips();
+      renderChips(); autoSave();
     });
     mk("#symptomGroup1", group1);
     mk("#symptomGroup2", group2);
@@ -260,13 +316,24 @@
   }
   renderChips();
 
+  // Query params (for Shortcuts)
+  const url = new URL(window.location.href);
+  const qp = k => url.searchParams.get(k);
+  const sleepMinQ = qp("sleepMin");
+  if (sleepMinQ) { const total = parseInt(sleepMinQ,10)||0; state.sleepH = Math.floor(total/60); state.sleepM = total%60; }
+  state.mood = qp("mood") || state.mood;
+  state.energy = qp("energy") || state.energy;
+  const symptomsQ = qp("symptoms"); if (symptomsQ) state.symptoms = symptomsQ.split(",").filter(Boolean);
+  state.note = qp("note") || state.note;
+
   // Note & Sleep
   const sleepH = $("#sleepH"), sleepM = $("#sleepM"), note = $("#note"), sleepTotal = $("#sleepTotal");
   function updateSleepLabel(){ sleepTotal.textContent = Math.floor(state.sleepH)+"時間"+(state.sleepM%60)+"分"; }
+  function num(v){ return parseInt(v||"0",10) || 0; }
   sleepH.value = state.sleepH; sleepM.value = state.sleepM; note.value = state.note; updateSleepLabel();
-  sleepH.addEventListener("input", () => { state.sleepH = parseInt(sleepH.value||"0",10); updateSleepLabel(); });
-  sleepM.addEventListener("input", () => { state.sleepM = parseInt(sleepM.value||"0",10); updateSleepLabel(); });
-  note.addEventListener("input", () => { state.note = note.value; });
+  sleepH.addEventListener("input", () => { state.sleepH = num(sleepH.value); updateSleepLabel(); autoSave(); });
+  sleepM.addEventListener("input", () => { state.sleepM = num(sleepM.value); updateSleepLabel(); autoSave(); });
+  note.addEventListener("input", () => { state.note = note.value; autoSave(); });
 
   // Quick tasks
   const qtElems = [
@@ -278,8 +345,8 @@
     qtElems.forEach((q,i)=>{
       q.c.checked = !!state.quickTasks[i]?.done;
       q.t.value = state.quickTasks[i]?.text || "";
-      q.c.onchange = () => { state.quickTasks[i].done = q.c.checked; };
-      q.t.oninput = () => { state.quickTasks[i].text = q.t.value; };
+      q.c.onchange = () => { state.quickTasks[i].done = q.c.checked; autoSave(); };
+      q.t.oninput = () => { state.quickTasks[i].text = q.t.value; autoSave(); };
     });
     // copy link handlers
     $$("#quickTasks .linklike").forEach(el => {
@@ -317,6 +384,7 @@
       const c=data.current_weather;
       state.weather={ temp:c.temperature, wind:c.windspeed, code:c.weathercode, condition:wxCodeToText(c.weathercode), time:c.time };
       renderWeather();
+      autoSave();
     }).catch(e=>{ wxError.textContent="天気の取得に失敗しました。"; }).finally(()=>{ wxLoading.style.display="none"; });
   }
   function askGeo(){
@@ -331,12 +399,31 @@
   $("#retryWx").addEventListener("click", askGeo);
   askGeo();
 
-  // Storage utilities
-  const logsKey = "md_logs_v2";
-  const taskHistoryKey = "md_task_history_v1"; // [{date:"YYYY/MM/DD", tasks:[{text, from:"quick", savedAt}]}]
+  // Storage + Migration
+  const LOGS_KEY = "md_logs_v2"; // stable
+  const OLD_KEYS = ["md_logs"]; // migrate from these if exists
+  const TASK_HIST_KEY = "md_task_history_v1";
 
-  function loadAllLogs(){ return JSON.parse(localStorage.getItem(logsKey) || "[]"); }
-  function saveAllLogs(arr){ localStorage.setItem(logsKey, JSON.stringify(arr)); }
+  function loadAllLogs(){ return JSON.parse(localStorage.getItem(LOGS_KEY) || "[]"); }
+  function saveAllLogs(arr){ localStorage.setItem(LOGS_KEY, JSON.stringify(arr)); }
+  function migrateIfNeeded(){
+    if (loadAllLogs().length) return;
+    let merged = [];
+    OLD_KEYS.forEach(k => {
+      const v = JSON.parse(localStorage.getItem(k) || "[]");
+      if (Array.isArray(v) && v.length) merged = merged.concat(v);
+    });
+    if (merged.length){
+      // normalize: unique by date
+      const map = new Map();
+      merged.forEach(l => { if (l && l.date) map.set(l.date, l); });
+      const arr = Array.from(map.values()).sort((a,b)=> (a.date < b.date ? 1 : -1));
+      saveAllLogs(arr);
+      localStorage.setItem(LOGS_KEY+"_migrated_from", JSON.stringify(OLD_KEYS));
+    }
+  }
+  migrateIfNeeded();
+
   function loadLog(dateKey){ const logs = loadAllLogs(); return logs.find(l => l.date === dateKey) || null; }
   function upsertLog(payload){
     const logs = loadAllLogs();
@@ -344,8 +431,8 @@
     saveAllLogs([payload, ...rest].sort((a,b)=> (a.date < b.date ? 1 : -1)));
   }
 
-  function loadTaskHistory(){ return JSON.parse(localStorage.getItem(taskHistoryKey) || "[]"); }
-  function saveTaskHistory(arr){ localStorage.setItem(taskHistoryKey, JSON.stringify(arr)); }
+  function loadTaskHistory(){ return JSON.parse(localStorage.getItem(TASK_HIST_KEY) || "[]"); }
+  function saveTaskHistory(arr){ localStorage.setItem(TASK_HIST_KEY, JSON.stringify(arr)); }
 
   function saveUnfinishedTasksToHistory(dateKey){
     const unfinished = state.quickTasks.filter(x => x.text && !x.done).map(x => ({text:x.text, from:"quick", savedAt: Date.now()}));
@@ -356,35 +443,27 @@
     return unfinished.length;
   }
 
-  function renderTaskHistory(){
-    const root = $("#taskHistoryList"); root.innerHTML = "";
-    const hist = loadTaskHistory();
-    if (hist.length === 0){ const p=document.createElement("p"); p.className="text muted"; p.textContent="未完了の保管タスクはありません。"; root.appendChild(p); return; }
-    hist.forEach(day => {
-      const box=document.createElement("div"); box.className="card"; box.style.marginTop="8px";
-      const head=document.createElement("div"); head.className="text"; head.innerHTML = `<span class="muted">${day.date}</span>`;
-      const list=document.createElement("ul"); list.className="list";
-      day.tasks.forEach((t,idx) => {
-        const li=document.createElement("li");
-        const span=document.createElement("span"); span.textContent=t.text; span.style.flex="1";
-        const copy=document.createElement("button"); copy.className="btn small"; copy.textContent="コピー";
-        copy.onclick=async()=>{ try{ await navigator.clipboard.writeText(t.text); alert("コピーしました"); }catch(e){ alert(t.text); } };
-        const del=document.createElement("button"); del.className="btn small"; del.textContent="削除";
-        del.onclick=()=>{
-          const h = loadTaskHistory();
-          const target = h.find(x => x.date === day.date);
-          if (!target) return;
-          target.tasks.splice(idx,1);
-          const cleaned = target.tasks.length ? h : h.filter(x => x.date !== day.date);
-          saveTaskHistory(cleaned);
-          renderTaskHistory();
-        };
-        li.appendChild(span); li.appendChild(copy); li.appendChild(del);
-        list.appendChild(li);
-      });
-      box.appendChild(head); box.appendChild(list);
-      root.appendChild(box);
-    });
+  // Auto-save (debounced)
+  let saveTimer=null;
+  function autoSave(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      const payload = {
+        date: currentDateKey,
+        mood: state.mood,
+        energy: state.energy,
+        symptoms: state.symptoms,
+        sleepMin: (parseInt(state.sleepH,10)||0)*60 + (parseInt(state.sleepM,10)||0),
+        note: state.note,
+        weather: state.weather,
+        quickTasks: state.quickTasks,
+        ts: Date.now()
+      };
+      upsertLog(payload);
+      renderHistory();
+      renderMiniCalendar();
+      renderSummaries();
+    }, 800);
   }
 
   // Load form from log
@@ -438,7 +517,7 @@
         if (!confirm(`${l.date} の記録を削除しますか？`)) return;
         const rest = loadAllLogs().filter(x => x.date !== l.date);
         saveAllLogs(rest);
-        renderHistory();
+        renderHistory(); renderMiniCalendar(); renderSummaries();
         if (currentDateKey === l.date){ currentDateKey = todayKey; loadLogToForm(loadLog(todayKey)); }
       });
       actions.appendChild(editBtn); actions.appendChild(delBtn);
@@ -451,8 +530,80 @@
       historyRoot.appendChild(box);
     });
   }
-  renderHistory();
-  $("#reloadHistory").addEventListener("click", renderHistory);
+
+  // Mini Calendar
+  let calMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  function renderMiniCalendar(){
+    $("#calLabel").textContent = `${calMonth.getFullYear()}年 ${calMonth.getMonth()+1}月`;
+    const root = $("#miniCalendar");
+    root.innerHTML="";
+    const firstDow = new Date(calMonth.getFullYear(), calMonth.getMonth(), 1).getDay();
+    const daysInMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 0).getDate();
+    for (let i=0;i<firstDow;i++){ const pad=document.createElement("div"); root.appendChild(pad); }
+    const logs = loadAllLogs();
+    const byDate = new Map(logs.map(l => [l.date, l]));
+    for (let d=1; d<=daysInMonth; d++){
+      const cell=document.createElement("div"); cell.className="cal-cell";
+      const date = new Date(calMonth.getFullYear(), calMonth.getMonth(), d);
+      const key = toKey(date);
+      if (key===toKey(new Date())) cell.classList.add("today");
+      cell.innerHTML = `${d}<span class="dot"></span>`;
+      const dot = cell.querySelector(".dot");
+      const rec = byDate.get(key);
+      if (rec){
+        const e = rec.energy||"";
+        if (e.includes("❤️‍🔥")) dot.style.background = "#be123c";
+        else if (e.includes("❤️まず")) dot.style.background = "#f43f5e";
+        else if (e.includes("❤️‍🩹")) dot.style.background = "#fecaca";
+      }
+      cell.addEventListener("click", () => {
+        currentDateKey = key; loadLogToForm(rec||null);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+      root.appendChild(cell);
+    }
+  }
+  $("#prevMonth").addEventListener("click", () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()-1, 1); renderMiniCalendar(); });
+  $("#nextMonth").addEventListener("click", () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 1); renderMiniCalendar(); });
+
+  // Summaries
+  function computeSummary(days){
+    const logs = loadAllLogs();
+    const now = new Date();
+    const start = new Date(now.getTime() - days*24*3600*1000);
+    const inRange = logs.filter(l => {
+      const [y,m,d] = l.date.split("/").map(Number);
+      const dt = new Date(y, m-1, d);
+      return dt >= start && dt <= now;
+    });
+    const sleep = inRange.map(l => l.sleepMin||0);
+    const avgSleepH = sleep.length ? (sleep.reduce((a,b)=>a+b,0)/sleep.length)/60 : 0;
+    const energies = {"❤️‍🔥元気":0,"❤️まずまず":0,"❤️‍🩹だるい":0};
+    inRange.forEach(l=>{ if (l.energy && energies.hasOwnProperty(l.energy)) energies[l.energy]++; });
+    const symCount = {};
+    inRange.forEach(l => (l.symptoms||[]).forEach(s => { symCount[s]=(symCount[s]||0)+1; }));
+    const topSymptoms = Object.entries(symCount).sort((a,b)=>b[1]-a[1]).slice(0,3);
+
+    const qDone = inRange.reduce((acc,l)=> acc + (l.quickTasks||[]).filter(t=>t && t.done).length, 0);
+    const qTotal = inRange.reduce((acc,l)=> acc + (l.quickTasks||[]).filter(t=>t && t.text).length, 0);
+    const taskRate = qTotal ? Math.round((qDone/qTotal)*100) : 0;
+
+    return { avgSleepH, energies, topSymptoms, taskRate, count: inRange.length };
+  }
+  function renderSummaryBlock(el, s){
+    el.innerHTML = "";
+    const p1 = document.createElement("p");
+    p1.innerHTML = `平均睡眠：<b>${(s.avgSleepH).toFixed(1)}h</b>　達成率：<b>${s.taskRate}%</b>`;
+    const p2 = document.createElement("p");
+    p2.innerHTML = `元気度：<span class="pill">❤️‍🔥 ${s.energies["❤️‍🔥元気"]||0}</span><span class="pill">❤️ ${s.energies["❤️まずまず"]||0}</span><span class="pill">❤️‍🩹 ${s.energies["❤️‍🩹だるい"]||0}</span>`;
+    const p3 = document.createElement("p");
+    p3.textContent = "症状TOP3：" + (s.topSymptoms.length ? s.topSymptoms.map(([k,v])=>`${k} (${v})`).join(" / ") : "—");
+    el.appendChild(p1); el.appendChild(p2); el.appendChild(p3);
+  }
+  function renderSummaries(){
+    renderSummaryBlock($("#weeklySummary"), computeSummary(7));
+    renderSummaryBlock($("#monthlySummary"), computeSummary(30));
+  }
 
   // Date change
   datePicker.addEventListener("change", () => {
@@ -474,31 +625,92 @@
     catch(e){ alert(u.toString()); }
   });
 
-  // Close day: save unfinished to Task History
+  // Close day: auto-save + unfinished -> history
   $("#closeDay").addEventListener("click", () => {
+    const payload = {
+      date: currentDateKey, mood: state.mood, energy: state.energy, symptoms: state.symptoms,
+      sleepMin: (parseInt(state.sleepH,10)||0)*60 + (parseInt(state.sleepM,10)||0),
+      note: state.note, weather: state.weather, quickTasks: state.quickTasks, ts: Date.now()
+    };
+    upsertLog(payload);
     const count = saveUnfinishedTasksToHistory(currentDateKey);
-    alert(count ? `${count}件の未完了タスクを履歴に保存しました` : "未完了のタスクはありません");
+    alert(`保存しました。未完了タスク ${count} 件をタスク履歴に保管しました。`);
+    renderHistory(); renderMiniCalendar(); renderSummaries();
   });
 
-  // Save
+  // Manual save
   $("#saveLog").addEventListener("click", () => {
     const payload = {
-      date: currentDateKey,
-      mood: state.mood,
-      energy: state.energy,
-      symptoms: state.symptoms,
+      date: currentDateKey, mood: state.mood, energy: state.energy, symptoms: state.symptoms,
       sleepMin: (parseInt(state.sleepH,10)||0)*60 + (parseInt(state.sleepM,10)||0),
-      note: state.note,
-      weather: state.weather,
-      quickTasks: state.quickTasks,
-      ts: Date.now()
+      note: state.note, weather: state.weather, quickTasks: state.quickTasks, ts: Date.now()
     };
     upsertLog(payload);
     alert(`${currentDateKey} の記録を保存しました`);
-    renderHistory();
+    renderHistory(); renderMiniCalendar(); renderSummaries();
   });
 
-  // CSV
+  // Task history
+  function renderTaskHistory(){
+    const root = $("#taskHistoryList"); root.innerHTML = "";
+    const hist = loadTaskHistory();
+    const q = ($("#thSearch").value || "").trim();
+    const dateFilter = $("#thDate").value; // yyyy-mm-dd
+    const toKeyFromInput = (s) => (!s ? null : toKey(fromInputDate(s)));
+    const fDateKey = toKeyFromInput(dateFilter);
+
+    const filtered = hist
+      .map(day => ({
+        date: day.date,
+        tasks: day.tasks.filter(t => q ? t.text.includes(q) : true)
+      }))
+      .filter(day => day.tasks.length > 0)
+      .filter(day => fDateKey ? (day.date === fDateKey) : true);
+
+    if (filtered.length === 0){
+      const p=document.createElement("p"); p.className="text muted"; p.textContent="該当するタスクはありません。"; root.appendChild(p); return;
+    }
+
+    filtered.forEach(day => {
+      const box=document.createElement("div"); box.className="card"; box.style.marginTop="8px";
+      const head=document.createElement("div"); head.className="text"; head.innerHTML = `<span class="muted">${day.date}</span>`;
+      const list=document.createElement("ul"); list.className="list";
+      day.tasks.forEach((t,idx) => {
+        const li=document.createElement("li");
+        const span=document.createElement("span"); span.textContent=t.text; span.style.flex="1";
+        const add=document.createElement("button"); add.className="btn small"; add.textContent="今日に追加";
+        add.onclick=()=>{
+          const emptyIdx = state.quickTasks.findIndex(x => !x.text);
+          if (emptyIdx === -1){ alert("今日のクイックタスクは3枠とも埋まっています"); return; }
+          state.quickTasks[emptyIdx] = {done:false, text:t.text};
+          currentDateKey = toKey(new Date()); renderHeader();
+          renderQuickTasks(); autoSave();
+          alert("今日のタスクに追加しました");
+        };
+        const copy=document.createElement("button"); copy.className="btn small"; copy.textContent="コピー";
+        copy.onclick=async()=>{ try{ await navigator.clipboard.writeText(t.text); alert("コピーしました"); }catch(e){ alert(t.text); } };
+        const del=document.createElement("button"); del.className="btn small"; del.textContent="削除";
+        del.onclick=()=>{
+          const h = loadTaskHistory();
+          const target = h.find(x => x.date === day.date);
+          if (!target) return;
+          target.tasks.splice(idx,1);
+          const cleaned = target.tasks.length ? h : h.filter(x => x.date !== day.date);
+          saveTaskHistory(cleaned);
+          renderTaskHistory();
+        };
+        li.appendChild(span); li.appendChild(add); li.appendChild(copy); li.appendChild(del);
+        list.appendChild(li);
+      });
+      box.appendChild(head); box.appendChild(list);
+      root.appendChild(box);
+    });
+  }
+  $("#thSearch").addEventListener("input", renderTaskHistory);
+  $("#thDate").addEventListener("change", renderTaskHistory);
+  $("#thClear").addEventListener("click", () => { $("#thSearch").value=""; $("#thDate").value=""; renderTaskHistory(); });
+
+  // CSV / JSON
   $("#exportCSV").addEventListener("click", () => {
     const logs = loadAllLogs();
     const rows = [
@@ -518,6 +730,49 @@
     a.href = URL.createObjectURL(blob);
     a.download = `morning_logs_${Date.now()}.csv`;
     document.body.appendChild(a); a.click(); a.remove();
+  });
+
+  $("#exportJSON").addEventListener("click", () => {
+    const data = { logs: loadAllLogs(), taskHistory: loadTaskHistory(), exportedAt: Date.now(), version: "v5" };
+    const blob = new Blob([JSON.stringify(data,null,2)], { type:"application/json;charset=utf-8;" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `morningdash_backup_${Date.now()}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+
+  $("#importJSON").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const text = await file.text();
+    try {
+      const json = JSON.parse(text);
+      if (json.logs && Array.isArray(json.logs)) saveAllLogs(json.logs);
+      if (json.taskHistory && Array.isArray(json.taskHistory)) saveTaskHistory(json.taskHistory);
+      alert("インポートしました");
+      renderHistory(); renderMiniCalendar(); renderSummaries(); renderTaskHistory();
+      // 今日のフォームを再描画
+      loadLogToForm(loadLog(todayKey));
+    } catch (err){
+      alert("読み込みに失敗しました：JSON形式を確認してください");
+    }
+  });
+
+  // Initial render
+  function initialRender(){
+    // Initial migration already ran
+    renderHistory();
+    renderMiniCalendar();
+    renderSummaries();
+    loadLogToForm(loadLog(todayKey));
+  }
+  initialRender();
+
+  // Date change
+  datePicker.addEventListener("change", () => {
+    const d = fromInputDate(datePicker.value);
+    currentDateKey = toKey(d);
+    loadLogToForm(loadLog(currentDateKey));
   });
 })();
 </script>
