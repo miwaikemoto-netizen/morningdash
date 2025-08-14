@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MorningDash — v5（サマリー＋ミニカレンダー＋安定保存）</title>
+<title>MorningDash — v7（グラフ＋ヘルスショートカット案）</title>
 <meta name="theme-color" content="#0f172a">
 <style>
   :root{ --bg1:#ffffff;--bg2:#f1f5f9;--fg:#0f172a;--muted:#64748b;--accent:#0f172a;--card:#ffffff;--border:#e5e7eb; }
@@ -13,6 +13,7 @@
   .container{max-width:980px;margin:0 auto;padding:16px;}
   h1{font-size:28px;margin:0 0 8px 0;font-weight:700}
   h2{font-size:18px;margin:0 0 8px 0;font-weight:600}
+  h3{font-size:14px;margin:0 0 6px 0;font-weight:600}
   .muted{opacity:.7}
   .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
   .row{display:flex;gap:16px;flex-wrap:wrap}
@@ -26,7 +27,6 @@
   .text{font-size:14px}
   .list{list-style:none;padding:0;margin:0}
   .list li{display:flex;align-items:center;gap:8px;padding:4px 0}
-  .strike{ text-decoration: line-through; opacity:.6 }
   .footer{font-size:12px;opacity:.6;margin-top:24px;line-height:1.6}
   .titlebar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
   .number{width:64px;text-align:center}
@@ -43,14 +43,23 @@
   .tab{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#fff;cursor:pointer}
   .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
   .filterbar{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-  .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-  .cal-cell{border:1px solid var(--border);border-radius:10px;padding:6px;text-align:center;cursor:pointer;background:#fff}
-  .cal-cell.today{border-color:#0f172a}
-  .cal-cell .dot{display:block;width:8px;height:8px;border-radius:50%;margin:4px auto 0 auto;background:#cbd5e1}
-  .cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+  /* Mini calendar (compact) */
+  .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cal-cell{border:1px solid var(--border);border-radius:10px;padding:4px 2px;text-align:center;cursor:pointer;background:#fff;font-size:12px;line-height:1.1}
+  .cal-cell.today{border-color:#0f172a; border-width:2px}
+  .cal-cell .dot{display:block;width:7px;height:7px;border-radius:50%;margin:4px auto 0 auto;background:#cbd5e1}
+  .cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
   .cal-head div{font-size:12px;text-align:center;opacity:.7}
-  .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
   .pill{display:inline-block;padding:2px 8px;border:1px solid var(--border);border-radius:999px;font-size:12px;margin-right:6px}
+  /* Charts */
+  .chart{width:100%; height:180px; border:1px solid var(--border); border-radius:12px; background:#fff; overflow:hidden}
+  .chart svg{width:100%; height:100%; display:block}
+  .chart .axis{stroke:#cbd5e1; stroke-width:1}
+  .chart text{fill:#64748b; font-size:10px}
+  .chart .bar{fill:#94a3b8}
+  .chart .line{fill:none; stroke:#334155; stroke-width:2}
+  .chart .dot{fill:#334155}
 </style>
 </head>
 <body>
@@ -67,7 +76,7 @@
     <div class="tabs">
       <button id="tabMain" class="tab active">メイン</button>
       <button id="tabTaskHistory" class="tab">タスク履歴</button>
-      <button id="tabSummary" class="tab">サマリー</button>
+      <button id="tabSummary" class="tab">まとめ</button>
     </div>
 
     <div id="pageMain">
@@ -138,6 +147,18 @@
           </div>
           <div class="text muted" style="margin-bottom:6px">※ ショートカット連携で自動入力（?sleepMin=合計分）</div>
           <div class="text">合計：<b id="sleepTotal">0時間0分</b></div>
+
+          <div class="card" style="margin-top:12px">
+            <h3>ヘルス（任意）</h3>
+            <div class="row" style="align-items:center">
+              <span>体重</span><input id="weight" class="input number" type="number" step="0.1" min="0" style="width:90px"><span>kg</span>
+              <span>体脂肪</span><input id="bodyFat" class="input number" type="number" step="0.1" min="0" max="100" style="width:90px"><span>%</span>
+            </div>
+            <div class="row" style="align-items:center;margin-top:8px">
+              <button id="copyHealthShortcut" class="btn small">ヘルス取り込みショートカット用URLをコピー</button>
+            </div>
+            <div class="text muted" style="margin-top:6px">※ ショートカットでヘルスケアから取得→URLで <code>?sleepMin=&weight=&bodyFat=</code> を渡すと自動入力</div>
+          </div>
         </div>
       </section>
 
@@ -196,15 +217,19 @@
 
     <div id="pageSummary" style="display:none">
       <section class="card">
-        <div class="titlebar"><h2>週間・月間サマリー</h2></div>
+        <div class="titlebar"><h2>まとめ（週間・月間）</h2></div>
         <div class="summary-grid">
           <div>
-            <h3>直近7日</h3>
-            <div id="weeklySummary" class="text"></div>
+            <h3>直近7日：睡眠（時間）</h3>
+            <div id="chartSleep7" class="chart"></div>
           </div>
           <div>
-            <h3>直近30日</h3>
-            <div id="monthlySummary" class="text"></div>
+            <h3>直近30日：元気度カウント</h3>
+            <div id="chartEnergy30" class="chart"></div>
+          </div>
+          <div>
+            <h3>直近30日：体重（折れ線）</h3>
+            <div id="chartWeight30" class="chart"></div>
           </div>
         </div>
       </section>
@@ -212,7 +237,7 @@
 
     <div class="footer">
       <p>Tips: 共有 → ホーム画面に追加 でアプリ風に使えます。</p>
-      <p class="muted">保存場所はこの端末のブラウザ（localStorage/IndexedDB）。バージョンアップしても同じURL/ドメインなら継続利用されます。</p>
+      <p class="muted">保存場所はこの端末のブラウザ（localStorage）。同じURLならアップデートしても履歴は継続利用されます。</p>
     </div>
   </div>
 
@@ -222,10 +247,7 @@
   const $$ = (s) => Array.from(document.querySelectorAll(s));
   const today = new Date();
   const toKey = d => d.toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo"});
-  const toInputDate = d => {
-    const z = n => String(n).padStart(2,"0");
-    return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
-  };
+  const toInputDate = d => { const z = n => String(n).padStart(2,"0"); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`; };
   const fromInputDate = s => { const [y,m,da] = s.split("-").map(Number); return new Date(y, m-1, da); };
 
   const todayKey = toKey(today);
@@ -249,7 +271,7 @@
   // Tabs
   $("#tabMain").addEventListener("click", () => { showPage("main"); });
   $("#tabTaskHistory").addEventListener("click", () => { showPage("taskHistory"); renderTaskHistory(); });
-  $("#tabSummary").addEventListener("click", () => { showPage("summary"); renderSummaries(); });
+  $("#tabSummary").addEventListener("click", () => { showPage("summary"); renderCharts(); });
   function showPage(which){
     pageMain.style.display = which==="main" ? "block":"none";
     pageTaskHistory.style.display = which==="taskHistory" ? "block":"none";
@@ -267,6 +289,8 @@
     note: "",
     sleepH: 0,
     sleepM: 0,
+    weight: null,
+    bodyFat: null,
     weather: null,
     quickTasks: [{done:false,text:""},{done:false,text:""},{done:false,text:""}],
   };
@@ -275,7 +299,7 @@
   const moods = [{v:"🙂",label:"良い"},{v:"😐",label:"ふつう"},{v:"🙁",label:"いまいち"}];
   const energies = ["❤️‍🔥元気","❤️まずまず","❤️‍🩹だるい"];
 
-  // Symptom groups (spec from v4)
+  // Symptom groups
   const group1 = [
     "首・肩こり","頭痛","腹痛／お腹の張り","腰の張り／腰痛","胃腸弱め（胃もたれ・下痢・便秘など）","むくみ","目の疲れ／ドライアイ",
     "自律神経の乱れ","睡眠の質低下（浅い眠り・途中覚醒）","生理"
@@ -325,15 +349,21 @@
   state.energy = qp("energy") || state.energy;
   const symptomsQ = qp("symptoms"); if (symptomsQ) state.symptoms = symptomsQ.split(",").filter(Boolean);
   state.note = qp("note") || state.note;
+  const weightQ = qp("weight"); if (weightQ) state.weight = parseFloat(weightQ);
+  const bodyFatQ = qp("bodyFat"); if (bodyFatQ) state.bodyFat = parseFloat(bodyFatQ);
 
-  // Note & Sleep
+  // Note & Sleep & Health
   const sleepH = $("#sleepH"), sleepM = $("#sleepM"), note = $("#note"), sleepTotal = $("#sleepTotal");
+  const weight = $("#weight"), bodyFat = $("#bodyFat");
   function updateSleepLabel(){ sleepTotal.textContent = Math.floor(state.sleepH)+"時間"+(state.sleepM%60)+"分"; }
-  function num(v){ return parseInt(v||"0",10) || 0; }
+  function num(v){ return parseFloat(v||"0") || 0; }
   sleepH.value = state.sleepH; sleepM.value = state.sleepM; note.value = state.note; updateSleepLabel();
-  sleepH.addEventListener("input", () => { state.sleepH = num(sleepH.value); updateSleepLabel(); autoSave(); });
-  sleepM.addEventListener("input", () => { state.sleepM = num(sleepM.value); updateSleepLabel(); autoSave(); });
+  weight.value = state.weight ?? ""; bodyFat.value = state.bodyFat ?? "";
+  sleepH.addEventListener("input", () => { state.sleepH = parseInt(sleepH.value||"0",10) || 0; updateSleepLabel(); autoSave(); });
+  sleepM.addEventListener("input", () => { state.sleepM = parseInt(sleepM.value||"0",10) || 0; updateSleepLabel(); autoSave(); });
   note.addEventListener("input", () => { state.note = note.value; autoSave(); });
+  weight.addEventListener("input", () => { state.weight = weight.value===""?null:num(weight.value); autoSave(); });
+  bodyFat.addEventListener("input", () => { state.bodyFat = bodyFat.value===""?null:num(bodyFat.value); autoSave(); });
 
   // Quick tasks
   const qtElems = [
@@ -367,8 +397,17 @@
   function renderWeather(){
     wxBlock.innerHTML="";
     if (!state.weather){ const p=document.createElement("p"); p.className="text muted"; p.textContent="位置情報の許可後、自動表示されます。"; wxBlock.appendChild(p); return; }
-    const big=document.createElement("div"); big.style.fontSize="48px"; big.style.fontWeight="600"; big.textContent=Math.round(state.weather.temp)+"°C";
-    const small=document.createElement("div"); small.className="text"; small.innerHTML="状況："+state.weather.condition+"<br>風速："+Math.round(state.weather.wind)+" m/s<br><span class='muted'>更新："+new Date(state.weather.time).toLocaleTimeString("ja-JP",{timeZone:"Asia/Tokyo"})+"</span>";
+    const big=document.createElement("div"); big.style.fontSize="44px"; big.style.fontWeight="600"; big.textContent=Math.round(state.weather.temp)+"°C";
+    const small=document.createElement("div"); small.className="text";
+    const lines = [];
+    lines.push("状況："+state.weather.condition);
+    if (state.weather.appTemp!=null) lines.push("体感："+Math.round(state.weather.appTemp)+"°C");
+    lines.push("風速："+Math.round(state.weather.wind)+" m/s");
+    if (state.weather.humidity!=null) lines.push("湿度："+Math.round(state.weather.humidity)+"%");
+    if (state.weather.pop!=null) lines.push("降水確率（今）："+state.weather.pop+"%");
+    if (state.weather.sunrise && state.weather.sunset) lines.push("日の出："+state.weather.sunrise+"／日の入り："+state.weather.sunset);
+    lines.push("<span class='muted'>更新："+new Date(state.weather.time).toLocaleTimeString("ja-JP",{timeZone:"Asia/Tokyo"})+"</span>");
+    small.innerHTML = lines.join("<br>");
     const wrap=document.createElement("div"); wrap.className="row"; wrap.appendChild(big); wrap.appendChild(small);
     wxBlock.appendChild(wrap);
   }
@@ -378,13 +417,24 @@
     u.searchParams.set("latitude", lat);
     u.searchParams.set("longitude", lon);
     u.searchParams.set("current_weather","true");
-    u.searchParams.set("hourly","precipitation_probability");
+    u.searchParams.set("hourly","precipitation_probability,relativehumidity_2m");
+    u.searchParams.set("daily","sunrise,sunset");
     u.searchParams.set("timezone","Asia/Tokyo");
     fetch(u.toString()).then(r=>r.json()).then(data=>{
       const c=data.current_weather;
-      state.weather={ temp:c.temperature, wind:c.windspeed, code:c.weathercode, condition:wxCodeToText(c.weathercode), time:c.time };
-      renderWeather();
-      autoSave();
+      const times = (data.hourly && data.hourly.time) || [];
+      const nowISO = c.time;
+      const idx = times.indexOf(nowISO);
+      const hum = (idx>-1 && data.hourly.relativehumidity_2m) ? data.hourly.relativehumidity_2m[idx] : null;
+      const pop = (idx>-1 && data.hourly.precipitation_probability) ? data.hourly.precipitation_probability[idx] : null;
+      const sunrise = (data.daily && data.daily.sunrise) ? data.daily.sunrise[0]?.split("T")[1]?.slice(0,5) : null;
+      const sunset  = (data.daily && data.daily.sunset)  ? data.daily.sunset[0]?.split("T")[1]?.slice(0,5) : null;
+      state.weather={
+        temp:c.temperature, wind:c.windspeed, code:c.weathercode, condition:wxCodeToText(c.weathercode), time:c.time,
+        appTemp: c.apparent_temperature ?? null,
+        humidity: hum, pop: pop, sunrise: sunrise, sunset: sunset
+      };
+      renderWeather(); autoSave();
     }).catch(e=>{ wxError.textContent="天気の取得に失敗しました。"; }).finally(()=>{ wxLoading.style.display="none"; });
   }
   function askGeo(){
@@ -399,31 +449,12 @@
   $("#retryWx").addEventListener("click", askGeo);
   askGeo();
 
-  // Storage + Migration
-  const LOGS_KEY = "md_logs_v2"; // stable
-  const OLD_KEYS = ["md_logs"]; // migrate from these if exists
+  // Storage + Keys (stable)
+  const LOGS_KEY = "md_logs_v2";
   const TASK_HIST_KEY = "md_task_history_v1";
 
   function loadAllLogs(){ return JSON.parse(localStorage.getItem(LOGS_KEY) || "[]"); }
   function saveAllLogs(arr){ localStorage.setItem(LOGS_KEY, JSON.stringify(arr)); }
-  function migrateIfNeeded(){
-    if (loadAllLogs().length) return;
-    let merged = [];
-    OLD_KEYS.forEach(k => {
-      const v = JSON.parse(localStorage.getItem(k) || "[]");
-      if (Array.isArray(v) && v.length) merged = merged.concat(v);
-    });
-    if (merged.length){
-      // normalize: unique by date
-      const map = new Map();
-      merged.forEach(l => { if (l && l.date) map.set(l.date, l); });
-      const arr = Array.from(map.values()).sort((a,b)=> (a.date < b.date ? 1 : -1));
-      saveAllLogs(arr);
-      localStorage.setItem(LOGS_KEY+"_migrated_from", JSON.stringify(OLD_KEYS));
-    }
-  }
-  migrateIfNeeded();
-
   function loadLog(dateKey){ const logs = loadAllLogs(); return logs.find(l => l.date === dateKey) || null; }
   function upsertLog(payload){
     const logs = loadAllLogs();
@@ -454,6 +485,8 @@
         energy: state.energy,
         symptoms: state.symptoms,
         sleepMin: (parseInt(state.sleepH,10)||0)*60 + (parseInt(state.sleepM,10)||0),
+        weight: state.weight,
+        bodyFat: state.bodyFat,
         note: state.note,
         weather: state.weather,
         quickTasks: state.quickTasks,
@@ -462,8 +495,9 @@
       upsertLog(payload);
       renderHistory();
       renderMiniCalendar();
-      renderSummaries();
-    }, 800);
+      // charts auto-update if summary tab open
+      if ($("#pageSummary").style.display !== "none") renderCharts();
+    }, 700);
   }
 
   // Load form from log
@@ -471,18 +505,22 @@
     if (!log){
       state.mood=""; state.energy=""; state.symptoms=[]; state.note="";
       state.sleepH=0; state.sleepM=0;
+      state.weight=null; state.bodyFat=null;
       state.quickTasks=[{done:false,text:""},{done:false,text:""},{done:false,text:""}];
     } else {
       state.mood = log.mood||"";
       state.energy = log.energy||"";
       state.symptoms = Array.isArray(log.symptoms) ? log.symptoms.filter(s => allSymptoms.includes(s)) : [];
       const sm = parseInt(log.sleepMin||0,10); state.sleepH = Math.floor(sm/60); state.sleepM = sm%60;
+      state.weight = (log.weight ?? null);
+      state.bodyFat = (log.bodyFat ?? null);
       state.note = log.note||"";
       state.weather = log.weather || state.weather;
       state.quickTasks = Array.isArray(log.quickTasks) && log.quickTasks.length===3 ? log.quickTasks : [{done:false,text:""},{done:false,text:""},{done:false,text:""}];
     }
     renderChips();
-    sleepH.value = state.sleepH; sleepM.value = state.sleepM; note.value = state.note; updateSleepLabel();
+    $("#sleepH").value = state.sleepH; $("#sleepM").value = state.sleepM; $("#note").value = state.note; updateSleepLabel();
+    $("#weight").value = state.weight ?? ""; $("#bodyFat").value = state.bodyFat ?? "";
     renderQuickTasks();
     renderHeader();
   }
@@ -499,7 +537,9 @@
       const row=document.createElement("div"); row.className="row text"; row.style.marginTop="6px";
       row.innerHTML = `<div>気分：${l.mood||"—"}</div>
                        <div>元気度：${l.energy||"—"}</div>
-                       <div>睡眠：${Math.floor((l.sleepMin||0)/60)}時間${(l.sleepMin||0)%60}分</div>`;
+                       <div>睡眠：${Math.floor((l.sleepMin||0)/60)}時間${(l.sleepMin||0)%60}分</div>
+                       ${l.weight!=null?`<div>体重：${l.weight}kg</div>`:""}
+                       ${l.bodyFat!=null?`<div>体脂肪：${l.bodyFat}%</div>`:""}`;
       const tags = document.createElement("div"); tags.className="text"; if (l.symptoms && l.symptoms.length){ tags.textContent="体調："+l.symptoms.join("、 "); }
       const memo = document.createElement("div"); memo.className="text"; if (l.note){ memo.textContent="メモ："+l.note; }
       const qts = document.createElement("div"); qts.className="text";
@@ -517,7 +557,9 @@
         if (!confirm(`${l.date} の記録を削除しますか？`)) return;
         const rest = loadAllLogs().filter(x => x.date !== l.date);
         saveAllLogs(rest);
-        renderHistory(); renderMiniCalendar(); renderSummaries();
+        renderHistory();
+        if ($("#pageSummary").style.display !== "none") renderCharts();
+        renderMiniCalendar();
         if (currentDateKey === l.date){ currentDateKey = todayKey; loadLogToForm(loadLog(todayKey)); }
       });
       actions.appendChild(editBtn); actions.appendChild(delBtn);
@@ -566,43 +608,90 @@
   $("#prevMonth").addEventListener("click", () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()-1, 1); renderMiniCalendar(); });
   $("#nextMonth").addEventListener("click", () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 1); renderMiniCalendar(); });
 
-  // Summaries
-  function computeSummary(days){
+  // Charts (SVG)
+  function clear(el){ el.innerHTML=""; }
+  function createSVG(w,h){ const s=document.createElementNS("http://www.w3.org/2000/svg","svg"); s.setAttribute("viewBox",`0 0 ${w} ${h}`); return s; }
+  function drawAxes(svg,w,h,margin){ const g=document.createElementNS(svg.namespaceURI,"g"); const ax=document.createElementNS(svg.namespaceURI,"line"); ax.setAttribute("x1",margin.left); ax.setAttribute("y1",h-margin.bottom); ax.setAttribute("x2",w-margin.right); ax.setAttribute("y2",h-margin.bottom); ax.setAttribute("class","axis"); g.appendChild(ax); const ay=document.createElementNS(svg.namespaceURI,"line"); ay.setAttribute("x1",margin.left); ay.setAttribute("y1",margin.top); ay.setAttribute("x2",margin.left); ay.setAttribute("y2",h-margin.bottom); ay.setAttribute("class","axis"); g.appendChild(ay); svg.appendChild(g); }
+  function drawBars(el, labels, values, maxY){
+    const w=400,h=180, m={top:10,right:10,bottom:20,left:26};
+    const svg=createSVG(w,h); drawAxes(svg,w,h,m);
+    const innerW = w - m.left - m.right; const innerH = h - m.top - m.bottom;
+    const n=values.length; const bw = innerW / (n||1) * 0.8; const gap = innerW / (n||1) * 0.2;
+    values.forEach((v,i)=>{
+      const x = m.left + i*(bw+gap) + gap/2;
+      const vh = maxY ? (v/maxY)*innerH : 0;
+      const y = h - m.bottom - vh;
+      const rect=document.createElementNS(svg.namespaceURI,"rect"); rect.setAttribute("x",x); rect.setAttribute("y",y); rect.setAttribute("width",bw); rect.setAttribute("height",vh); rect.setAttribute("class","bar");
+      svg.appendChild(rect);
+    });
+    // y labels (0, max/2, max)
+    [0,0.5,1].forEach(t=>{
+      const val=Math.round(maxY*t);
+      const y = h - m.bottom - innerH*t;
+      const ln=document.createElementNS(svg.namespaceURI,"line"); ln.setAttribute("x1",m.left); ln.setAttribute("x2",w-m.right); ln.setAttribute("y1",y); ln.setAttribute("y2",y); ln.setAttribute("class","axis"); ln.setAttribute("stroke-dasharray","2,4"); svg.appendChild(ln);
+      const tx=document.createElementNS(svg.namespaceURI,"text"); tx.setAttribute("x",2); tx.setAttribute("y",y+3); tx.textContent=val; svg.appendChild(tx);
+    });
+    el.appendChild(svg);
+  }
+  function drawLine(el, labels, values){
+    const w=400,h=180, m={top:10,right:10,bottom:20,left:26};
+    const svg=createSVG(w,h); drawAxes(svg,w,h,m);
+    const innerW = w - m.left - m.right; const innerH = h - m.top - m.bottom;
+    const xs = (i)=> m.left + (innerW * (i/(Math.max(1,values.length-1))));
+    const valid = values.filter(v => v!=null);
+    if (!valid.length){ el.appendChild(svg); return; }
+    const min = Math.min(...valid), max = Math.max(...valid);
+    const ys = (v)=> {
+      if (max===min){ return h - m.bottom - innerH/2; }
+      return m.top + (1 - (v-min)/(max-min)) * innerH;
+    };
+    let d="";
+    values.forEach((v,i)=>{
+      if (v==null) return;
+      const x=xs(i), y=ys(v);
+      d += (d==="" ? `M ${x} ${y}` : ` L ${x} ${y}`);
+    });
+    const path=document.createElementNS(svg.namespaceURI,"path"); path.setAttribute("d",d); path.setAttribute("class","line"); svg.appendChild(path);
+    values.forEach((v,i)=>{
+      if (v==null) return;
+      const x=xs(i), y=ys(v);
+      const c=document.createElementNS(svg.namespaceURI,"circle"); c.setAttribute("cx",x); c.setAttribute("cy",y); c.setAttribute("r",2.5); c.setAttribute("class","dot"); svg.appendChild(c);
+    });
+    // y labels min/max
+    const tmin=document.createElementNS(svg.namespaceURI,"text"); tmin.setAttribute("x",2); tmin.setAttribute("y",h-m.bottom); tmin.textContent=min; svg.appendChild(tmin);
+    const tmax=document.createElementNS(svg.namespaceURI,"text"); tmax.setAttribute("x",2); tmax.setAttribute("y",m.top+10); tmax.textContent=max; svg.appendChild(tmax);
+    el.appendChild(svg);
+  }
+
+  // Charts renderers
+  function getLogsInDays(days){
     const logs = loadAllLogs();
     const now = new Date();
     const start = new Date(now.getTime() - days*24*3600*1000);
-    const inRange = logs.filter(l => {
+    return logs.filter(l => {
       const [y,m,d] = l.date.split("/").map(Number);
       const dt = new Date(y, m-1, d);
       return dt >= start && dt <= now;
-    });
-    const sleep = inRange.map(l => l.sleepMin||0);
-    const avgSleepH = sleep.length ? (sleep.reduce((a,b)=>a+b,0)/sleep.length)/60 : 0;
-    const energies = {"❤️‍🔥元気":0,"❤️まずまず":0,"❤️‍🩹だるい":0};
-    inRange.forEach(l=>{ if (l.energy && energies.hasOwnProperty(l.energy)) energies[l.energy]++; });
-    const symCount = {};
-    inRange.forEach(l => (l.symptoms||[]).forEach(s => { symCount[s]=(symCount[s]||0)+1; }));
-    const topSymptoms = Object.entries(symCount).sort((a,b)=>b[1]-a[1]).slice(0,3);
-
-    const qDone = inRange.reduce((acc,l)=> acc + (l.quickTasks||[]).filter(t=>t && t.done).length, 0);
-    const qTotal = inRange.reduce((acc,l)=> acc + (l.quickTasks||[]).filter(t=>t && t.text).length, 0);
-    const taskRate = qTotal ? Math.round((qDone/qTotal)*100) : 0;
-
-    return { avgSleepH, energies, topSymptoms, taskRate, count: inRange.length };
+    }).sort((a,b)=> new Date(a.date) - new Date(b.date));
   }
-  function renderSummaryBlock(el, s){
-    el.innerHTML = "";
-    const p1 = document.createElement("p");
-    p1.innerHTML = `平均睡眠：<b>${(s.avgSleepH).toFixed(1)}h</b>　達成率：<b>${s.taskRate}%</b>`;
-    const p2 = document.createElement("p");
-    p2.innerHTML = `元気度：<span class="pill">❤️‍🔥 ${s.energies["❤️‍🔥元気"]||0}</span><span class="pill">❤️ ${s.energies["❤️まずまず"]||0}</span><span class="pill">❤️‍🩹 ${s.energies["❤️‍🩹だるい"]||0}</span>`;
-    const p3 = document.createElement("p");
-    p3.textContent = "症状TOP3：" + (s.topSymptoms.length ? s.topSymptoms.map(([k,v])=>`${k} (${v})`).join(" / ") : "—");
-    el.appendChild(p1); el.appendChild(p2); el.appendChild(p3);
-  }
-  function renderSummaries(){
-    renderSummaryBlock($("#weeklySummary"), computeSummary(7));
-    renderSummaryBlock($("#monthlySummary"), computeSummary(30));
+  function renderCharts(){
+    // Sleep 7 days (bar, hours)
+    const sleep7 = getLogsInDays(7);
+    const labels7 = sleep7.map(l=>l.date.split("/").slice(1).join("/"));
+    const vals7 = sleep7.map(l=> (l.sleepMin||0)/60 );
+    const maxY = Math.max(8, Math.ceil((Math.max(...vals7,0)+1))); // at least 8h scale
+    drawBars($("#chartSleep7"), labels7, vals7, maxY);
+
+    // Energy 30 days (bar counts)
+    const e30 = getLogsInDays(30);
+    const cnt = {"❤️‍🔥元気":0,"❤️まずまず":0,"❤️‍🩹だるい":0};
+    e30.forEach(l => { if (cnt[l.energy]!=null) cnt[l.energy]++; });
+    drawBars($("#chartEnergy30"), ["❤️‍🔥","❤️","❤️‍🩹"], [cnt["❤️‍🔥元気"], cnt["❤️まずまず"], cnt["❤️‍🩹だるい"]], Math.max(5, ...Object.values(cnt)));
+
+    // Weight line 30 days
+    const w30 = getLogsInDays(30);
+    const wvals = w30.map(l => (l.weight!=null ? Number(l.weight) : null));
+    drawLine($("#chartWeight30"), w30.map(l=>l.date), wvals);
   }
 
   // Date change
@@ -625,17 +714,26 @@
     catch(e){ alert(u.toString()); }
   });
 
+  // Health Shortcut helper
+  $("#copyHealthShortcut").addEventListener("click", async () => {
+    const base = window.location.origin + window.location.pathname;
+    const template = `${base}?sleepMin=[[合計睡眠分]]&weight=[[体重_kg]]&bodyFat=[[体脂肪_%]]`;
+    try{ await navigator.clipboard.writeText(template); alert("ショートカット用URLテンプレをコピーしました"); }
+    catch(e){ alert(template); }
+  });
+
   // Close day: auto-save + unfinished -> history
   $("#closeDay").addEventListener("click", () => {
     const payload = {
       date: currentDateKey, mood: state.mood, energy: state.energy, symptoms: state.symptoms,
       sleepMin: (parseInt(state.sleepH,10)||0)*60 + (parseInt(state.sleepM,10)||0),
+      weight: state.weight, bodyFat: state.bodyFat,
       note: state.note, weather: state.weather, quickTasks: state.quickTasks, ts: Date.now()
     };
     upsertLog(payload);
     const count = saveUnfinishedTasksToHistory(currentDateKey);
     alert(`保存しました。未完了タスク ${count} 件をタスク履歴に保管しました。`);
-    renderHistory(); renderMiniCalendar(); renderSummaries();
+    renderHistory(); renderMiniCalendar(); if ($("#pageSummary").style.display !== "none") renderCharts();
   });
 
   // Manual save
@@ -643,11 +741,12 @@
     const payload = {
       date: currentDateKey, mood: state.mood, energy: state.energy, symptoms: state.symptoms,
       sleepMin: (parseInt(state.sleepH,10)||0)*60 + (parseInt(state.sleepM,10)||0),
+      weight: state.weight, bodyFat: state.bodyFat,
       note: state.note, weather: state.weather, quickTasks: state.quickTasks, ts: Date.now()
     };
     upsertLog(payload);
     alert(`${currentDateKey} の記録を保存しました`);
-    renderHistory(); renderMiniCalendar(); renderSummaries();
+    renderHistory(); renderMiniCalendar(); if ($("#pageSummary").style.display !== "none") renderCharts();
   });
 
   // Task history
@@ -660,10 +759,7 @@
     const fDateKey = toKeyFromInput(dateFilter);
 
     const filtered = hist
-      .map(day => ({
-        date: day.date,
-        tasks: day.tasks.filter(t => q ? t.text.includes(q) : true)
-      }))
+      .map(day => ({ date: day.date, tasks: day.tasks.filter(t => q ? t.text.includes(q) : true) }))
       .filter(day => day.tasks.length > 0)
       .filter(day => fDateKey ? (day.date === fDateKey) : true);
 
@@ -714,10 +810,11 @@
   $("#exportCSV").addEventListener("click", () => {
     const logs = loadAllLogs();
     const rows = [
-      ["date","mood","energy","symptoms","sleep_min","task1","task1_done","task2","task2_done","task3","task3_done","note"],
+      ["date","mood","energy","symptoms","sleep_min","weight","body_fat","task1","task1_done","task2","task2_done","task3","task3_done","note"],
       ...logs.map(l => [
         l.date, l.mood, l.energy, (l.symptoms||[]).join(" "),
         l.sleepMin,
+        l.weight ?? "", l.bodyFat ?? "",
         l.quickTasks?.[0]?.text || "", l.quickTasks?.[0]?.done ? 1 : 0,
         l.quickTasks?.[1]?.text || "", l.quickTasks?.[1]?.done ? 1 : 0,
         l.quickTasks?.[2]?.text || "", l.quickTasks?.[2]?.done ? 1 : 0,
@@ -733,7 +830,7 @@
   });
 
   $("#exportJSON").addEventListener("click", () => {
-    const data = { logs: loadAllLogs(), taskHistory: loadTaskHistory(), exportedAt: Date.now(), version: "v5" };
+    const data = { logs: loadAllLogs(), taskHistory: loadTaskHistory(), exportedAt: Date.now(), version: "v7" };
     const blob = new Blob([JSON.stringify(data,null,2)], { type:"application/json;charset=utf-8;" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -750,8 +847,7 @@
       if (json.logs && Array.isArray(json.logs)) saveAllLogs(json.logs);
       if (json.taskHistory && Array.isArray(json.taskHistory)) saveTaskHistory(json.taskHistory);
       alert("インポートしました");
-      renderHistory(); renderMiniCalendar(); renderSummaries(); renderTaskHistory();
-      // 今日のフォームを再描画
+      renderHistory(); renderMiniCalendar(); renderCharts(); renderTaskHistory();
       loadLogToForm(loadLog(todayKey));
     } catch (err){
       alert("読み込みに失敗しました：JSON形式を確認してください");
@@ -760,20 +856,11 @@
 
   // Initial render
   function initialRender(){
-    // Initial migration already ran
     renderHistory();
     renderMiniCalendar();
-    renderSummaries();
     loadLogToForm(loadLog(todayKey));
   }
   initialRender();
-
-  // Date change
-  datePicker.addEventListener("change", () => {
-    const d = fromInputDate(datePicker.value);
-    currentDateKey = toKey(d);
-    loadLogToForm(loadLog(currentDateKey));
-  });
 })();
 </script>
 </body>
