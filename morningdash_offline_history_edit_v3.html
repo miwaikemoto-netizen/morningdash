@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MorningDash — 改良版v3（タスク履歴＋コピー）</title>
+<meta name="theme-color" content="#0f172a">
+<style>
+  :root{ --bg1:#ffffff;--bg2:#f1f5f9;--fg:#0f172a;--muted:#64748b;--accent:#0f172a;--card:#ffffff;--border:#e5e7eb; }
+  html,body{height:100%;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";color:var(--fg);
+       background:linear-gradient(var(--bg1),var(--bg2));}
+  .container{max-width:980px;margin:0 auto;padding:16px;}
+  h1{font-size:28px;margin:0 0 8px 0;font-weight:700}
+  h2{font-size:18px;margin:0 0 8px 0;font-weight:600}
+  .muted{opacity:.7}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .row{display:flex;gap:16px;flex-wrap:wrap}
+  .btn{appearance:none;border:1px solid var(--border);border-radius:14px;padding:10px 14px;background:#fff;cursor:pointer}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.small{font-size:12px;padding:6px 10px}
+  .chip{border:1px solid var(--border);border-radius:999px;padding:6px 10px;background:#fff;cursor:pointer;font-size:13px}
+  .chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .input{border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:14px}
+  .text{font-size:14px}
+  .list{list-style:none;padding:0;margin:0}
+  .list li{display:flex;align-items:center;gap:8px;padding:4px 0}
+  .strike{ text-decoration: line-through; opacity:.6 }
+  .footer{font-size:12px;opacity:.6;margin-top:24px;line-height:1.6}
+  .titlebar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .number{width:64px;text-align:center}
+  .badge{font-size:12px;padding:3px 8px;border-radius:999px;border:1px solid var(--border);}
+  .danger{color:#b91c1c}
+  .date-big{font-size:40px;font-weight:700;letter-spacing:0.5px}
+  .symptom-group{border:1px dashed var(--border);border-radius:12px;padding:10px;margin-bottom:8px}
+  .symptom-group h3{font-size:13px;margin:0 0 6px 0;opacity:.8}
+  .quick-task{display:flex;align-items:center;gap:8px;margin:4px 0}
+  .quick-task input[type="text"]{flex:1}
+  .toolbar{display:flex;align-items:center;gap:8px}
+  .linklike{font-size:12px;text-decoration:underline;cursor:pointer}
+  .tabs{display:flex;gap:8px;margin:8px 0}
+  .tab{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#fff;cursor:pointer}
+  .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="titlebar">
+      <h1>MorningDash ☀️</h1>
+      <div class="toolbar">
+        <input id="datePicker" type="date" class="input" style="padding:8px 10px">
+        <span id="editBadge" class="badge" style="display:none">編集モード</span>
+      </div>
+    </div>
+    <div class="date-big" id="dateLabel"></div>
+
+    <div class="tabs">
+      <button id="tabMain" class="tab active">メイン</button>
+      <button id="tabTaskHistory" class="tab">タスク履歴</button>
+    </div>
+
+    <div id="pageMain">
+      <section class="card">
+        <div class="titlebar">
+          <h2>天気（現在地）</h2>
+          <span id="wxLoading" class="muted" style="display:none">取得中…</span>
+        </div>
+        <div id="wxError" class="text danger"></div>
+        <div id="wxBlock" class="row"></div>
+        <div class="row" style="margin-top:8px">
+          <button id="retryWx" class="btn small">再取得</button>
+        </div>
+      </section>
+
+      <section class="row" style="margin-top:16px">
+        <div class="card" style="flex:1 1 300px;min-width:280px">
+          <h2>気分</h2>
+          <div id="moodBtns" class="row"></div>
+        </div>
+        <div class="card" style="flex:1 1 300px;min-width:280px">
+          <h2>元気度</h2>
+          <div id="energyBtns" class="row"></div>
+        </div>
+      </section>
+
+      <section class="row" style="margin-top:16px">
+        <div class="card" style="flex:1 1 300px;min-width:280px">
+          <h2>体調メモ</h2>
+          <div class="symptom-group">
+            <h3>① よくある不調</h3>
+            <div id="symptomGroup1" class="row"></div>
+          </div>
+          <div class="symptom-group">
+            <h3>② 季節・生活リズム</h3>
+            <div id="symptomGroup2" class="row"></div>
+          </div>
+          <div class="symptom-group">
+            <h3>③ メンタル・コンディション</h3>
+            <div id="symptomGroup3" class="row"></div>
+          </div>
+          <textarea id="note" class="input" rows="3" style="width:100%" placeholder="自由メモ（例：首の張り強め／冷え気味 など）"></textarea>
+        </div>
+
+        <div class="card" style="flex:1 1 300px;min-width:280px">
+          <h2>睡眠</h2>
+          <div class="row" style="align-items:center;margin-bottom:8px">
+            <input id="sleepH" class="input number" type="number" min="0" max="23" value="0">
+            <span>時間</span>
+            <input id="sleepM" class="input number" type="number" min="0" max="59" value="0">
+            <span>分</span>
+          </div>
+          <div class="text muted" style="margin-bottom:6px">※ ショートカット連携で自動入力（?sleepMin=合計分）</div>
+          <div class="text">合計：<b id="sleepTotal">0時間0分</b></div>
+        </div>
+      </section>
+
+      <section class="card" style="margin-top:16px">
+        <div class="titlebar">
+          <h2>今日のクイックタスク（3項目）</h2>
+          <div class="toolbar">
+            <button id="resetToToday" class="btn small">今日に戻る</button>
+            <button id="closeDay" class="btn small">日を締める（未完了→タスク履歴）</button>
+            <button id="copyURL" class="btn small">URL連携例をコピー</button>
+          </div>
+        </div>
+        <div id="quickTasks">
+          <div class="quick-task"><input type="checkbox" id="qt0c"><input type="text" id="qt0t" class="input" placeholder="例：水やりをする"><span class="linklike" data-copy="#qt0t">コピー</span></div>
+          <div class="quick-task"><input type="checkbox" id="qt1c"><input type="text" id="qt1t" class="input" placeholder="例：買い物の受け取り"><span class="linklike" data-copy="#qt1t">コピー</span></div>
+          <div class="quick-task"><input type="checkbox" id="qt2c"><input type="text" id="qt2t" class="input" placeholder="例：メールを返信する"><span class="linklike" data-copy="#qt2t">コピー</span></div>
+        </div>
+      </section>
+
+      <section class="row" style="margin-top:16px">
+        <button id="saveLog" class="btn primary">この日の記録を保存</button>
+        <button id="exportCSV" class="btn">CSVを書き出す</button>
+      </section>
+
+      <section class="card" style="margin-top:16px">
+        <div class="titlebar">
+          <h2>履歴</h2>
+          <button id="reloadHistory" class="btn small">履歴を再読込</button>
+        </div>
+        <div id="history"></div>
+      </section>
+    </div>
+
+    <div id="pageTaskHistory" style="display:none">
+      <section class="card">
+        <div class="titlebar">
+          <h2>タスク履歴（未完了の保管庫）</h2>
+          <div class="toolbar">
+            <button id="clearTaskHistory" class="btn small">全消去</button>
+            <button id="backToMain" class="btn small">メインへ戻る</button>
+          </div>
+        </div>
+        <div id="taskHistoryList"></div>
+      </section>
+    </div>
+
+    <div class="footer">
+      <p>Tips: 共有 → ホーム画面に追加 でアプリ風に使えます。</p>
+      <p>拡張：ショートカットから <code>?sleepMin=480&mood=🙂&energy=❤️‍🔥元気&symptoms=首・肩こり,生理</code> のように開くと自動入力できます。</p>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => Array.from(document.querySelectorAll(s));
+  const today = new Date();
+  const toKey = d => d.toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo"});
+  const toInputDate = d => {
+    const z = n => String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`;
+  };
+  const fromInputDate = s => {
+    const [y,m,da] = s.split("-").map(Number);
+    const d = new Date(y, m-1, da);
+    return d;
+  };
+
+  const todayKey = toKey(today);
+  let currentDateKey = todayKey;
+  const dateLabel = $("#dateLabel");
+  const datePicker = $("#datePicker");
+  const editBadge = $("#editBadge");
+  const pageMain = $("#pageMain");
+  const pageTaskHistory = $("#pageTaskHistory");
+
+  function renderHeader(){
+    dateLabel.textContent = currentDateKey;
+    editBadge.style.display = (currentDateKey === todayKey) ? "none" : "inline-block";
+    const [y, m, da] = currentDateKey.split("/").map(Number);
+    datePicker.value = toInputDate(new Date(y, m-1, da));
+  }
+  datePicker.value = toInputDate(today);
+  renderHeader();
+
+  // Tabs
+  $("#tabMain").addEventListener("click", () => { pageMain.style.display="block"; pageTaskHistory.style.display="none"; $("#tabMain").classList.add("active"); $("#tabTaskHistory").classList.remove("active"); });
+  $("#tabTaskHistory").addEventListener("click", () => { pageMain.style.display="none"; pageTaskHistory.style.display="block"; $("#tabTaskHistory").classList.add("active"); $("#tabMain").classList.remove("active"); renderTaskHistory(); });
+
+  // State
+  const state = {
+    mood: "",
+    energy: "",
+    symptoms: [],
+    note: "",
+    sleepH: 0,
+    sleepM: 0,
+    weather: null,
+    quickTasks: [{done:false,text:""},{done:false,text:""},{done:false,text:""}],
+  };
+
+  // Query params (for Shortcuts)
+  const url = new URL(window.location.href);
+  const qp = k => url.searchParams.get(k);
+  const sleepMin = qp("sleepMin");
+  if (sleepMin) { const total = parseInt(sleepMin,10)||0; state.sleepH = Math.floor(total/60); state.sleepM = total%60; }
+  state.mood = qp("mood") || state.mood;
+  state.energy = qp("energy") || state.energy;
+  const symptomsQ = qp("symptoms"); if (symptomsQ) state.symptoms = symptomsQ.split(",").filter(Boolean);
+  state.note = qp("note") || state.note;
+
+  // UI builders
+  const moods = [{v:"🙂",label:"良い"},{v:"😐",label:"ふつう"},{v:"🙁",label:"いまいち"}];
+  const energies = ["❤️‍🔥元気","❤️まずまず","❤️‍🩹だるい"];
+
+  // Symptom groups
+  const group1 = ["首・肩こり","頭痛","腰の張り／腰痛","胃腸弱め（胃もたれ・下痢・便秘など）","むくみ","目の疲れ／ドライアイ","花粉・アレルギー症状","腹痛／生理痛","生理","PMS（生理前症状）"];
+  const group2 = ["冷え（手足の冷え・全身）","暑さバテ／熱っぽさ","喉の痛み・声枯れ","鼻水・鼻づまり","肌荒れ／かゆみ","睡眠の質低下（浅い眠り・途中覚醒）"];
+  const group3 = ["集中力低下","イライラ／不安感","だるさ／倦怠感","モチベーション低下"];
+  const allSymptoms = [...group1, ...group2, ...group3];
+
+  function buildChips(root, options, isActive, onClick){
+    root.innerHTML = "";
+    options.forEach(opt => {
+      const v = typeof opt === "string" ? opt : opt.v;
+      const label = typeof opt === "string" ? opt : (opt.v+" "+opt.label);
+      const b = document.createElement("button");
+      b.className = "chip" + (isActive(v) ? " active" : "");
+      b.textContent = label;
+      b.addEventListener("click", () => onClick(v));
+      root.appendChild(b);
+    });
+  }
+
+  function renderChips(){
+    buildChips($("#moodBtns"), moods, v => state.mood===v, v => { state.mood=v; renderChips(); });
+    buildChips($("#energyBtns"), energies, v => state.energy===v, v => { state.energy=v; renderChips(); });
+
+    const mk = (id, arr) => buildChips($(id), arr, v => state.symptoms.includes(v), v => {
+      if (state.symptoms.includes(v)) state.symptoms = state.symptoms.filter(x=>x!==v);
+      else state.symptoms = [...state.symptoms, v];
+      renderChips();
+    });
+    mk("#symptomGroup1", group1);
+    mk("#symptomGroup2", group2);
+    mk("#symptomGroup3", group3);
+  }
+  renderChips();
+
+  // Note & Sleep
+  const sleepH = $("#sleepH"), sleepM = $("#sleepM"), note = $("#note"), sleepTotal = $("#sleepTotal");
+  function updateSleepLabel(){ sleepTotal.textContent = Math.floor(state.sleepH)+"時間"+(state.sleepM%60)+"分"; }
+  sleepH.value = state.sleepH; sleepM.value = state.sleepM; note.value = state.note; updateSleepLabel();
+  sleepH.addEventListener("input", () => { state.sleepH = parseInt(sleepH.value||"0",10); updateSleepLabel(); });
+  sleepM.addEventListener("input", () => { state.sleepM = parseInt(sleepM.value||"0",10); updateSleepLabel(); });
+  note.addEventListener("input", () => { state.note = note.value; });
+
+  // Quick tasks
+  const qtElems = [
+    {c:$("#qt0c"), t:$("#qt0t")},
+    {c:$("#qt1c"), t:$("#qt1t")},
+    {c:$("#qt2c"), t:$("#qt2t")},
+  ];
+  function renderQuickTasks(){
+    qtElems.forEach((q,i)=>{
+      q.c.checked = !!state.quickTasks[i]?.done;
+      q.t.value = state.quickTasks[i]?.text || "";
+      q.c.onchange = () => { state.quickTasks[i].done = q.c.checked; };
+      q.t.oninput = () => { state.quickTasks[i].text = q.t.value; };
+    });
+    // copy link handlers
+    $$("#quickTasks .linklike").forEach(el => {
+      el.onclick = async () => {
+        const sel = el.getAttribute("data-copy");
+        const input = document.querySelector(sel);
+        const txt = (input?.value || "").trim();
+        if (!txt){ alert("コピーするテキストがありません"); return; }
+        try { await navigator.clipboard.writeText(txt); alert("コピーしました"); } catch(e){ alert(txt); }
+      };
+    });
+  }
+  renderQuickTasks();
+
+  // Weather
+  const wxLoading = $("#wxLoading"), wxError = $("#wxError"), wxBlock = $("#wxBlock");
+  function wxCodeToText(code){ const map={0:"快晴",1:"晴れ",2:"薄曇り",3:"曇り",45:"霧",48:"霧氷",51:"弱い霧雨",53:"霧雨",55:"強い霧雨",61:"弱い雨",63:"雨",65:"強い雨",71:"弱い雪",73:"雪",75:"大雪",95:"雷雨"}; return map[code]||"—"; }
+  function renderWeather(){
+    wxBlock.innerHTML="";
+    if (!state.weather){ const p=document.createElement("p"); p.className="text muted"; p.textContent="位置情報の許可後、自動表示されます。"; wxBlock.appendChild(p); return; }
+    const big=document.createElement("div"); big.style.fontSize="48px"; big.style.fontWeight="600"; big.textContent=Math.round(state.weather.temp)+"°C";
+    const small=document.createElement("div"); small.className="text"; small.innerHTML="状況："+state.weather.condition+"<br>風速："+Math.round(state.weather.wind)+" m/s<br><span class='muted'>更新："+new Date(state.weather.time).toLocaleTimeString("ja-JP",{timeZone:"Asia/Tokyo"})+"</span>";
+    const wrap=document.createElement("div"); wrap.className="row"; wrap.appendChild(big); wrap.appendChild(small);
+    wxBlock.appendChild(wrap);
+  }
+  function fetchWeatherFromGeo(lat, lon){
+    wxLoading.style.display="inline"; wxError.textContent="";
+    const u = new URL("https://api.open-meteo.com/v1/forecast");
+    u.searchParams.set("latitude", lat);
+    u.searchParams.set("longitude", lon);
+    u.searchParams.set("current_weather","true");
+    u.searchParams.set("hourly","precipitation_probability");
+    u.searchParams.set("timezone","Asia/Tokyo");
+    fetch(u.toString()).then(r=>r.json()).then(data=>{
+      const c=data.current_weather;
+      state.weather={ temp:c.temperature, wind:c.windspeed, code:c.weathercode, condition:wxCodeToText(c.weathercode), time:c.time };
+      renderWeather();
+    }).catch(e=>{ wxError.textContent="天気の取得に失敗しました。"; }).finally(()=>{ wxLoading.style.display="none"; });
+  }
+  function askGeo(){
+    wxLoading.style.display="inline"; wxError.textContent="";
+    if (!("geolocation" in navigator)){ wxError.textContent="この端末は位置情報に対応していません。"; wxLoading.style.display="none"; return; }
+    navigator.geolocation.getCurrentPosition(
+      pos => { const {latitude, longitude}=pos.coords; fetchWeatherFromGeo(latitude, longitude); },
+      err => { wxError.textContent="位置情報を取得できませんでした。設定→プライバシー→位置情報サービス→Safari Websitesを許可 にしてください。"; wxLoading.style.display="none"; },
+      { enableHighAccuracy:false, timeout:8000 }
+    );
+  }
+  $("#retryWx").addEventListener("click", askGeo);
+  askGeo();
+
+  // Storage utilities
+  const logsKey = "md_logs_v2";
+  const taskHistoryKey = "md_task_history_v1"; // [{date:"YYYY/MM/DD", tasks:[{text, from:"quick", savedAt}]}]
+
+  function loadAllLogs(){ return JSON.parse(localStorage.getItem(logsKey) || "[]"); }
+  function saveAllLogs(arr){ localStorage.setItem(logsKey, JSON.stringify(arr)); }
+  function loadLog(dateKey){ const logs = loadAllLogs(); return logs.find(l => l.date === dateKey) || null; }
+  function upsertLog(payload){
+    const logs = loadAllLogs();
+    const rest = logs.filter(l => l.date !== payload.date);
+    saveAllLogs([payload, ...rest].sort((a,b)=> (a.date < b.date ? 1 : -1)));
+  }
+
+  function loadTaskHistory(){ return JSON.parse(localStorage.getItem(taskHistoryKey) || "[]"); }
+  function saveTaskHistory(arr){ localStorage.setItem(taskHistoryKey, JSON.stringify(arr)); }
+
+  function saveUnfinishedTasksToHistory(dateKey){
+    const unfinished = state.quickTasks.filter(x => x.text && !x.done).map(x => ({text:x.text, from:"quick", savedAt: Date.now()}));
+    if (!unfinished.length) return 0;
+    const hist = loadTaskHistory();
+    const rest = hist.filter(h => h.date !== dateKey);
+    saveTaskHistory([{date: dateKey, tasks: unfinished}, ...rest]);
+    return unfinished.length;
+  }
+
+  function renderTaskHistory(){
+    const root = $("#taskHistoryList"); root.innerHTML = "";
+    const hist = loadTaskHistory();
+    if (hist.length === 0){ const p=document.createElement("p"); p.className="text muted"; p.textContent="未完了の保管タスクはありません。"; root.appendChild(p); return; }
+    hist.forEach(day => {
+      const box=document.createElement("div"); box.className="card"; box.style.marginTop="8px";
+      const head=document.createElement("div"); head.className="text"; head.innerHTML = `<span class="muted">${day.date}</span>`;
+      const list=document.createElement("ul"); list.className="list";
+      day.tasks.forEach((t,idx) => {
+        const li=document.createElement("li");
+        const span=document.createElement("span"); span.textContent=t.text; span.style.flex="1";
+        const copy=document.createElement("button"); copy.className="btn small"; copy.textContent="コピー";
+        copy.onclick=async()=>{ try{ await navigator.clipboard.writeText(t.text); alert("コピーしました"); }catch(e){ alert(t.text); } };
+        const del=document.createElement("button"); del.className="btn small"; del.textContent="削除";
+        del.onclick=()=>{
+          const h = loadTaskHistory();
+          const target = h.find(x => x.date === day.date);
+          if (!target) return;
+          target.tasks.splice(idx,1);
+          const cleaned = target.tasks.length ? h : h.filter(x => x.date !== day.date);
+          saveTaskHistory(cleaned);
+          renderTaskHistory();
+        };
+        li.appendChild(span); li.appendChild(copy); li.appendChild(del);
+        list.appendChild(li);
+      });
+      box.appendChild(head); box.appendChild(list);
+      root.appendChild(box);
+    });
+  }
+
+  // Load form from log
+  function loadLogToForm(log){
+    if (!log){
+      state.mood=""; state.energy=""; state.symptoms=[]; state.note="";
+      state.sleepH=0; state.sleepM=0;
+      state.quickTasks=[{done:false,text:""},{done:false,text:""},{done:false,text:""}];
+    } else {
+      state.mood = log.mood||"";
+      state.energy = log.energy||"";
+      state.symptoms = Array.isArray(log.symptoms) ? log.symptoms.filter(s => allSymptoms.includes(s)) : [];
+      const sm = parseInt(log.sleepMin||0,10); state.sleepH = Math.floor(sm/60); state.sleepM = sm%60;
+      state.note = log.note||"";
+      state.weather = log.weather || state.weather;
+      state.quickTasks = Array.isArray(log.quickTasks) && log.quickTasks.length===3 ? log.quickTasks : [{done:false,text:""},{done:false,text:""},{done:false,text:""}];
+    }
+    renderChips();
+    sleepH.value = state.sleepH; sleepM.value = state.sleepM; note.value = state.note; updateSleepLabel();
+    renderQuickTasks();
+    renderHeader();
+  }
+
+  // History render (logs)
+  function renderHistory(){
+    const historyRoot = $("#history");
+    const logs = loadAllLogs();
+    historyRoot.innerHTML="";
+    if (logs.length===0){ const p=document.createElement("p"); p.className="text muted"; p.textContent="まだ記録がありません"; historyRoot.appendChild(p); return; }
+    logs.forEach(l => {
+      const box=document.createElement("div"); box.className="card"; box.style.marginTop="8px";
+      const head=document.createElement("div"); head.className="text"; head.innerHTML = `<span class="muted">${l.date}</span>`;
+      const row=document.createElement("div"); row.className="row text"; row.style.marginTop="6px";
+      row.innerHTML = `<div>気分：${l.mood||"—"}</div>
+                       <div>元気度：${l.energy||"—"}</div>
+                       <div>睡眠：${Math.floor((l.sleepMin||0)/60)}時間${(l.sleepMin||0)%60}分</div>`;
+      const tags = document.createElement("div"); tags.className="text"; if (l.symptoms && l.symptoms.length){ tags.textContent="体調："+l.symptoms.join("、 "); }
+      const memo = document.createElement("div"); memo.className="text"; if (l.note){ memo.textContent="メモ："+l.note; }
+      const qts = document.createElement("div"); qts.className="text";
+      const nonEmpty = (l.quickTasks||[]).filter(x=>x && x.text && x.text.trim().length>0);
+      if (nonEmpty.length){ qts.textContent = "タスク：" + nonEmpty.map(x => (x.done ? "✅ " : "⬜ ") + x.text).join(" / "); }
+
+      const actions = document.createElement("div"); actions.className="row"; actions.style.marginTop="8px";
+      const editBtn = document.createElement("button"); editBtn.className="btn small"; editBtn.textContent="編集";
+      editBtn.addEventListener("click", () => {
+        currentDateKey = l.date; loadLogToForm(l);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+      const delBtn = document.createElement("button"); delBtn.className="btn small"; delBtn.textContent="削除"; delBtn.style.borderColor="#fecaca";
+      delBtn.addEventListener("click", () => {
+        if (!confirm(`${l.date} の記録を削除しますか？`)) return;
+        const rest = loadAllLogs().filter(x => x.date !== l.date);
+        saveAllLogs(rest);
+        renderHistory();
+        if (currentDateKey === l.date){ currentDateKey = todayKey; loadLogToForm(loadLog(todayKey)); }
+      });
+      actions.appendChild(editBtn); actions.appendChild(delBtn);
+
+      box.appendChild(head); box.appendChild(row);
+      if (tags.textContent) box.appendChild(tags);
+      if (memo.textContent) box.appendChild(memo);
+      if (qts.textContent) box.appendChild(qts);
+      box.appendChild(actions);
+      historyRoot.appendChild(box);
+    });
+  }
+  renderHistory();
+  $("#reloadHistory").addEventListener("click", renderHistory);
+
+  // Date change
+  datePicker.addEventListener("change", () => {
+    const d = fromInputDate(datePicker.value);
+    currentDateKey = toKey(d);
+    loadLogToForm(loadLog(currentDateKey));
+  });
+
+  // Buttons
+  $("#resetToToday").addEventListener("click", () => {
+    currentDateKey = todayKey;
+    loadLogToForm(loadLog(todayKey));
+  });
+  $("#copyURL").addEventListener("click", async () => {
+    const u = new URL(window.location.href); u.search="";
+    u.searchParams.set("mood", state.mood||"");
+    u.searchParams.set("energy", state.energy||"");
+    try { await navigator.clipboard.writeText(u.toString()); alert("URLをコピーしました（mood/energy付き）"); }
+    catch(e){ alert(u.toString()); }
+  });
+
+  // Close day: save unfinished to Task History
+  $("#closeDay").addEventListener("click", () => {
+    const count = saveUnfinishedTasksToHistory(currentDateKey);
+    alert(count ? `${count}件の未完了タスクを履歴に保存しました` : "未完了のタスクはありません");
+  });
+
+  // Save
+  $("#saveLog").addEventListener("click", () => {
+    const payload = {
+      date: currentDateKey,
+      mood: state.mood,
+      energy: state.energy,
+      symptoms: state.symptoms,
+      sleepMin: (parseInt(state.sleepH,10)||0)*60 + (parseInt(state.sleepM,10)||0),
+      note: state.note,
+      weather: state.weather,
+      quickTasks: state.quickTasks,
+      ts: Date.now()
+    };
+    upsertLog(payload);
+    alert(`${currentDateKey} の記録を保存しました`);
+    renderHistory();
+  });
+
+  // CSV
+  $("#exportCSV").addEventListener("click", () => {
+    const logs = loadAllLogs();
+    const rows = [
+      ["date","mood","energy","symptoms","sleep_min","task1","task1_done","task2","task2_done","task3","task3_done","note"],
+      ...logs.map(l => [
+        l.date, l.mood, l.energy, (l.symptoms||[]).join(" "),
+        l.sleepMin,
+        l.quickTasks?.[0]?.text || "", l.quickTasks?.[0]?.done ? 1 : 0,
+        l.quickTasks?.[1]?.text || "", l.quickTasks?.[1]?.done ? 1 : 0,
+        l.quickTasks?.[2]?.text || "", l.quickTasks?.[2]?.done ? 1 : 0,
+        String(l.note||"").replace(/\n/g," ")
+      ])
+    ];
+    const csv = rows.map(r => r.map(x => `"${String(x ?? "").replace(/"/g,'""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type:"text/csv;charset=utf-8;" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `morning_logs_${Date.now()}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+})();
+</script>
+</body>
+</html>
