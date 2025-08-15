@@ -1,62 +1,86 @@
 <!doctype html>
 <html lang="ja">
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MorningDash – ingest</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MorningDash Ingest</title>
 <style>
-  html,body{height:100%;margin:0;font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial}
-  .wrap{display:flex;align-items:center;justify-content:center;height:100%}
-  .card{padding:18px 20px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;box-shadow:0 8px 24px rgba(0,0,0,.06)}
-  .ok{color:#065f46}.warn{color:#92400e}.muted{color:#64748b}
+  :root{--fg:#0f172a;--muted:#64748b;}
+  html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;color:var(--fg);background:#f8fafc}
+  .wrap{max-width:720px;margin:0 auto;padding:24px}
+  .card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .muted{color:var(--muted)}
+  .ok{color:#16a34a;font-weight:700}
+  .err{color:#b91c1c;font-weight:700}
+  code{background:#eef2f7;border-radius:6px;padding:2px 6px}
 </style>
-<div class="wrap"><div class="card">
-  <div id="msg" class="muted">更新中…</div>
-</div></div>
+<body>
+<div class="wrap">
+  <h1>MorningDash Ingest</h1>
+  <div id="box" class="card">
+    <div class="muted">URLパラメータを取り込み中…</div>
+  </div>
+</div>
+
 <script>
 (function(){
+  // ---- helpers ----
   const $ = s => document.querySelector(s);
-  const url = new URL(location.href);
-  const qp  = k => url.searchParams.get(k);
-
-  // 日付キー（本体と同じ表記：例 2025/8/15）
   const toKey = d => d.toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo"});
-  const todayKey = toKey(new Date());
-
-  // 既存ログ読み込み
   const LOGS_KEY = "md_logs_v2";
-  const loadAll = () => JSON.parse(localStorage.getItem(LOGS_KEY) || "[]");
-  const saveAll = a => localStorage.setItem(LOGS_KEY, JSON.stringify(a));
+
+  function loadAll(){ try{return JSON.parse(localStorage.getItem(LOGS_KEY)||"[]");}catch(e){return []} }
+  function saveAll(arr){ localStorage.setItem(LOGS_KEY, JSON.stringify(arr)); }
+
+  // ---- read query ----
+  const p = new URLSearchParams(location.search);
+  const sleepMin = p.get("sleepMin");
+  const weight   = p.get("weight");
+  const bodyFat  = p.get("bodyFat");
+
+  // robust parse
+  const nInt   = v => (v==null?null:(isNaN(parseInt(String(v).trim(),10))?null:parseInt(String(v).trim(),10)));
+  const nFloat = v => {
+    if(v==null) return null;
+    const s = String(v).trim().replace(",",".");
+    const f = parseFloat(s);
+    return isNaN(f)?null:f;
+  };
+
+  const sv = nInt(sleepMin);
+  const wv = nFloat(weight);
+  const bv = nFloat(bodyFat);
+
+  // ---- upsert today ----
+  const todayKey = toKey(new Date());
   const logs = loadAll();
-  const current = logs.find(l => l.date === todayKey) || {date: todayKey};
-
-  // 数値パース（小数OK）
-  const num = (v)=>{ if(v==null) return null; const n = parseFloat(String(v).trim()); return isNaN(n)?null:n; }
-  const int = (v)=>{ if(v==null) return null; const n = parseInt(String(v).trim(),10); return isNaN(n)?null:n; }
-
-  // 受け取る値
-  const sleepMin = int(qp("sleepMin"));
-  const weight   = num(qp("weight"));
-  const bodyFat  = num(qp("bodyFat"));
-
-  // 反映（来ているものだけ上書き）
-  if (sleepMin!=null) current.sleepMin = sleepMin;
-  if (weight  !=null) current.weight   = weight;
-  if (bodyFat !=null) current.bodyFat  = bodyFat;
-
-  // 既存以外のフィールドは温存
   const rest = logs.filter(l => l.date !== todayKey);
-  saveAll([current, ...rest].sort((a,b)=> (a.date<b.date?1:-1)));
+  const current = logs.find(l => l.date === todayKey) || {
+    date: todayKey, mood:"", energy:"", symptoms:[],
+    sleepMin: 0, weight: null, bodyFat: null,
+    note:"", weather: null, quickTasks:[{done:false,text:""},{done:false,text:""},{done:false,text:""}],
+    ts: Date.now()
+  };
 
-  // メッセージ
-  const got = [];
-  if(sleepMin!=null) got.push(`睡眠 ${sleepMin}分`);
-  if(weight  !=null) got.push(`体重 ${weight}kg`);
-  if(bodyFat !=null) got.push(`体脂肪 ${bodyFat}%`);
-  $("#msg").textContent = got.length? `保存しました：${got.join(" / ")}` : "受け取る値がありませんでした。";
-  $("#msg").className = got.length? "ok" : "warn";
+  // 取り込めた値だけ上書き
+  if (sv != null) current.sleepMin = sv;
+  if (wv != null) current.weight   = wv;
+  if (bv != null) current.bodyFat  = bv;
+  current.ts = Date.now();
 
-  // 本体へ遷移（キャッシュ回避のため ?v=ts を付与）
-  const v = Date.now();
-  setTimeout(()=>{ location.replace("./index.html?v="+v); }, 250);
+  saveAll([current, ...rest].sort((a,b)=> (a.date < b.date ? 1 : -1)));
+
+  // ---- feedback ----
+  const box = $("#box");
+  const okLine = `
+    <p class="ok">保存しました ✓</p>
+    <p>sleepMin=<code>${sv??"—"}</code> / weight=<code>${wv??"—"}</code> / bodyFat=<code>${bv??"—"}</code></p>
+    <p class="muted">自動でMorningDashに戻ります…</p>`;
+  box.innerHTML = okLine;
+
+  // ---- redirect with cache-bust ----
+  const v = Date.now(); // 強制更新
+  setTimeout(()=>{ location.replace("./index.html?v="+v+"&ingested=1"); }, 600);
 })();
 </script>
+</body>
+</html>
