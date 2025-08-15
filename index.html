@@ -3,90 +3,110 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MorningDash — v11 (PWAブリッジ/表示修正)</title>
+<title>MorningDash — v10</title>
 <meta name="theme-color" content="#0f172a">
 
-<!-- 顔つき（上品なカード・文字色など） -->
+<!-- ===== Morning Dash unified theme ===== -->
 <style>
 :root{
-  --bg:#f8fafc; --card:#ffffff; --line:#e5e7eb; --text:#0f172a; --muted:#64748b;
-  --accent:#0ea5e9; --accent-press:#0284c7;
-  --radius:14px; --shadow:0 6px 20px rgba(2,8,23,.06);
+  --bg:#f8fafc;          /* 背景 */
+  --card:#ffffff;        /* カード面 */
+  --line:#e5e7eb;        /* セクション境界 */
+  --text:#0f172a;        /* 濃い文字 */
+  --muted:#64748b;       /* 補助文字 */
+  --accent:#0ea5e9;      /* 主要色 */
+  --accent-press:#0284c7;
+  --radius:16px;         /* 角丸 */
+  --shadow:0 6px 20px rgba(2,8,23,.06);
 }
-html,body{background:var(--bg);color:var(--text);}
-body{font-family:system-ui,-apple-system,"SF Pro","Hiragino Sans",Arial,"Meiryo",sans-serif;}
-.section,.card,.panel{
-  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
-  box-shadow:var(--shadow); padding:20px !important; margin-block:18px !important;
-  overflow:hidden;                          /* iOSの角丸はみ出し対策 */
-  -webkit-mask-image:-webkit-radial-gradient(white,black);
-  box-sizing:border-box;
-}
-.section h2,.card h2,.panel h2{letter-spacing:.01em;font-weight:700;margin-bottom:10px}
-button,.btn,input[type=button],input[type=submit]{
-  background:var(--accent); color:#fff; border:none; border-radius:12px;
-  padding:10px 14px; font-weight:600; box-shadow:0 4px 12px rgba(14,165,233,.25);
-  transition:.15s transform ease,.15s background ease;
-}
-button:hover,.btn:hover{background:var(--accent-press)}
-button:active,.btn:active{transform:translateY(1px)}
-.btn-ghost,.ghost{background:transparent!important;color:var(--accent);border:1px solid var(--accent);box-shadow:none}
-input[type=text],input[type=number],textarea,select{
-  border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:#fff;
-  display:block; width:100%; max-width:100%; box-sizing:border-box; /* はみ出し防止 */
-}
-/* 日付を大きく */
-#md-date,#todayStr,.date-today{font-size:clamp(24px,3.2rem,44px);font-weight:800;letter-spacing:.02em;line-height:1.15;margin:6px 0 2px}
-/* ミニカレンダー軽量化 */
-.mini-cal{transform:scale(.92);transform-origin:top left}
-.mini-cal .day{width:2.1rem;height:2.1rem;border-radius:10px}
-.mini-cal .day.today{outline:1.5px solid var(--accent);outline-offset:1px;font-weight:800}
-/* 未選択チップの文字色が消える問題修正 */
-.chip{color:#0f172a!important;background:#fff!important;border:1px solid #e5e7eb!important}
-.chip.active{background:#0ea5e9!important;border-color:#0ea5e9!important;color:#fff!important}
-/* 既存テーマ部品 */
-.container{max-width:980px;margin:0 auto;padding:16px}
-h1{font-size:28px;margin:0 0 8px;font-weight:700}
-h2{font-size:18px;margin:0 0 8px;font-weight:600}
-h3{font-size:14px;margin:0 0 6px;font-weight:600}
-.muted{opacity:.7}
+
+html,body{height:100%; background:var(--bg); color:var(--text);}
+body{margin:0; font-family:system-ui,-apple-system,"SF Pro","Hiragino Sans",Arial,"Meiryo",sans-serif;}
+
+.container{max-width:980px; margin:0 auto; padding:16px;}
+
+h1{font-size:28px;margin:0 0 8px 0;font-weight:700}
+h2{font-size:18px;margin:0 0 8px 0;font-weight:700}
+h3{font-size:14px;margin:0 0 6px 0;font-weight:600}
+.muted{color:var(--muted)}
 .row{display:flex;gap:16px;flex-wrap:wrap}
-.btn{appearance:none;border-radius:14px}
+.text{font-size:14px}
+
+.section,.card,.panel{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:20px;
+  margin-block:18px;
+  box-sizing:border-box;
+  /* 角丸の内側はみ出し防止（iOS含む） */
+  overflow:hidden;
+  -webkit-mask-image:-webkit-radial-gradient(white,black);
+}
+
+.titlebar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.badge{font-size:12px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);}
+
+.btn{appearance:none;border:1px solid var(--line);border-radius:14px;padding:10px 14px;background:#fff;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.small{font-size:12px;padding:6px 10px}
 .btn.tiny{font-size:11px;padding:4px 8px;border-radius:10px}
-.input{border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px}
-.text{font-size:14px}
-.titlebar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.number{width:64px;text-align:center}
-.badge{font-size:12px;padding:3px 8px;border-radius:999px;border:1px solid var(--line)}
-.danger{color:#b91c1c}
-.date-big{font-size:40px;font-weight:700;letter-spacing:.5px}
-.symptom-group{border:1px dashed var(--line);border-radius:12px;padding:12px;margin:10px 0}
+.btn:hover{filter:brightness(.98)}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:transparent; color:var(--accent); border-color:var(--accent)}
+
+.input{border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;background:#fff}
+
+/* 入力系の横はみ出し防止（自由メモの右端対策） */
+textarea, input[type="text"], input[type="number"], select{
+  display:block; width:100%; max-width:100%; box-sizing:border-box;
+}
+
+.date-big{font-size:40px;font-weight:800;letter-spacing:.02em;line-height:1.15;margin:6px 0 2px}
+
+.tabs{display:flex;gap:8px;margin:8px 0}
+.tab{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-cell{border:1px solid var(--line);border-radius:10px;padding:4px 2px;text-align:center;cursor:pointer;background:#fff;font-size:12px;line-height:1.1}
+.cal-cell.today{border-color:#0f172a; border-width:2px}
+.cal-cell .dot{display:block;width:7px;height:7px;border-radius:50%;margin:4px auto 0 auto;background:#cbd5e1}
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+.cal-head div{font-size:12px;text-align:center;opacity:.7}
+
+.symptom-group{border:1px dashed var(--line);border-radius:12px;padding:12px;margin-bottom:8px;background:rgba(255,255,255,.35)}
+.symptom-group h3{font-size:13px;margin:0 0 6px 0;opacity:.8}
+
 .quick-task{display:flex;align-items:center;gap:8px;margin:4px 0}
 .quick-task input[type="text"]{flex:1}
 .toolbar{display:flex;align-items:center;gap:8px}
 .linklike{font-size:12px;text-decoration:underline;cursor:pointer}
-.tabs{display:flex;gap:8px;margin:8px 0}
-.tab{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer}
-.tab.active{background:#0f172a;color:#fff;border-color:#0f172a}
-.filterbar{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.cal-cell{border:1px solid var(--line);border-radius:10px;padding:4px 2px;text-align:center;cursor:pointer;background:#fff;font-size:12px;line-height:1.1}
-.cal-cell.today{border-color:#0f172a;border-width:2px}
-.cal-cell .dot{display:block;width:7px;height:7px;border-radius:50%;margin:4px auto 0;background:#cbd5e1}
-.cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
-.cal-head div{font-size:12px;text-align:center;opacity:.7}
+
 .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
-.chart{width:100%;height:180px;border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}
-.chart svg{width:100%;height:100%;display:block}
-.chart .axis{stroke:#cbd5e1;stroke-width:1}
+.chart{width:100%; height:180px; border:1px solid var(--line); border-radius:12px; background:#fff; overflow:hidden}
+.chart svg{width:100%; height:100%; display:block}
+.chart .axis{stroke:#cbd5e1; stroke-width:1}
+.chart text{fill:#64748b; font-size:10px}
 .chart .bar{fill:#94a3b8}
-.chart .line{fill:none;stroke:#334155;stroke-width:2}
+.chart .line{fill:none; stroke:#334155; stroke-width:2}
 .chart .dot{fill:#334155}
-.footer{font-size:12px;opacity:.6;margin-top:24px;line-height:1.6}
+
+/* チップ（ボタン）の可読性修正：未選択でも濃い文字、選択で反転 */
+.chip{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;cursor:pointer;font-size:13px;
+  color:#0f172a !important; background:#fff !important; box-shadow:none !important;}
+.chip.active{background:#0ea5e9 !important; border-color:#0ea5e9 !important; color:#fff !important}
+
+/* ミニカレンダーの説明 */
+.text.note{color:var(--muted);}
+
+/* エネルギーの絵文字（必要なら） */
+[data-energy="high"]::before{content:"❤️‍🔥 "; }
+[data-energy="mid"]::before{ content:"❤️ "; }
+[data-energy="low"]::before{ content:"❤️‍🩹 "; }
 </style>
 </head>
-
 <body>
   <div class="container">
     <div class="titlebar">
@@ -118,7 +138,7 @@ h3{font-size:14px;margin:0 0 6px;font-weight:600}
           <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
         </div>
         <div id="miniCalendar" class="calendar"></div>
-        <div class="text muted" style="margin-top:6px">●の色：❤️‍🔥元気=濃／❤️=中／❤️‍🩹=薄（記録なし=グレー）</div>
+        <div class="text note" style="margin-top:6px">●の色：❤️‍🔥元気=濃／❤️=中／❤️‍🩹=薄（記録なし=グレー）</div>
       </section>
 
       <section class="card" style="margin-top:16px">
@@ -126,7 +146,7 @@ h3{font-size:14px;margin:0 0 6px;font-weight:600}
           <h2>天気（現在地）</h2>
           <span id="wxLoading" class="muted" style="display:none">取得中…</span>
         </div>
-        <div id="wxError" class="text danger"></div>
+        <div id="wxError" class="text" style="color:#b91c1c"></div>
         <div id="wxBlock" class="row"></div>
         <div class="row" style="margin-top:8px">
           <button id="retryWx" class="btn small">再取得</button>
@@ -148,13 +168,16 @@ h3{font-size:14px;margin:0 0 6px;font-weight:600}
         <div class="card" style="flex:1 1 300px;min-width:280px">
           <h2>体調メモ</h2>
           <div class="symptom-group">
-            <h3>① よくある不調</h3><div id="symptomGroup1" class="row"></div>
+            <h3>① よくある不調</h3>
+            <div id="symptomGroup1" class="row"></div>
           </div>
           <div class="symptom-group">
-            <h3>② 季節・生活リズム</h3><div id="symptomGroup2" class="row"></div>
+            <h3>② 季節・生活リズム</h3>
+            <div id="symptomGroup2" class="row"></div>
           </div>
           <div class="symptom-group">
-            <h3>③ メンタル・コンディション</h3><div id="symptomGroup3" class="row"></div>
+            <h3>③ メンタル・コンディション</h3>
+            <div id="symptomGroup3" class="row"></div>
           </div>
           <textarea id="note" class="input" rows="3" placeholder="自由メモ（例：首の張り強め／冷え気味 など）"></textarea>
         </div>
@@ -162,8 +185,10 @@ h3{font-size:14px;margin:0 0 6px;font-weight:600}
         <div class="card" style="flex:1 1 300px;min-width:280px">
           <h2>睡眠</h2>
           <div class="row" style="align-items:center;margin-bottom:8px">
-            <input id="sleepH" class="input number" type="number" min="0" max="23" value="0"><span>時間</span>
-            <input id="sleepM" class="input number" type="number" min="0" max="59" value="0"><span>分</span>
+            <input id="sleepH" class="input number" type="number" min="0" max="23" value="0">
+            <span>時間</span>
+            <input id="sleepM" class="input number" type="number" min="0" max="59" value="0">
+            <span>分</span>
           </div>
           <div class="text muted" style="margin-bottom:6px">※ ショートカット連携で自動入力（?sleepMin=合計分）</div>
           <div class="text">合計：<b id="sleepTotal">0時間0分</b></div>
@@ -177,19 +202,16 @@ h3{font-size:14px;margin:0 0 6px;font-weight:600}
             <div class="row" style="align-items:center;margin-top:8px">
               <button id="copyHealthShortcut" class="btn small">ヘルス取り込みショートカット用URLをコピー</button>
             </div>
-            <div class="text muted" style="margin-top:6px">
-              ※ ショートカットでヘルスケアから取得 → URLで
-              <code>?sleepMin=&weight=&bodyFat=</code> を渡すと自動入力
-            </div>
+            <div class="text muted" style="margin-top:6px">※ ショートカットでヘルスケアから取得→URLで <code>?sleepMin=&weight=&bodyFat=</code> を渡すと自動入力</div>
           </div>
         </div>
       </section>
 
       <section class="row" style="margin-top:16px">
-        <button id="saveLog" class="btn">この日の記録を保存</button>
-        <button id="exportCSV" class="btn btn-ghost">CSV</button>
-        <button id="exportJSON" class="btn btn-ghost">JSON</button>
-        <a href="./evening.html" class="btn btn-ghost">🌙 夜の記録へ</a>
+        <button id="saveLog" class="btn primary">この日の記録を保存</button>
+        <button id="exportCSV" class="btn">CSV</button>
+        <button id="exportJSON" class="btn">JSON</button>
+        <a href="./evening.html" class="btn ghost">🌙 夜の記録へ</a>
         <label class="btn small" for="importJSON" style="cursor:pointer">JSONを読み込み</label>
         <input id="importJSON" type="file" accept="application/json" style="display:none">
       </section>
@@ -212,11 +234,13 @@ h3{font-size:14px;margin:0 0 6px;font-weight:600}
             <button id="backToMain" class="btn small">メインへ戻る</button>
           </div>
         </div>
+
         <div class="filterbar">
           <input id="thSearch" class="input" placeholder="キーワードで絞り込み（例：水やり）" style="flex:1">
           <input id="thDate" type="date" class="input">
           <button id="thClear" class="btn small">フィルタをクリア</button>
         </div>
+
         <div id="taskHistoryList"></div>
       </section>
     </div>
@@ -225,9 +249,18 @@ h3{font-size:14px;margin:0 0 6px;font-weight:600}
       <section class="card">
         <div class="titlebar"><h2>まとめ（週間・月間）</h2></div>
         <div class="summary-grid">
-          <div><h3>直近7日：睡眠（時間）</h3><div id="chartSleep7" class="chart"></div></div>
-          <div><h3>直近30日：元気度カウント</h3><div id="chartEnergy30" class="chart"></div></div>
-          <div><h3>直近30日：体重（折れ線）</h3><div id="chartWeight30" class="chart"></div></div>
+          <div>
+            <h3>直近7日：睡眠（時間）</h3>
+            <div id="chartSleep7" class="chart"></div>
+          </div>
+          <div>
+            <h3>直近30日：元気度カウント</h3>
+            <div id="chartEnergy30" class="chart"></div>
+          </div>
+          <div>
+            <h3>直近30日：体重（折れ線）</h3>
+            <div id="chartWeight30" class="chart"></div>
+          </div>
         </div>
       </section>
     </div>
@@ -239,346 +272,568 @@ h3{font-size:14px;margin:0 0 6px;font-weight:600}
   </div>
 
 <script>
-/* ====== URL→Cookie→PWA ブリッジ ====== */
-(function bridgeFromURLAndCookie(){
-  const u = new URL(window.location.href);
-  const hasQP = ['sleepMin','weight','bodyFat'].some(k => u.searchParams.has(k));
-  function numOrNull(v){ if(v==null) return null; const n=parseFloat(String(v).trim()); return Number.isFinite(n)?n:null; }
-  const Cookie = {
-    set(name,val,days){ const d=new Date(); d.setTime(d.getTime()+days*864e5);
-      document.cookie=`${name}=${encodeURIComponent(val)}; expires=${d.toUTCString()}; path=/; SameSite=Lax`; },
-    get(name){ const m=document.cookie.match(new RegExp('(?:^|; )'+name.replace(/([.$?*|{}()\\[\\]\\\\/+^])/g,'\\$1')+'=([^;]*)')); return m?decodeURIComponent(m[1]):null; },
-    del(name){ document.cookie=`${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`; }
-  };
-  const KEY='md_bridge_v1';
-  if(hasQP){
-    const payload={
-      sleepMin:(u.searchParams.get('sleepMin')!=null?parseInt(u.searchParams.get('sleepMin'),10)||0:null),
-      weight:numOrNull(u.searchParams.get('weight')),
-      bodyFat:numOrNull(u.searchParams.get('bodyFat')),
-      ts:Date.now()
-    };
-    Cookie.set(KEY, JSON.stringify(payload), 2);
-    if(window.matchMedia('(display-mode: standalone)').matches){
-      try{
-        const LOGS_KEY="md_logs_v2";
-        const todayKey=new Date().toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo"});
-        const logs=JSON.parse(localStorage.getItem(LOGS_KEY)||"[]");
-        const rec=logs.find(l=>l.date===todayKey)||{date:todayKey};
-        if(payload.sleepMin!=null) rec.sleepMin=payload.sleepMin;
-        if(payload.weight!=null) rec.weight=payload.weight;
-        if(payload.bodyFat!=null) rec.bodyFat=payload.bodyFat;
-        rec.ts=Date.now();
-        const rest=logs.filter(l=>l.date!==todayKey);
-        localStorage.setItem(LOGS_KEY, JSON.stringify([rec,...rest]));
-      }catch(e){}
-    }
-    try{ history.replaceState(null,'',location.pathname); }catch(e){}
-  }
-  if(window.matchMedia('(display-mode: standalone)').matches){
-    const raw=Cookie.get(KEY);
-    if(raw){
-      try{
-        const p=JSON.parse(raw);
-        const LOGS_KEY="md_logs_v2";
-        const todayKey=new Date().toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo"});
-        const logs=JSON.parse(localStorage.getItem(LOGS_KEY)||"[]");
-        const rec=logs.find(l=>l.date===todayKey)||{date:todayKey};
-        if(p.sleepMin!=null) rec.sleepMin=parseInt(p.sleepMin,10)||0;
-        if(p.weight!=null)   rec.weight=p.weight;
-        if(p.bodyFat!=null)  rec.bodyFat=p.bodyFat;
-        rec.ts=Date.now();
-        const rest=logs.filter(l=>l.date!==todayKey);
-        localStorage.setItem(LOGS_KEY, JSON.stringify([rec,...rest]));
-      }catch(e){}
-      Cookie.del(KEY);
-    }
-  }
-})();
-
-/* ====== ここから従来ロジック ====== */
 (function(){
-  const $=(s)=>document.querySelector(s);
-  const $$=(s)=>Array.from(document.querySelectorAll(s));
-  const today=new Date();
-  const toKey=d=>d.toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo"});
-  const toInputDate=d=>{const z=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`};
-  const fromInputDate=s=>{const [y,m,da]=s.split("-").map(Number);return new Date(y,m-1,da)};
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => Array.from(document.querySelectorAll(s));
+  const today = new Date();
+  const toKey = d => d.toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo"});
+  const toInputDate = d => { const z = n => String(n).padStart(2,"0"); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`; };
+  const fromInputDate = s => { const [y,m,da] = s.split("-").map(Number); return new Date(y, m-1, da); };
 
-  const todayKey=toKey(today); let currentDateKey=todayKey;
-  const dateLabel=$("#dateLabel"), datePicker=$("#datePicker"), editBadge=$("#editBadge");
-  const pageMain=$("#pageMain"), pageTaskHistory=$("#pageTaskHistory"), pageSummary=$("#pageSummary");
+  const todayKey = toKey(today);
+  let currentDateKey = todayKey;
+  const dateLabel = $("#dateLabel");
+  const datePicker = $("#datePicker");
+  const editBadge = $("#editBadge");
+  const pageMain = $("#pageMain");
+  const pageTaskHistory = $("#pageTaskHistory");
+  const pageSummary = $("#pageSummary");
 
   function renderHeader(){
-    dateLabel.textContent=currentDateKey;
-    editBadge.style.display=(currentDateKey===todayKey)?"none":"inline-block";
-    const [y,m,da]=currentDateKey.split("/").map(Number);
-    datePicker.value=toInputDate(new Date(y,m-1,da));
+    dateLabel.textContent = currentDateKey;
+    editBadge.style.display = (currentDateKey === todayKey) ? "none" : "inline-block";
+    const [y, m, da] = currentDateKey.split("/").map(Number);
+    datePicker.value = toInputDate(new Date(y, m-1, da));
   }
-  datePicker.value=toInputDate(today); renderHeader();
+  datePicker.value = toInputDate(today);
+  renderHeader();
 
-  $("#tabMain").addEventListener("click",()=>showPage("main"));
-  $("#tabTaskHistory").addEventListener("click",()=>{showPage("taskHistory");renderTaskHistory();});
-  $("#tabSummary").addEventListener("click",()=>{showPage("summary");renderCharts();});
+  // Tabs
+  $("#tabMain").addEventListener("click", () => { showPage("main"); });
+  $("#tabTaskHistory").addEventListener("click", () => { showPage("taskHistory"); renderTaskHistory(); });
+  $("#tabSummary").addEventListener("click", () => { showPage("summary"); renderCharts(); });
   function showPage(which){
-    pageMain.style.display=which==="main"?"block":"none";
-    pageTaskHistory.style.display=which==="taskHistory"?"block":"none";
-    pageSummary.style.display=which==="summary"?"block":"none";
-    $("#tabMain").classList.toggle("active",which==="main");
-    $("#tabTaskHistory").classList.toggle("active",which==="taskHistory");
-    $("#tabSummary").classList.toggle("active",which==="summary");
+    pageMain.style.display = which==="main" ? "block":"none";
+    pageTaskHistory.style.display = which==="taskHistory" ? "block":"none";
+    pageSummary.style.display = which==="summary" ? "block":"none";
+    $("#tabMain").classList.toggle("active", which==="main");
+    $("#tabTaskHistory").classList.toggle("active", which==="taskHistory");
+    $("#tabSummary").classList.toggle("active", which==="summary");
   }
 
-  const state={mood:"",energy:"",symptoms:[],note:"",sleepH:0,sleepM:0,weight:null,bodyFat:null,weather:null,
-               quickTasks:[{done:false,text:""},{done:false,text:""},{done:false,text:""}]};
-  const moods=[{v:"🙂",label:"良い"},{v:"😐",label:"ふつう"},{v:"🙁",label:"いまいち"}];
-  const energies=["❤️‍🔥元気","❤️まずまず","❤️‍🩹だるい"];
-  const group1=["首・肩こり","頭痛","腹痛／お腹の張り","腰の張り／腰痛","胃腸弱め（胃もたれ・下痢・便秘など）","むくみ","目の疲れ／ドライアイ","自律神経の乱れ","睡眠の質低下（浅い眠り・途中覚醒）","生理"];
-  const group2=["冷え（手足の冷え・全身）","暑さバテ／熱っぽさ","喉の痛み・声枯れ","鼻水・鼻づまり","肌荒れ／かゆみ","花粉・アレルギー症状"];
-  const group3=["集中力低下","イライラ／不安感","だるさ／倦怠感","モチベーション低下","PMS（生理前症状）"];
-  const allSymptoms=[...group1,...group2,...group3];
+  // State
+  const state = {
+    mood: "",
+    energy: "",
+    symptoms: [],
+    note: "",
+    sleepH: 0,
+    sleepM: 0,
+    weight: null,
+    bodyFat: null,
+    weather: null,
+    quickTasks: [{done:false,text:""},{done:false,text:""},{done:false,text:""}],
+  };
 
-  function buildChips(root,options,isActive,onClick){
-    root.innerHTML="";
-    options.forEach(opt=>{
-      const v=typeof opt==="string"?opt:opt.v;
-      const label=typeof opt==="string"?opt:(opt.v+" "+opt.label);
-      const b=document.createElement("button");
-      b.className="chip"+(isActive(v)?" active":"");
-      b.textContent=label;
-      b.addEventListener("click",()=>onClick(v));
+  // UI builders
+  const moods = [{v:"🙂",label:"良い"},{v:"😐",label:"ふつう"},{v:"🙁",label:"いまいち"}];
+  const energies = ["❤️‍🔥元気","❤️まずまず","❤️‍🩹だるい"];
+
+  // Symptom groups
+  const group1 = [
+    "首・肩こり","頭痛","腹痛／お腹の張り","腰の張り／腰痛","胃腸弱め（胃もたれ・下痢・便秘など）","むくみ","目の疲れ／ドライアイ",
+    "自律神経の乱れ","睡眠の質低下（浅い眠り・途中覚醒）","生理"
+  ];
+  const group2 = [
+    "冷え（手足の冷え・全身）","暑さバテ／熱っぽさ","喉の痛み・声枯れ","鼻水・鼻づまり","肌荒れ／かゆみ","花粉・アレルギー症状"
+  ];
+  const group3 = [
+    "集中力低下","イライラ／不安感","だるさ／倦怠感","モチベーション低下","PMS（生理前症状）"
+  ];
+  const allSymptoms = [...group1, ...group2, ...group3];
+
+  function buildChips(root, options, isActive, onClick){
+    root.innerHTML = "";
+    options.forEach(opt => {
+      const v = typeof opt === "string" ? opt : opt.v;
+      const label = typeof opt === "string" ? opt : (opt.v+" "+opt.label);
+      const b = document.createElement("button");
+      b.className = "chip" + (isActive(v) ? " active" : "");
+      b.textContent = label;
+      b.addEventListener("click", () => onClick(v));
       root.appendChild(b);
     });
   }
+
   function renderChips(){
-    buildChips($("#moodBtns"),moods,v=>state.mood===v,v=>{state.mood=v;renderChips();autoSave();});
-    buildChips($("#energyBtns"),energies,v=>state.energy===v,v=>{state.energy=v;renderChips();autoSave();});
-    const mk=(id,arr)=>buildChips($(id),arr,v=>state.symptoms.includes(v),v=>{
-      if(state.symptoms.includes(v)) state.symptoms=state.symptoms.filter(x=>x!==v);
-      else state.symptoms=[...state.symptoms,v];
-      renderChips();autoSave();
+    buildChips($("#moodBtns"), moods, v => state.mood===v, v => { state.mood=v; renderChips(); autoSave(); });
+    buildChips($("#energyBtns"), energies, v => state.energy===v, v => { state.energy=v; renderChips(); autoSave(); });
+
+    const mk = (id, arr) => buildChips($(id), arr, v => state.symptoms.includes(v), v => {
+      if (state.symptoms.includes(v)) state.symptoms = state.symptoms.filter(x=>x!==v);
+      else state.symptoms = [...state.symptoms, v];
+      renderChips(); autoSave();
     });
-    mk("#symptomGroup1",group1); mk("#symptomGroup2",group2); mk("#symptomGroup3",group3);
+    mk("#symptomGroup1", group1);
+    mk("#symptomGroup2", group2);
+    mk("#symptomGroup3", group3);
   }
   renderChips();
 
-  const url=new URL(window.location.href);
-  const qp=k=>url.searchParams.get(k);
-  function parseNumMaybe(v){ if(v==null) return null; const n=parseFloat(String(v).trim()); return isNaN(n)?null:n; }
-  const qpPayload={};
-  if(qp("sleepMin")!=null) qpPayload.sleepMin=parseInt(qp("sleepMin"),10)||0;
-  if(qp("mood")) qpPayload.mood=qp("mood");
-  if(qp("energy")) qpPayload.energy=qp("energy");
-  if(qp("symptoms")) qpPayload.symptoms=qp("symptoms").split(",").filter(Boolean);
-  if(qp("note")) qpPayload.note=qp("note");
-  const wnum=parseNumMaybe(qp("weight")); if(wnum!=null) qpPayload.weight=wnum;
-  const bnum=parseNumMaybe(qp("bodyFat")); if(bnum!=null) qpPayload.bodyFat=bnum;
+  // Query params
+  function parseNumMaybe(v){
+    if (v==null) return null;
+    const s = String(v).trim().replace(/,%20/g,",").replace(/%20/g," ").trim();
+    const n = parseFloat(s);
+    return isNaN(n) ? null : n;
+  }
+  const url = new URL(window.location.href);
+  const qp = k => url.searchParams.get(k);
+  const qpPayload = {};
+  const sleepMinQ = qp("sleepMin"); if (sleepMinQ!=null) qpPayload.sleepMin = parseInt(sleepMinQ,10)||0;
+  const moodQ = qp("mood"); if (moodQ) qpPayload.mood = moodQ;
+  const energyQ = qp("energy"); if (energyQ) qpPayload.energy = energyQ;
+  const symptomsQ = qp("symptoms"); if (symptomsQ) qpPayload.symptoms = symptomsQ.split(",").filter(Boolean);
+  const noteQ = qp("note"); if (noteQ) qpPayload.note = noteQ;
+  const weightQ = qp("weight"); const wnum = parseNumMaybe(weightQ); if (wnum!=null) qpPayload.weight = wnum;
+  const bodyFatQ = qp("bodyFat"); const bnum = parseNumMaybe(bodyFatQ); if (bnum!=null) qpPayload.bodyFat = bnum;
 
-  const sleepTotal=$("#sleepTotal");
-  function updateSleepLabel(){ sleepTotal.textContent=Math.floor(state.sleepH)+"時間"+(state.sleepM%60)+"分"; }
+  // Note & Sleep & Health
+  const sleepH = $("#sleepH"), sleepM = $("#sleepM"), sleepTotal = $("#sleepTotal");
+  const weight = $("#weight"), bodyFat = $("#bodyFat");
+  function updateSleepLabel(){ sleepTotal.textContent = Math.floor(state.sleepH)+"時間"+(state.sleepM%60)+"分"; }
 
-  const qtElems=[{c:$("#qt0c"),t:$("#qt0t")},{c:$("#qt1c"),t:$("#qt1t")},{c:$("#qt2c"),t:$("#qt2t")}];
+  // Quick tasks
+  const qtElems = [
+    {c:$("#qt0c"), t:$("#qt0t")},
+    {c:$("#qt1c"), t:$("#qt1t")},
+    {c:$("#qt2c"), t:$("#qt2t")},
+  ];
   function renderQuickTasks(){
     qtElems.forEach((q,i)=>{
-      if(!q.c||!q.t) return;
-      q.c.checked=!!state.quickTasks[i]?.done;
-      q.t.value=state.quickTasks[i]?.text||"";
-      q.c.onchange=()=>{state.quickTasks[i].done=q.c.checked;autoSave();};
-      q.t.oninput =()=>{state.quickTasks[i].text=q.t.value;autoSave();};
+      q.c.checked = !!state.quickTasks[i]?.done;
+      q.t.value = state.quickTasks[i]?.text || "";
+      q.c.onchange = () => { state.quickTasks[i].done = q.c.checked; autoSave(); };
+      q.t.oninput = () => { state.quickTasks[i].text = q.t.value; autoSave(); };
+    });
+    $$("#quickTasks .linklike").forEach(el => {
+      el.onclick = async () => {
+        const sel = el.getAttribute("data-copy");
+        const input = document.querySelector(sel);
+        const txt = (input?.value || "").trim();
+        if (!txt){ alert("コピーするテキストがありません"); return; }
+        try { await navigator.clipboard.writeText(txt); alert("コピーしました"); } catch(e){ alert(txt); }
+      };
     });
   }
-  renderQuickTasks();
 
-  const wxLoading=$("#wxLoading"), wxError=$("#wxError"), wxBlock=$("#wxBlock");
+  // Weather
+  const wxLoading = $("#wxLoading"), wxError = $("#wxError"), wxBlock = $("#wxBlock");
   function wxCodeToText(code){ const map={0:"快晴",1:"晴れ",2:"薄曇り",3:"曇り",45:"霧",48:"霧氷",51:"弱い霧雨",53:"霧雨",55:"強い霧雨",61:"弱い雨",63:"雨",65:"強い雨",71:"弱い雪",73:"雪",75:"大雪",95:"雷雨"}; return map[code]||"—"; }
   function renderWeather(){
     wxBlock.innerHTML="";
-    if(!state.weather){ const p=document.createElement("p"); p.className="text muted"; p.textContent="位置情報の許可後、自動表示されます。"; wxBlock.appendChild(p); return; }
+    if (!state.weather){ const p=document.createElement("p"); p.className="text muted"; p.textContent="位置情報の許可後、自動表示されます。"; wxBlock.appendChild(p); return; }
     const big=document.createElement("div"); big.style.fontSize="44px"; big.style.fontWeight="600"; big.textContent=Math.round(state.weather.temp)+"°C";
     const small=document.createElement("div"); small.className="text";
-    const lines=[]; lines.push("状況："+state.weather.condition);
-    if(state.weather.appTemp!=null) lines.push("体感："+Math.round(state.weather.appTemp)+"°C");
+    const lines = [];
+    lines.push("状況："+state.weather.condition);
+    if (state.weather.appTemp!=null) lines.push("体感："+Math.round(state.weather.appTemp)+"°C");
     lines.push("風速："+Math.round(state.weather.wind)+" m/s");
-    if(state.weather.humidity!=null) lines.push("湿度："+Math.round(state.weather.humidity)+"%");
-    if(state.weather.pop!=null) lines.push("降水確率（今）："+state.weather.pop+"%");
-    if(state.weather.sunrise&&state.weather.sunset) lines.push("日の出："+state.weather.sunrise+"／日の入り："+state.weather.sunset);
+    if (state.weather.humidity!=null) lines.push("湿度："+Math.round(state.weather.humidity)+"%");
+    if (state.weather.pop!=null) lines.push("降水確率（今）："+state.weather.pop+"%");
+    if (state.weather.sunrise && state.weather.sunset) lines.push("日の出："+state.weather.sunrise+"／日の入り："+state.weather.sunset);
     lines.push("<span class='muted'>更新："+new Date(state.weather.time).toLocaleTimeString("ja-JP",{timeZone:"Asia/Tokyo"})+"</span>");
-    small.innerHTML=lines.join("<br>");
+    small.innerHTML = lines.join("<br>");
     const wrap=document.createElement("div"); wrap.className="row"; wrap.appendChild(big); wrap.appendChild(small);
     wxBlock.appendChild(wrap);
   }
-  function fetchWeatherFromGeo(lat,lon){
+  function fetchWeatherFromGeo(lat, lon){
     wxLoading.style.display="inline"; wxError.textContent="";
-    const u=new URL("https://api.open-meteo.com/v1/forecast");
-    u.searchParams.set("latitude",lat); u.searchParams.set("longitude",lon);
+    const u = new URL("https://api.open-meteo.com/v1/forecast");
+    u.searchParams.set("latitude", lat);
+    u.searchParams.set("longitude", lon);
     u.searchParams.set("current_weather","true");
     u.searchParams.set("hourly","precipitation_probability,relativehumidity_2m");
-    u.searchParams.set("daily","sunrise,sunset"); u.searchParams.set("timezone","Asia/Tokyo");
+    u.searchParams.set("daily","sunrise,sunset");
+    u.searchParams.set("timezone","Asia/Tokyo");
     fetch(u.toString()).then(r=>r.json()).then(data=>{
-      const c=data.current_weather, times=(data.hourly&&data.hourly.time)||[], nowISO=c.time, idx=times.indexOf(nowISO);
-      const hum=(idx>-1&&data.hourly.relativehumidity_2m)?data.hourly.relativehumidity_2m[idx]:null;
-      const pop=(idx>-1&&data.hourly.precipitation_probability)?data.hourly.precipitation_probability[idx]:null;
-      const sunrise=(data.daily&&data.daily.sunrise)?data.daily.sunrise[0]?.split("T")[1]?.slice(0,5):null;
-      const sunset =(data.daily&&data.daily.sunset )?data.daily.sunset [0]?.split("T")[1]?.slice(0,5):null;
-      state.weather={temp:c.temperature,wind:c.windspeed,code:c.weathercode,condition:wxCodeToText(c.weathercode),time:c.time,appTemp:c.apparent_temperature??null,humidity:hum,pop:pop,sunrise:sunrise,sunset:sunset};
+      const c=data.current_weather;
+      const times = (data.hourly && data.hourly.time) || [];
+      const nowISO = c.time;
+      const idx = times.indexOf(nowISO);
+      const hum = (idx>-1 && data.hourly.relativehumidity_2m) ? data.hourly.relativehumidity_2m[idx] : null;
+      const pop = (idx>-1 && data.hourly.precipitation_probability) ? data.hourly.precipitation_probability[idx] : null;
+      const sunrise = (data.daily && data.daily.sunrise) ? data.daily.sunrise[0]?.split("T")[1]?.slice(0,5) : null;
+      const sunset  = (data.daily && data.daily.sunset)  ? data.daily.sunset[0]?.split("T")[1]?.slice(0,5) : null;
+      state.weather={
+        temp:c.temperature, wind:c.windspeed, code:c.weathercode, condition:wxCodeToText(c.weathercode), time:c.time,
+        appTemp: c.apparent_temperature ?? null,
+        humidity: hum, pop: pop, sunrise: sunrise, sunset: sunset
+      };
       renderWeather(); autoSave();
-    }).catch(()=>{ wxError.textContent="天気の取得に失敗しました。"; }).finally(()=>{ wxLoading.style.display="none"; });
+    }).catch(e=>{ wxError.textContent="天気の取得に失敗しました。"; }).finally(()=>{ wxLoading.style.display="none"; });
   }
   function askGeo(){
     wxLoading.style.display="inline"; wxError.textContent="";
-    if(!("geolocation" in navigator)){ wxError.textContent="この端末は位置情報に対応していません。"; wxLoading.style.display="none"; return; }
+    if (!("geolocation" in navigator)){ wxError.textContent="この端末は位置情報に対応していません。"; wxLoading.style.display="none"; return; }
     navigator.geolocation.getCurrentPosition(
-      pos=>{const {latitude,longitude}=pos.coords; fetchWeatherFromGeo(latitude,longitude);},
-      ()=>{wxError.textContent="位置情報を取得できませんでした。設定でSafari Websitesを許可してください。"; wxLoading.style.display="none";},
-      {enableHighAccuracy:false,timeout:8000}
+      pos => { const {latitude, longitude}=pos.coords; fetchWeatherFromGeo(latitude, longitude); },
+      err => { wxError.textContent="位置情報を取得できませんでした。設定→プライバシー→位置情報サービス→Safari Websitesを許可 にしてください。"; wxLoading.style.display="none"; },
+      { enableHighAccuracy:false, timeout:8000 }
     );
   }
-  $("#retryWx").addEventListener("click",askGeo); askGeo();
+  $("#retryWx").addEventListener("click", askGeo);
+  askGeo();
 
-  const LOGS_KEY="md_logs_v2", TASK_HIST_KEY="md_task_history_v1";
-  const loadAllLogs=()=>JSON.parse(localStorage.getItem(LOGS_KEY)||"[]");
-  const saveAllLogs=(arr)=>localStorage.setItem(LOGS_KEY,JSON.stringify(arr));
-  const loadLog=(dateKey)=>loadAllLogs().find(l=>l.date===dateKey)||null;
-  const upsertLog=(payload)=>{ const logs=loadAllLogs(); const rest=logs.filter(l=>l.date!==payload.date); saveAllLogs([payload,...rest].sort((a,b)=>a.date<b.date?1:-1)); };
-  const loadTaskHistory=()=>JSON.parse(localStorage.getItem(TASK_HIST_KEY)||"[]");
-  const saveTaskHistory=(arr)=>localStorage.setItem(TASK_HIST_KEY,JSON.stringify(arr));
-  function saveUnfinishedTasksToHistory(dateKey){
-    const unfinished=state.quickTasks.filter(x=>x.text&&!x.done).map(x=>({text:x.text,from:"quick",savedAt:Date.now()}));
-    if(!unfinished.length) return 0;
-    const hist=loadTaskHistory(); const rest=hist.filter(h=>h.date!==dateKey);
-    saveTaskHistory([{date:dateKey,tasks:unfinished},...rest]); return unfinished.length;
-  }
+  // Storage
+  const LOGS_KEY = "md_logs_v2";
+  const TASK_HIST_KEY = "md_task_history_v1";
+  const loadAllLogs = () => JSON.parse(localStorage.getItem(LOGS_KEY) || "[]");
+  const saveAllLogs = (arr) => localStorage.setItem(LOGS_KEY, JSON.stringify(arr));
+  const loadLog = (dateKey) => loadAllLogs().find(l => l.date === dateKey) || null;
+  const upsertLog = (payload) => {
+    const logs = loadAllLogs();
+    const rest = logs.filter(l => l.date !== payload.date);
+    saveAllLogs([payload, ...rest].sort((a,b)=> (a.date < b.date ? 1 : -1)));
+  };
+  const loadTaskHistory = () => JSON.parse(localStorage.getItem(TASK_HIST_KEY) || "[]");
+  const saveTaskHistory = (arr) => localStorage.setItem(TASK_HIST_KEY, JSON.stringify(arr));
+  const saveUnfinishedTasksToHistory = (dateKey)=>{
+    const unfinished = state.quickTasks.filter(x => x.text && !x.done).map(x => ({text:x.text, from:"quick", savedAt: Date.now()}));
+    if (!unfinished.length) return 0;
+    const hist = loadTaskHistory();
+    const rest = hist.filter(h => h.date !== dateKey);
+    saveTaskHistory([{date: dateKey, tasks: unfinished}, ...rest]);
+    return unfinished.length;
+  };
 
+  // Auto-save
   let saveTimer=null;
   function autoSave(){
     clearTimeout(saveTimer);
-    saveTimer=setTimeout(()=>{
-      const payload={date:currentDateKey,mood:state.mood,energy:state.energy,symptoms:state.symptoms,
-        sleepMin:(parseInt(state.sleepH,10)||0)*60+(parseInt(state.sleepM,10)||0),
-        weight:state.weight,bodyFat:state.bodyFat,note:state.note,weather:state.weather,quickTasks:state.quickTasks,ts:Date.now()};
-      upsertLog(payload); renderHistory(); renderMiniCalendar(); if($("#pageSummary").style.display!=="none") renderCharts();
-    },400);
+    saveTimer = setTimeout(() => {
+      const payload = {
+        date: currentDateKey,
+        mood: state.mood,
+        energy: state.energy,
+        symptoms: state.symptoms,
+        sleepMin: (parseInt(state.sleepH,10)||0)*60 + (parseInt(state.sleepM,10)||0),
+        weight: state.weight,
+        bodyFat: state.bodyFat,
+        note: state.note,
+        weather: state.weather,
+        quickTasks: state.quickTasks,
+        ts: Date.now()
+      };
+      upsertLog(payload);
+      renderHistory();
+      renderMiniCalendar();
+      if ($("#pageSummary").style.display !== "none") renderCharts();
+    }, 400);
   }
 
+  // Form sync
   function syncFormFromState(){
-    $("#sleepH").value=state.sleepH; $("#sleepM").value=state.sleepM; updateSleepLabel();
-    $("#note").value=state.note; $("#weight").value=state.weight??""; $("#bodyFat").value=state.bodyFat??"";
+    $("#sleepH").value = state.sleepH; $("#sleepM").value = state.sleepM; updateSleepLabel();
+    $("#note").value = state.note;
+    $("#weight").value = state.weight ?? "";
+    $("#bodyFat").value = state.bodyFat ?? "";
   }
+  function updateSleepLabel(){ $("#sleepTotal").textContent = Math.floor(state.sleepH)+"時間"+(state.sleepM%60)+"分"; }
+
   function loadLogToForm(log){
-    if(!log){ state.mood="";state.energy="";state.symptoms=[];state.note="";state.sleepH=0;state.sleepM=0;state.weight=null;state.bodyFat=null;state.quickTasks=[{done:false,text:""},{done:false,text:""},{done:false,text:""}]; }
-    else{
-      state.mood=log.mood||""; state.energy=log.energy||""; state.symptoms=Array.isArray(log.symptoms)?log.symptoms.filter(s=>allSymptoms.includes(s)):[];
-      const sm=parseInt(log.sleepMin||0,10); state.sleepH=Math.floor(sm/60); state.sleepM=sm%60;
-      state.weight=(log.weight??null); state.bodyFat=(log.bodyFat??null); state.note=log.note||""; state.weather=log.weather||state.weather;
-      state.quickTasks=Array.isArray(log.quickTasks)&&log.quickTasks.length===3?log.quickTasks:[{done:false,text:""},{done:false,text:""},{done:false,text:""}];
+    if (!log){
+      state.mood=""; state.energy=""; state.symptoms=[]; state.note="";
+      state.sleepH=0; state.sleepM=0;
+      state.weight=null; state.bodyFat=null;
+      state.quickTasks=[{done:false,text:""},{done:false,text:""},{done:false,text:""}];
+    } else {
+      state.mood = log.mood||"";
+      state.energy = log.energy||"";
+      state.symptoms = Array.isArray(log.symptoms) ? log.symptoms.filter(s => [...group1,...group2,...group3].includes(s)) : [];
+      const sm = parseInt(log.sleepMin||0,10); state.sleepH = Math.floor(sm/60); state.sleepM = sm%60;
+      state.weight = (log.weight ?? null);
+      state.bodyFat = (log.bodyFat ?? null);
+      state.note = log.note||"";
+      state.weather = log.weather || state.weather;
+      state.quickTasks = Array.isArray(log.quickTasks) && log.quickTasks.length===3 ? log.quickTasks : [{done:false,text:""},{done:false,text:""},{done:false,text:""}];
     }
     renderChips(); syncFormFromState(); renderQuickTasks(); renderHeader();
   }
 
+  // History list
   function renderHistory(){
-    const historyRoot=$("#history"); const logs=loadAllLogs(); historyRoot.innerHTML="";
-    if(logs.length===0){ const p=document.createElement("p"); p.className="text muted"; p.textContent="まだ記録がありません"; historyRoot.appendChild(p); return; }
-    logs.forEach(l=>{
+    const historyRoot = $("#history");
+    const logs = loadAllLogs();
+    historyRoot.innerHTML="";
+    if (logs.length===0){
+      const p=document.createElement("p"); p.className="text muted"; p.textContent="まだ記録がありません"; historyRoot.appendChild(p); return;
+    }
+    logs.forEach(l => {
       const box=document.createElement("div"); box.className="card"; box.style.marginTop="8px";
-      const head=document.createElement("div"); head.className="text"; head.innerHTML=`<span class="muted">${l.date}</span>`;
+      const head=document.createElement("div"); head.className="text"; head.innerHTML = `<span class="muted">${l.date}</span>`;
       const row=document.createElement("div"); row.className="row text"; row.style.marginTop="6px";
-      row.innerHTML=`<div>気分：${l.mood||"—"}</div>
-        <div>元気度：${l.energy||"—"}</div>
-        <div>睡眠：${Math.floor((l.sleepMin||0)/60)}時間${(l.sleepMin||0)%60}分</div>
-        ${l.weight!=null?`<div>体重：${l.weight}kg</div>`:""}
-        ${l.bodyFat!=null?`<div>体脂肪：${l.bodyFat}%</div>`:""}`;
-      const qts=document.createElement("div"); qts.className="text";
-      const nonEmpty=(l.quickTasks||[]).filter(x=>x&&x.text&&x.text.trim().length>0);
-      if(nonEmpty.length){ qts.textContent="タスク："+nonEmpty.map(x=>(x.done?"✅ ":"⬜ ")+x.text).join(" / "); }
-      const actions=document.createElement("div"); actions.className="row"; actions.style.marginTop="8px";
-      const editBtn=document.createElement("button"); editBtn.className="btn small"; editBtn.textContent="編集";
-      editBtn.addEventListener("click",()=>{ currentDateKey=l.date; loadLogToForm(l); window.scrollTo({top:0,behavior:"smooth"}); });
-      const delBtn=document.createElement("button"); delBtn.className="btn small"; delBtn.textContent="削除"; delBtn.style.borderColor="#fecaca";
-      delBtn.addEventListener("click",()=>{ if(!confirm(`${l.date} の記録を削除しますか？`))return;
-        const rest=loadAllLogs().filter(x=>x.date!==l.date); saveAllLogs(rest); renderHistory(); renderMiniCalendar();
-        if($("#pageSummary").style.display!=="none") renderCharts(); if(currentDateKey===l.date){ currentDateKey=todayKey; loadLogToForm(loadLog(todayKey)); }});
+      row.innerHTML = `<div>気分：${l.mood||"—"}</div>
+                       <div>元気度：${l.energy||"—"}</div>
+                       <div>睡眠：${Math.floor((l.sleepMin||0)/60)}時間${(l.sleepMin||0)%60}分</div>
+                       ${l.weight!=null?`<div>体重：${l.weight}kg</div>`:""}
+                       ${l.bodyFat!=null?`<div>体脂肪：${l.bodyFat}%</div>`:""}`;
+      const tags = document.createElement("div"); tags.className="text"; if (l.symptoms && l.symptoms.length){ tags.textContent="体調："+l.symptoms.join("、 "); }
+      const memo = document.createElement("div"); memo.className="text"; if (l.note){ memo.textContent="メモ："+l.note; }
+      const qts = document.createElement("div"); qts.className="text";
+      const nonEmpty = (l.quickTasks||[]).filter(x=>x && x.text && x.text.trim().length>0);
+      if (nonEmpty.length){ qts.textContent = "タスク：" + nonEmpty.map(x => (x.done ? "✅ " : "⬜ ") + x.text).join(" / "); }
+
+      const actions = document.createElement("div"); actions.className="row"; actions.style.marginTop="8px";
+      const editBtn = document.createElement("button"); editBtn.className="btn small"; editBtn.textContent="編集";
+      editBtn.addEventListener("click", () => {
+        currentDateKey = l.date; loadLogToForm(l);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+      const delBtn = document.createElement("button"); delBtn.className="btn small"; delBtn.textContent="削除"; delBtn.style.borderColor="#fecaca";
+      delBtn.addEventListener("click", () => {
+        if (!confirm(`${l.date} の記録を削除しますか？`)) return;
+        const rest = loadAllLogs().filter(x => x.date !== l.date);
+        saveAllLogs(rest);
+        renderHistory();
+        if ($("#pageSummary").style.display !== "none") renderCharts();
+        renderMiniCalendar();
+        if (currentDateKey === l.date){ currentDateKey = todayKey; loadLogToForm(loadLog(todayKey)); }
+      });
       actions.appendChild(editBtn); actions.appendChild(delBtn);
-      box.appendChild(head); box.appendChild(row); if(qts.textContent) box.appendChild(qts); box.appendChild(actions);
+
+      box.appendChild(head); box.appendChild(row);
+      if (tags.textContent) box.appendChild(tags);
+      if (memo.textContent) box.appendChild(memo);
+      if (qts.textContent) box.appendChild(qts);
+      box.appendChild(actions);
       historyRoot.appendChild(box);
     });
   }
 
-  let calMonth=new Date(today.getFullYear(),today.getMonth(),1);
+  // Mini Calendar
+  let calMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   function renderMiniCalendar(){
-    $("#calLabel").textContent=`${calMonth.getFullYear()}年 ${calMonth.getMonth()+1}月`;
-    const root=$("#miniCalendar"); root.innerHTML="";
-    const firstDow=new Date(calMonth.getFullYear(),calMonth.getMonth(),1).getDay();
-    const daysInMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+1,0).getDate();
-    for(let i=0;i<firstDow;i++) root.appendChild(document.createElement("div"));
-    const logs=loadAllLogs(); const byDate=new Map(logs.map(l=>[l.date,l]));
-    for(let d=1; d<=daysInMonth; d++){
+    $("#calLabel").textContent = `${calMonth.getFullYear()}年 ${calMonth.getMonth()+1}月`;
+    const root = $("#miniCalendar");
+    root.innerHTML="";
+    const firstDow = new Date(calMonth.getFullYear(), calMonth.getMonth(), 1).getDay();
+    const daysInMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 0).getDate();
+    for (let i=0;i<firstDow;i++){ const pad=document.createElement("div"); root.appendChild(pad); }
+    const logs = loadAllLogs();
+    const byDate = new Map(logs.map(l => [l.date, l]));
+    for (let d=1; d<=daysInMonth; d++){
       const cell=document.createElement("div"); cell.className="cal-cell";
-      const date=new Date(calMonth.getFullYear(),calMonth.getMonth(),d); const key=toKey(date);
-      if(key===toKey(new Date())) cell.classList.add("today");
-      cell.innerHTML=`${d}<span class="dot"></span>`;
-      const dot=cell.querySelector(".dot"); const rec=byDate.get(key);
-      if(rec){ const e=rec.energy||""; if(e.includes("❤️‍🔥")) dot.style.background="#be123c"; else if(e.includes("❤️まず")) dot.style.background="#f43f5e"; else if(e.includes("❤️‍🩹")) dot.style.background="#fecaca"; }
-      cell.addEventListener("click",()=>{ currentDateKey=key; loadLogToForm(rec||null); window.scrollTo({top:0,behavior:"smooth"}); });
+      const date = new Date(calMonth.getFullYear(), calMonth.getMonth(), d);
+      const key = toKey(date);
+      if (key===toKey(new Date())) cell.classList.add("today");
+      cell.innerHTML = `${d}<span class="dot"></span>`;
+      const dot = cell.querySelector(".dot");
+      const rec = byDate.get(key);
+      if (rec){
+        const e = rec.energy||"";
+        if (e.includes("❤️‍🔥")) dot.style.background = "#be123c";
+        else if (e.includes("❤️まず")) dot.style.background = "#f43f5e";
+        else if (e.includes("❤️‍🩹")) dot.style.background = "#fecaca";
+      }
+      cell.addEventListener("click", () => {
+        currentDateKey = key; loadLogToForm(rec||null);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
       root.appendChild(cell);
     }
   }
-  $("#prevMonth").addEventListener("click",()=>{ calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()-1,1); renderMiniCalendar(); });
-  $("#nextMonth").addEventListener("click",()=>{ calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+1,1); renderMiniCalendar(); });
+  $("#prevMonth").addEventListener("click", () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()-1, 1); renderMiniCalendar(); });
+  $("#nextMonth").addEventListener("click", () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 1); renderMiniCalendar(); });
 
+  // Charts
   function createSVG(w,h){ const s=document.createElementNS("http://www.w3.org/2000/svg","svg"); s.setAttribute("viewBox",`0 0 ${w} ${h}`); return s; }
-  function drawAxes(svg,w,h,m){ const g=document.createElementNS(svg.namespaceURI,"g");
-    const ax=document.createElementNS(svg.namespaceURI,"line"); ax.setAttribute("x1",m.left); ax.setAttribute("y1",h-m.bottom); ax.setAttribute("x2",w-m.right); ax.setAttribute("y2",h-m.bottom); ax.setAttribute("class","axis"); g.appendChild(ax);
-    const ay=document.createElementNS(svg.namespaceURI,"line"); ay.setAttribute("x1",m.left); ay.setAttribute("y1",m.top); ay.setAttribute("x2",m.left); ay.setAttribute("y2",h-m.bottom); ay.setAttribute("class","axis"); g.appendChild(ay); svg.appendChild(g); }
-  function drawBars(el,labels,values,maxY){
-    el.innerHTML=""; const w=400,h=180,m={top:10,right:10,bottom:20,left:26};
+  function drawAxes(svg,w,h,margin){ const g=document.createElementNS(svg.namespaceURI,"g");
+    const ax=document.createElementNS(svg.namespaceURI,"line"); ax.setAttribute("x1",margin.left); ax.setAttribute("y1",h-margin.bottom); ax.setAttribute("x2",w-margin.right); ax.setAttribute("y2",h-margin.bottom); ax.setAttribute("class","axis"); g.appendChild(ax);
+    const ay=document.createElementNS(svg.namespaceURI,"line"); ay.setAttribute("x1",margin.left); ay.setAttribute("y1",margin.top); ay.setAttribute("x2",margin.left); ay.setAttribute("y2",h-margin.bottom); ay.setAttribute("class","axis"); g.appendChild(ay);
+    svg.appendChild(g);
+  }
+  function drawBars(el, labels, values, maxY){
+    el.innerHTML=""; const w=400,h=180, m={top:10,right:10,bottom:20,left:26};
     const svg=createSVG(w,h); drawAxes(svg,w,h,m);
-    const innerW=w-m.left-m.right, innerH=h-m.top-m.bottom; const n=values.length||1; const bw=innerW/n*0.8; const gap=innerW/n*0.2;
-    values.forEach((v,i)=>{ const x=m.left+i*(bw+gap)+gap/2; const vh=maxY?(v/maxY)*innerH:0; const y=h-m.bottom-vh;
-      const rect=document.createElementNS(svg.namespaceURI,"rect"); rect.setAttribute("x",x); rect.setAttribute("y",y); rect.setAttribute("width",bw); rect.setAttribute("height",vh); rect.setAttribute("class","bar"); svg.appendChild(rect);});
+    const innerW = w - m.left - m.right; const innerH = h - m.top - m.bottom;
+    const n=values.length||1; const bw = innerW / n * 0.8; const gap = innerW / n * 0.2;
+    values.forEach((v,i)=>{
+      const x = m.left + i*(bw+gap) + gap/2;
+      const vh = maxY ? (v/maxY)*innerH : 0;
+      const y = h - m.bottom - vh;
+      const rect=document.createElementNS(svg.namespaceURI,"rect"); rect.setAttribute("x",x); rect.setAttribute("y",y); rect.setAttribute("width",bw); rect.setAttribute("height",vh); rect.setAttribute("class","bar");
+      svg.appendChild(rect);
+    });
     el.appendChild(svg);
   }
-  function drawLine(el,labels,values){
-    el.innerHTML=""; const w=400,h=180,m={top:10,right:10,bottom:20,left:26};
+  function drawLine(el, labels, values){
+    el.innerHTML=""; const w=400,h=180, m={top:10,right:10,bottom:20,left:26};
     const svg=createSVG(w,h); drawAxes(svg,w,h,m);
-    const innerW=w-m.left-m.right, innerH=h-m.top-m.bottom; const xs=(i)=>m.left+(innerW*(i/(Math.max(1,values.length-1))));
-    const valid=values.filter(v=>v!=null); if(!valid.length){ el.appendChild(svg); return; }
-    const min=Math.min(...valid), max=Math.max(...valid); const ys=(v)=> max===min ? h-m.bottom-innerH/2 : m.top+(1-(v-min)/(max-min))*innerH;
-    let d=""; values.forEach((v,i)=>{ if(v==null) return; const x=xs(i), y=ys(v); d += (d===""?`M ${x} ${y}`:` L ${x} ${y}`); });
+    const innerW = w - m.left - m.right; const innerH = h - m.top - m.bottom;
+    const xs = (i)=> m.left + (innerW * (i/(Math.max(1,values.length-1))));
+    const valid = values.filter(v => v!=null);
+    if (!valid.length){ el.appendChild(svg); return; }
+    const min = Math.min(...valid), max = Math.max(...valid);
+    const ys = (v)=> { if (max===min){ return h - m.bottom - innerH/2; } return m.top + (1 - (v-min)/(max-min)) * innerH; };
+    let d="";
+    values.forEach((v,i)=>{ if (v==null) return; const x=xs(i), y=ys(v); d += (d==="" ? `M ${x} ${y}` : ` L ${x} ${y}`); });
     const path=document.createElementNS(svg.namespaceURI,"path"); path.setAttribute("d",d); path.setAttribute("class","line"); svg.appendChild(path);
-    values.forEach((v,i)=>{ if(v==null) return; const x=xs(i), y=ys(v); const c=document.createElementNS(svg.namespaceURI,"circle"); c.setAttribute("cx",x); c.setAttribute("cy",y); c.setAttribute("r",2.5); c.setAttribute("class","dot"); svg.appendChild(c); });
+    values.forEach((v,i)=>{ if (v==null) return; const x=xs(i), y=ys(v); const c=document.createElementNS(svg.namespaceURI,"circle"); c.setAttribute("cx",x); c.setAttribute("cy",y); c.setAttribute("r",2.5); c.setAttribute("class","dot"); svg.appendChild(c); });
     el.appendChild(svg);
   }
+
   function getLogsInDays(days){
-    const logs=loadAllLogs(); const now=new Date(); const start=new Date(now.getTime()-days*864e5);
-    return logs.filter(l=>{ const [y,m,d]=l.date.split("/").map(Number); const dt=new Date(y,m-1,d); return dt>=start&&dt<=now; }).sort((a,b)=>new Date(a.date)-new Date(b.date));
+    const logs = loadAllLogs();
+    const now = new Date();
+    const start = new Date(now.getTime() - days*24*3600*1000);
+    return logs.filter(l => {
+      const [y,m,d] = l.date.split("/").map(Number);
+      const dt = new Date(y, m-1, d);
+      return dt >= start && dt <= now;
+    }).sort((a,b)=> new Date(a.date) - new Date(b.date));
   }
   function renderCharts(){
-    const sleep7=getLogsInDays(7); const vals7=sleep7.map(l=>(l.sleepMin||0)/60); const maxY=Math.max(8,Math.ceil((Math.max(...vals7,0)+1))); drawBars($("#chartSleep7"),[],vals7,maxY);
-    const e30=getLogsInDays(30); const cnt={"❤️‍🔥元気":0,"❤️まずまず":0,"❤️‍🩹だるい":0}; e30.forEach(l=>{ if(cnt[l.energy]!=null) cnt[l.energy]++; });
-    drawBars($("#chartEnergy30"),[],[cnt["❤️‍🔥元気"],cnt["❤️まずまず"],cnt["❤️‍🩹だるい"]],Math.max(5,...Object.values(cnt)));
-    const w30=getLogsInDays(30); const wvals=w30.map(l=>(l.weight!=null?Number(l.weight):null)); drawLine($("#chartWeight30"),[],wvals);
+    const sleep7 = getLogsInDays(7);
+    const vals7 = sleep7.map(l=> (l.sleepMin||0)/60 );
+    const maxY = Math.max(8, Math.ceil((Math.max(...vals7,0)+1)));
+    drawBars($("#chartSleep7"), [], vals7, maxY);
+
+    const e30 = getLogsInDays(30);
+    const cnt = {"❤️‍🔥元気":0,"❤️まずまず":0,"❤️‍🩹だるい":0};
+    e30.forEach(l => { if (cnt[l.energy]!=null) cnt[l.energy]++; });
+    drawBars($("#chartEnergy30"), [], [cnt["❤️‍🔥元気"], cnt["❤️まずまず"], cnt["❤️‍🩹だるい"]], Math.max(5, ...Object.values(cnt)));
+
+    const w30 = getLogsInDays(30);
+    const wvals = w30.map(l => (l.weight!=null ? Number(l.weight) : null));
+    drawLine($("#chartWeight30"), [], wvals);
   }
 
-  datePicker.addEventListener("change",()=>{ const d=fromInputDate(datePicker.value); currentDateKey=toKey(d); loadLogToForm(loadLog(currentDateKey)); });
-  $("#copyHealthShortcut").addEventListener("click",async()=>{ const base=window.location.origin+window.location.pathname;
-    const template=`${base}?sleepMin=[[合計睡眠分]]&weight=[[体重_kg]]&bodyFat=[[体脂肪_%]]`; try{ await navigator.clipboard.writeText(template); alert("ショートカット用URLテンプレをコピーしました"); }catch(e){ alert(template); }});
-  $("#saveLog").addEventListener("click",()=>{ const payload={date:currentDateKey,mood:state.mood,energy:state.energy,symptoms:state.symptoms,
-    sleepMin:(parseInt(state.sleepH,10)||0)*60+(parseInt(state.sleepM,10)||0),weight:state.weight,bodyFat:state.bodyFat,note:state.note,weather:state.weather,quickTasks:state.quickTasks,ts:Date.now()};
-    upsertLog(payload); alert(`${currentDateKey} の記録を保存しました`); renderHistory(); renderMiniCalendar(); if($("#pageSummary").style.display!=="none") renderCharts(); });
+  // Date change
+  datePicker.addEventListener("change", () => {
+    const d = fromInputDate(datePicker.value);
+    currentDateKey = toKey(d);
+    loadLogToForm(loadLog(currentDateKey));
+  });
 
-  function renderTaskHistory(){ /* 簡略：必要になったら元のまま組み込み */ }
+  // Buttons
+  $("#resetToToday").addEventListener("click", () => {
+    currentDateKey = todayKey;
+    loadLogToForm(loadLog(todayKey));
+  });
+  $("#copyURL").addEventListener("click", async () => {
+    const u = new URL(window.location.href); u.search="";
+    u.searchParams.set("mood", state.mood||"");
+    u.searchParams.set("energy", state.energy||"");
+    try { await navigator.clipboard.writeText(u.toString()); alert("URLをコピーしました（mood/energy付き）"); }
+    catch(e){ alert(u.toString()); }
+  });
+  $("#copyHealthShortcut").addEventListener("click", async () => {
+    const base = window.location.origin + window.location.pathname;
+    const template = `${base}?sleepMin=[[合計睡眠分]]&weight=[[体重_kg]]&bodyFat=[[体脂肪_%]]`;
+    try{ await navigator.clipboard.writeText(template); alert("ショートカット用URLテンプレをコピーしました"); }
+    catch(e){ alert(template); }
+  });
 
+  $("#closeDay").addEventListener("click", () => {
+    const payload = {
+      date: currentDateKey, mood: state.mood, energy: state.energy, symptoms: state.symptoms,
+      sleepMin: (parseInt(state.sleepH,10)||0)*60 + (parseInt(state.sleepM,10)||0),
+      weight: state.weight, bodyFat: state.bodyFat,
+      note: state.note, weather: state.weather, quickTasks: state.quickTasks, ts: Date.now()
+    };
+    upsertLog(payload);
+    const count = saveUnfinishedTasksToHistory(currentDateKey);
+    alert(`保存しました。未完了タスク ${count} 件をタスク履歴に保管しました。`);
+    renderHistory(); renderMiniCalendar(); if ($("#pageSummary").style.display !== "none") renderCharts();
+  });
+
+  $("#saveLog").addEventListener("click", () => {
+    const payload = {
+      date: currentDateKey, mood: state.mood, energy: state.energy, symptoms: state.symptoms,
+      sleepMin: (parseInt(state.sleepH,10)||0)*60 + (parseInt(state.sleepM,10)||0),
+      weight: state.weight, bodyFat: state.bodyFat,
+      note: state.note, weather: state.weather, quickTasks: state.quickTasks, ts: Date.now()
+    };
+    upsertLog(payload);
+    alert(`${currentDateKey} の記録を保存しました`);
+    renderHistory(); renderMiniCalendar(); if ($("#pageSummary").style.display !== "none") renderCharts();
+  });
+
+  // Task history
+  function renderTaskHistory(){
+    const root = $("#taskHistoryList"); root.innerHTML = "";
+    const hist = JSON.parse(localStorage.getItem("md_task_history_v1") || "[]");
+    const q = ($("#thSearch").value || "").trim();
+    const dateFilter = $("#thDate").value;
+    const toKeyFromInput = (s) => (!s ? null : toKey(fromInputDate(s)));
+    const fDateKey = toKeyFromInput(dateFilter);
+
+    const filtered = hist
+      .map(day => ({ date: day.date, tasks: day.tasks.filter(t => q ? t.text.includes(q) : true) }))
+      .filter(day => day.tasks.length > 0)
+      .filter(day => fDateKey ? (day.date === fDateKey) : true);
+
+    if (filtered.length === 0){
+      const p=document.createElement("p"); p.className="text muted"; p.textContent="該当するタスクはありません。"; root.appendChild(p); return;
+    }
+
+    filtered.forEach(day => {
+      const box=document.createElement("div"); box.className="card"; box.style.marginTop="8px";
+      const head=document.createElement("div"); head.className="text"; head.innerHTML = `<span class="muted">${day.date}</span>`;
+      const list=document.createElement("ul"); list.className="list";
+      day.tasks.forEach((t,idx) => {
+        const li=document.createElement("li");
+        const span=document.createElement("span"); span.textContent=t.text; span.style.flex="1";
+        const add=document.createElement("button"); add.className="btn small"; add.textContent="今日に追加";
+        add.onclick=()=>{
+          const emptyIdx = state.quickTasks.findIndex(x => !x.text);
+          if (emptyIdx === -1){ alert("今日のクイックタスクは3枠とも埋まっています"); return; }
+          state.quickTasks[emptyIdx] = {done:false, text:t.text};
+          currentDateKey = toKey(new Date()); renderHeader();
+          renderQuickTasks(); autoSave();
+          alert("今日のタスクに追加しました");
+        };
+        const copy=document.createElement("button"); copy.className="btn small"; copy.textContent="コピー";
+        copy.onclick=async()=>{ try{ await navigator.clipboard.writeText(t.text); alert("コピーしました"); }catch(e){ alert(t.text); } };
+        const del=document.createElement("button"); del.className="btn small"; del.textContent="削除";
+        del.onclick=()=>{
+          const h = JSON.parse(localStorage.getItem("md_task_history_v1") || "[]");
+          const target = h.find(x => x.date === day.date);
+          if (!target) return;
+          target.tasks.splice(idx,1);
+          const cleaned = target.tasks.length ? h : h.filter(x => x.date !== day.date);
+          localStorage.setItem("md_task_history_v1", JSON.stringify(cleaned));
+          renderTaskHistory();
+        };
+        li.appendChild(span); li.appendChild(add); li.appendChild(copy); li.appendChild(del);
+        list.appendChild(li);
+      });
+      box.appendChild(head); box.appendChild(list);
+      root.appendChild(box);
+    });
+  }
+  $("#thSearch").addEventListener("input", renderTaskHistory);
+  $("#thDate").addEventListener("change", renderTaskHistory);
+  $("#thClear").addEventListener("click", () => { $("#thSearch").value=""; $("#thDate").value=""; renderTaskHistory(); });
+
+  // Initial render
   function initialRender(){
-    renderHistory(); renderMiniCalendar(); const saved=loadLog(todayKey); loadLogToForm(saved);
-    let changed=false;
-    if(qpPayload.sleepMin!=null){ state.sleepH=Math.floor(qpPayload.sleepMin/60); state.sleepM=qpPayload.sleepMin%60; changed=true; }
-    if(qpPayload.mood){ state.mood=qpPayload.mood; changed=true; }
-    if(qpPayload.energy){ state.energy=qpPayload.energy; changed=true; }
-    if(qpPayload.symptoms){ state.symptoms=qpPayload.symptoms; changed=true; }
-    if(qpPayload.note){ state.note=qpPayload.note; changed=true; }
-    if(qpPayload.weight!=null){ state.weight=qpPayload.weight; changed=true; }
-    if(qpPayload.bodyFat!=null){ state.bodyFat=qpPayload.bodyFat; changed=true; }
-    if(changed){ renderChips(); syncFormFromState(); autoSave(); }
+    renderHistory();
+    renderMiniCalendar();
+    const saved = loadLog(todayKey);
+    loadLogToForm(saved);
+    // QP overrides after loading
+    const payload = {};
+    const url = new URL(window.location.href);
+    const qp = k => url.searchParams.get(k);
+    if (qp("sleepMin")!=null) payload.sleepMin = parseInt(qp("sleepMin"),10)||0;
+    if (qp("mood")) payload.mood = qp("mood");
+    if (qp("energy")) payload.energy = qp("energy");
+    if (qp("symptoms")) payload.symptoms = qp("symptoms").split(",").filter(Boolean);
+    if (qp("note")) payload.note = qp("note");
+    if (qp("weight")!=null){ const n = parseFloat(qp("weight")); if(!isNaN(n)) payload.weight = n; }
+    if (qp("bodyFat")!=null){ const n = parseFloat(qp("bodyFat")); if(!isNaN(n)) payload.bodyFat = n; }
+
+    let changed = false;
+    if (payload.sleepMin!=null){ state.sleepH = Math.floor(payload.sleepMin/60); state.sleepM = payload.sleepMin%60; changed = true; }
+    if (payload.mood){ state.mood = payload.mood; changed = true; }
+    if (payload.energy){ state.energy = payload.energy; changed = true; }
+    if (payload.symptoms){ state.symptoms = payload.symptoms; changed = true; }
+    if (payload.note){ state.note = payload.note; changed = true; }
+    if (payload.weight!=null){ state.weight = payload.weight; changed = true; }
+    if (payload.bodyFat!=null){ state.bodyFat = payload.bodyFat; changed = true; }
+    if (changed){ renderChips(); syncFormFromState(); autoSave(); }
   }
   initialRender();
 })();
