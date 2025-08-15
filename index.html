@@ -215,6 +215,37 @@ input[type="text"], input[type="number"] { max-width: 100%; box-sizing: border-b
 .chip { color: var(--md-chip-text) !important; background: var(--md-chip-bg) !important; border: 1px solid var(--md-chip-border) !important; }
 .chip.active { background: var(--md-chip-active) !important; border-color: var(--md-chip-active) !important; color: #fff !important; }
 </style>
+<style>
+/* ——— 追加パッチ: 枠はみ出し & 未選択チップの文字色 ——— */
+
+/* 角丸の内側のにじみ・はみ出しを防止（iOS対策含む） */
+.section, .card, .panel{
+  overflow: hidden;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+
+/* テキストエリア/入力の横はみ出し防止（自由メモの右端対策） */
+textarea, input[type="text"], input[type="number"], select{
+  display:block;
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
+}
+
+/* 未選択チップが背景と同化して読めなくなる問題の上書き */
+.chip{
+  color:#0f172a !important;                 /* 文字は濃い色 */
+  background:#fff !important;               /* 白地 */
+  border:1px solid #e5e7eb !important;      /* 薄い枠 */
+}
+.chip.active{
+  background:#0ea5e9 !important;            /* 強調色 */
+  border-color:#0ea5e9 !important;
+  color:#fff !important;                    /* 反転で白文字 */
+}
+</style>
+</head>
+
 
 </head>
 <body>
