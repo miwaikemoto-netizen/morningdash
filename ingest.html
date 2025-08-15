@@ -1,89 +1,97 @@
 <!doctype html>
 <html lang="ja">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>MorningDash Ingest</title>
 <style>
-  body{font-family:system-ui,-apple-system,"SF Pro","Hiragino Sans",Arial,"Meiryo",sans-serif;margin:24px;line-height:1.6}
-  .ok{padding:12px 14px;border:1px solid #16a34a;background:#ecfdf5;border-radius:12px;color:#065f46}
-  .muted{opacity:.7}
-  .btn{display:inline-block;margin-top:12px;padding:10px 14px;border-radius:12px;background:#0ea5e9;color:#fff;text-decoration:none}
-  code{background:#f1f5f9;padding:2px 6px;border-radius:6px}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
+       background:#0b1220;color:#e5f0ff;margin:0;display:grid;place-items:center;min-height:100dvh}
+  .card{background:#0f172a;border:1px solid #1f2a44;border-radius:16px;padding:18px;max-width:640px;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+  h1{font-size:18px;margin:0 0 8px}
+  code{background:#0b1020;border:1px solid #1f2a44;padding:2px 6px;border-radius:6px}
+  .ok{color:#86efac}.warn{color:#fde68a}.err{color:#fca5a5}
+  .small{opacity:.8;font-size:12px;margin-top:8px}
 </style>
+</head>
 <body>
-<div id="msg" class="ok" style="display:none"></div>
-<p class="muted">ショートカットから渡された値をこの端末のブラウザに保存します。</p>
+<div class="card">
+  <h1>MorningDash 取り込み</h1>
+  <div id="msg" class="small">処理中…</div>
+  <div id="vals" class="small"></div>
+</div>
+
 <script>
 (function(){
+  // 1) index.html と完全一致のキー/関数を使う
   const LOGS_KEY = "md_logs_v2";
+  const toKey = (d) => d.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" });
 
-  // ---- helpers ----
-  const toKey = (d) => d.toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo"});
-  const nowJP = new Date();
-  const todayKey = toKey(nowJP);
-
+  // 2) クエリを読み取る（数値化も頑丈に）
   const url = new URL(location.href);
-  const getNum = (k) => {
-    if (!url.searchParams.has(k)) return null;
-    const s = url.searchParams.get(k).trim();
+  const qp = (k) => url.searchParams.get(k);
+  const toNum = (v) => {
+    if (v==null) return null;
+    const s = String(v).trim().replace(/,%20/g,",").replace(/%20/g," ").replace(",",".");
     const n = parseFloat(s);
     return Number.isFinite(n) ? n : null;
   };
 
-  // ---- read params ----
-  const sleepMin = url.searchParams.has("sleepMin")
-      ? Math.max(0, parseInt(url.searchParams.get("sleepMin"),10) || 0)
-      : null;
-  const weight  = getNum("weight");
-  const bodyFat = getNum("bodyFat");
+  // sleepMin は整数で扱う（分）
+  const sleepMin = (() => {
+    const raw = qp("sleepMin");
+    if (raw==null) return null;
+    const n = parseInt(String(raw).trim(), 10);
+    return Number.isFinite(n) ? n : null;
+  })();
+  const weight  = toNum(qp("weight"));
+  const bodyFat = toNum(qp("bodyFat"));
 
-  // ---- load & upsert ----
-  const loadAll = () => JSON.parse(localStorage.getItem(LOGS_KEY) || "[]");
-  const saveAll = (arr) => localStorage.setItem(LOGS_KEY, JSON.stringify(arr));
+  // 受け取れた値の表示（デバッグ用）
+  const vals = document.getElementById("vals");
+  vals.innerHTML =
+    `sleepMin=<code>${sleepMin ?? "—"}</code> / `+
+    `weight=<code>${weight ?? "—"}</code> / `+
+    `bodyFat=<code>${bodyFat ?? "—"}</code>`;
 
-  const logs = loadAll();
-  const rest = logs.filter(l => l.date !== todayKey);
+  // 3) 何も値が無い場合は警告だけ出して戻る
+  const nothing = (sleepMin==null && weight==null && bodyFat==null);
+  if (nothing){
+    document.getElementById("msg").innerHTML =
+      `<span class="warn">取り込む値が見つかりませんでした。</span> 5秒後に戻ります。`;
+    setTimeout(() => location.replace("./"), 5000);
+    return;
+  }
 
-  // 既存に何か入っていれば尊重しつつ、今回の値で上書き
-  const existing = logs.find(l => l.date === todayKey) || {};
-  const payload = {
-    date: todayKey,
-    mood: existing.mood || "",
-    energy: existing.energy || "",
-    symptoms: Array.isArray(existing.symptoms) ? existing.symptoms : [],
-    sleepMin: (sleepMin!=null ? sleepMin : (existing.sleepMin||0)),
-    weight:  (weight!=null  ? weight  : (existing.weight??null)),
-    bodyFat: (bodyFat!=null ? bodyFat : (existing.bodyFat??null)),
-    note: existing.note || "",
-    weather: existing.weather || null,
-    quickTasks: Array.isArray(existing.quickTasks) && existing.quickTasks.length===3
-                ? existing.quickTasks
-                : [{done:false,text:""},{done:false,text:""},{done:false,text:""}],
+  // 4) 既存ログを読み取り→今日のキーで upsert
+  const todayKey = toKey(new Date());      // ← 表示側と完全一致のキー
+  const logs = JSON.parse(localStorage.getItem(LOGS_KEY) || "[]");
+  const cur  = logs.find(x => x.date === todayKey) || {
+    date: todayKey, mood:"", energy:"", symptoms:[], note:"",
+    sleepMin:0, weight:null, bodyFat:null, weather:null,
+    quickTasks:[{done:false,text:""},{done:false,text:""},{done:false,text:""}],
     ts: Date.now()
   };
 
-  saveAll([payload, ...rest].sort((a,b)=> (a.date < b.date ? 1 : -1)));
+  // 5) 上書き（値が渡ってきた項目のみ）
+  if (sleepMin!=null) cur.sleepMin = sleepMin;
+  if (weight!=null)   cur.weight   = weight;
+  if (bodyFat!=null)  cur.bodyFat  = bodyFat;
+  cur.ts = Date.now();
 
-  // ---- UI & redirect ----
-  const msg = document.getElementById("msg");
-  const lines = [];
-  lines.push("保存しました！");
-  if (sleepMin!=null) lines.push(`sleepMin: <b>${sleepMin}</b> 分`);
-  if (weight!=null)   lines.push(`weight: <b>${weight}</b> kg`);
-  if (bodyFat!=null)  lines.push(`bodyFat: <b>${bodyFat}</b> %`);
-  msg.innerHTML = lines.join("<br>"); msg.style.display = "block";
+  // 6) 保存（今日のキーをユニークに）
+  const rest = logs.filter(x => x.date !== todayKey);
+  const next = [cur, ...rest].sort((a,b)=> (a.date < b.date ? 1 : -1));
+  localStorage.setItem(LOGS_KEY, JSON.stringify(next));
 
-  // すぐにトップへ戻す（キャッシュ無効化のためバージョン付き）
-  const back = () => {
-    const base = location.origin + location.pathname.replace(/ingest\.html$/, "");
-    const v = Date.now();
-    location.replace(base + "index.html?from=ingest&v=" + v);
-  };
-  // 確実に描画させてから戻す
-  setTimeout(back, 500);
+  // 7) 完了メッセージ → index へ戻す（クエリなし）
+  document.getElementById("msg").innerHTML =
+    `<span class="ok">保存しました。</span> 日付キー：<code>${todayKey}</code>。2秒後に戻ります。`;
+  setTimeout(() => {
+    // キャッシュを避けたい場合は &t=TIMESTAMP を付けてもOK
+    location.replace("./");
+  }, 1800);
 })();
 </script>
-<p><a class="btn" href="./index.html">トップへ戻る</a></p>
-<p class="muted">自動で戻らない場合はボタンを押してください。</p>
 </body>
 </html>
