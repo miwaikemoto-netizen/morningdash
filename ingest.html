@@ -1,9 +1,89 @@
 <!doctype html>
+<html lang="ja">
 <meta charset="utf-8">
-<title>Redirecting…</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MorningDash Ingest</title>
+<style>
+  body{font-family:system-ui,-apple-system,"SF Pro","Hiragino Sans",Arial,"Meiryo",sans-serif;margin:24px;line-height:1.6}
+  .ok{padding:12px 14px;border:1px solid #16a34a;background:#ecfdf5;border-radius:12px;color:#065f46}
+  .muted{opacity:.7}
+  .btn{display:inline-block;margin-top:12px;padding:10px 14px;border-radius:12px;background:#0ea5e9;color:#fff;text-decoration:none}
+  code{background:#f1f5f9;padding:2px 6px;border-radius:6px}
+</style>
+<body>
+<div id="msg" class="ok" style="display:none"></div>
+<p class="muted">ショートカットから渡された値をこの端末のブラウザに保存します。</p>
 <script>
-  // 同じクエリを保ったまま index.html へ301相当で置換遷移
-  const q = location.search || "";
-  location.replace("./index.html" + q);
+(function(){
+  const LOGS_KEY = "md_logs_v2";
+
+  // ---- helpers ----
+  const toKey = (d) => d.toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo"});
+  const nowJP = new Date();
+  const todayKey = toKey(nowJP);
+
+  const url = new URL(location.href);
+  const getNum = (k) => {
+    if (!url.searchParams.has(k)) return null;
+    const s = url.searchParams.get(k).trim();
+    const n = parseFloat(s);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  // ---- read params ----
+  const sleepMin = url.searchParams.has("sleepMin")
+      ? Math.max(0, parseInt(url.searchParams.get("sleepMin"),10) || 0)
+      : null;
+  const weight  = getNum("weight");
+  const bodyFat = getNum("bodyFat");
+
+  // ---- load & upsert ----
+  const loadAll = () => JSON.parse(localStorage.getItem(LOGS_KEY) || "[]");
+  const saveAll = (arr) => localStorage.setItem(LOGS_KEY, JSON.stringify(arr));
+
+  const logs = loadAll();
+  const rest = logs.filter(l => l.date !== todayKey);
+
+  // 既存に何か入っていれば尊重しつつ、今回の値で上書き
+  const existing = logs.find(l => l.date === todayKey) || {};
+  const payload = {
+    date: todayKey,
+    mood: existing.mood || "",
+    energy: existing.energy || "",
+    symptoms: Array.isArray(existing.symptoms) ? existing.symptoms : [],
+    sleepMin: (sleepMin!=null ? sleepMin : (existing.sleepMin||0)),
+    weight:  (weight!=null  ? weight  : (existing.weight??null)),
+    bodyFat: (bodyFat!=null ? bodyFat : (existing.bodyFat??null)),
+    note: existing.note || "",
+    weather: existing.weather || null,
+    quickTasks: Array.isArray(existing.quickTasks) && existing.quickTasks.length===3
+                ? existing.quickTasks
+                : [{done:false,text:""},{done:false,text:""},{done:false,text:""}],
+    ts: Date.now()
+  };
+
+  saveAll([payload, ...rest].sort((a,b)=> (a.date < b.date ? 1 : -1)));
+
+  // ---- UI & redirect ----
+  const msg = document.getElementById("msg");
+  const lines = [];
+  lines.push("保存しました！");
+  if (sleepMin!=null) lines.push(`sleepMin: <b>${sleepMin}</b> 分`);
+  if (weight!=null)   lines.push(`weight: <b>${weight}</b> kg`);
+  if (bodyFat!=null)  lines.push(`bodyFat: <b>${bodyFat}</b> %`);
+  msg.innerHTML = lines.join("<br>"); msg.style.display = "block";
+
+  // すぐにトップへ戻す（キャッシュ無効化のためバージョン付き）
+  const back = () => {
+    const base = location.origin + location.pathname.replace(/ingest\.html$/, "");
+    const v = Date.now();
+    location.replace(base + "index.html?from=ingest&v=" + v);
+  };
+  // 確実に描画させてから戻す
+  setTimeout(back, 500);
+})();
 </script>
-<p>Redirecting…</p>
+<p><a class="btn" href="./index.html">トップへ戻る</a></p>
+<p class="muted">自動で戻らない場合はボタンを押してください。</p>
+</body>
+</html>
