@@ -165,6 +165,40 @@ input[type=text], input[type=number], textarea, select{
   .chart .line{fill:none; stroke:#334155; stroke-width:2}
   .chart .dot{fill:#334155}
 </style>
+  
+<style>
+/* --- iPhoneで内側の枠がはみ出す対策 --- */
+.section, .card, .panel{
+  overflow: hidden;                                  /* 角丸の外へ出ない */
+  -webkit-mask-image: -webkit-radial-gradient(white, black); /* iOSで角丸切り抜きを強制 */
+}
+
+/* 症状の点線ボックスの余白・角を調整（親の角から安全な距離に） */
+.symptom-group{
+  margin: 10px 0;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px dashed var(--line);
+  background: rgba(255,255,255,.35);                 /* 下地を少し入れてにじみ防止（任意） */
+}
+.card .symptom-group:last-child{ margin-bottom: 0; }
+
+/* --- チップ（未選択時の文字が見えない問題）--- */
+.chip{
+  -webkit-appearance: none; appearance: none;
+  color: var(--text);                                 /* 文字色を明示 */
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: none;                                   /* 青いグローを消す */
+}
+.chip:not(.active){ color: var(--text); opacity: .92; }
+.chip.active{
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;                                        /* 選択時は白文字 */
+}
+</style>
+
 </head>
 <body>
   <div class="container">
