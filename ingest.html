@@ -1,86 +1,9 @@
 <!doctype html>
-<html lang="ja">
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>MorningDash Ingest</title>
-<style>
-  :root{--fg:#0f172a;--muted:#64748b;}
-  html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;color:var(--fg);background:#f8fafc}
-  .wrap{max-width:720px;margin:0 auto;padding:24px}
-  .card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
-  .muted{color:var(--muted)}
-  .ok{color:#16a34a;font-weight:700}
-  .err{color:#b91c1c;font-weight:700}
-  code{background:#eef2f7;border-radius:6px;padding:2px 6px}
-</style>
-<body>
-<div class="wrap">
-  <h1>MorningDash Ingest</h1>
-  <div id="box" class="card">
-    <div class="muted">URLパラメータを取り込み中…</div>
-  </div>
-</div>
-
+<title>Redirecting…</title>
 <script>
-(function(){
-  // ---- helpers ----
-  const $ = s => document.querySelector(s);
-  const toKey = d => d.toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo"});
-  const LOGS_KEY = "md_logs_v2";
-
-  function loadAll(){ try{return JSON.parse(localStorage.getItem(LOGS_KEY)||"[]");}catch(e){return []} }
-  function saveAll(arr){ localStorage.setItem(LOGS_KEY, JSON.stringify(arr)); }
-
-  // ---- read query ----
-  const p = new URLSearchParams(location.search);
-  const sleepMin = p.get("sleepMin");
-  const weight   = p.get("weight");
-  const bodyFat  = p.get("bodyFat");
-
-  // robust parse
-  const nInt   = v => (v==null?null:(isNaN(parseInt(String(v).trim(),10))?null:parseInt(String(v).trim(),10)));
-  const nFloat = v => {
-    if(v==null) return null;
-    const s = String(v).trim().replace(",",".");
-    const f = parseFloat(s);
-    return isNaN(f)?null:f;
-  };
-
-  const sv = nInt(sleepMin);
-  const wv = nFloat(weight);
-  const bv = nFloat(bodyFat);
-
-  // ---- upsert today ----
-  const todayKey = toKey(new Date());
-  const logs = loadAll();
-  const rest = logs.filter(l => l.date !== todayKey);
-  const current = logs.find(l => l.date === todayKey) || {
-    date: todayKey, mood:"", energy:"", symptoms:[],
-    sleepMin: 0, weight: null, bodyFat: null,
-    note:"", weather: null, quickTasks:[{done:false,text:""},{done:false,text:""},{done:false,text:""}],
-    ts: Date.now()
-  };
-
-  // 取り込めた値だけ上書き
-  if (sv != null) current.sleepMin = sv;
-  if (wv != null) current.weight   = wv;
-  if (bv != null) current.bodyFat  = bv;
-  current.ts = Date.now();
-
-  saveAll([current, ...rest].sort((a,b)=> (a.date < b.date ? 1 : -1)));
-
-  // ---- feedback ----
-  const box = $("#box");
-  const okLine = `
-    <p class="ok">保存しました ✓</p>
-    <p>sleepMin=<code>${sv??"—"}</code> / weight=<code>${wv??"—"}</code> / bodyFat=<code>${bv??"—"}</code></p>
-    <p class="muted">自動でMorningDashに戻ります…</p>`;
-  box.innerHTML = okLine;
-
-  // ---- redirect with cache-bust ----
-  const v = Date.now(); // 強制更新
-  setTimeout(()=>{ location.replace("./index.html?v="+v+"&ingested=1"); }, 600);
-})();
+  // 同じクエリを保ったまま index.html へ301相当で置換遷移
+  const q = location.search || "";
+  location.replace("./index.html" + q);
 </script>
-</body>
-</html>
+<p>Redirecting…</p>
