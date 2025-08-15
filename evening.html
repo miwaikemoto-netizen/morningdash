@@ -1,1 +1,229 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Evening Dash（夜の記録）</title>
+<meta name="theme-color" content="#0f172a">
+<style>
+:root{
+  --bg:#0b1220; --card:#0f172a; --ink:#e6edf7; --muted:#93a0b4; --pri:#60a5fa; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+  --radius:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui, -apple-system, "Helvetica Neue", Arial}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:20px;margin:0 0 12px}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;margin:12px 0;box-shadow:0 6px 18px rgba(0,0,0,.32);overflow:hidden}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--ink);cursor:pointer;user-select:none}
+.btn[aria-pressed="true"]{background:rgba(96,165,250,.16);border-color:rgba(96,165,250,.5)}
+.btn.ok[aria-pressed="true"]{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.6)}
+.btn.warn[aria-pressed="true"]{background:rgba(245,158,11,.18);border-color:rgba(245,158,11,.6)}
+.btn.bad[aria-pressed="true"]{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.6)}
+label.chk{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
+input[type="text"], textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:var(--ink);outline:none}
+.small{color:var(--muted);font-size:12px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+a.link{color:var(--pri);text-decoration:none}
+hr{border:none;border-top:1px solid rgba(255,255,255,.08);margin:8px 0 12px}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.06);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🌙 Evening Dash（夜の記録） <span id="date" class="badge"></span></h1>
+
+  <!-- 元気度（夜の気分） -->
+  <div class="card" id="moodCard">
+    <div class="small">夜の気分</div>
+    <div class="row" role="group" aria-label="気分">
+      <button class="btn ok"   data-mood="great">✨ 最高</button>
+      <button class="btn"      data-mood="ok">🙂 ふつう</button>
+      <button class="btn warn" data-mood="low">😪 ねむい</button>
+      <button class="btn bad"  data-mood="down">😞 しんどい</button>
+    </div>
+  </div>
+
+  <!-- 習慣チェック（編集可・保存） -->
+  <div class="card">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <div class="small">習慣チェック</div>
+      <button class="btn" id="editHabitsBtn">⚙️ カスタム</button>
+    </div>
+    <div id="habitList" class="row"></div>
+    <div class="actions small">未選択 = 未実施</div>
+  </div>
+
+  <!-- 日記（3行） -->
+  <div class="card">
+    <div class="small">夜のメモ / 日記</div>
+    <textarea id="note" rows="4" placeholder="今日の出来事や気づきを3行で。"></textarea>
+  </div>
+
+  <!-- ねる準備 & 音楽トリガー -->
+  <div class="card">
+    <div class="small">ねる準備</div>
+    <div class="row">
+      <label class="chk"><input type="checkbox" id="noScreen"> 画面オフモード</label>
+      <label class="chk"><input type="checkbox" id="lights"> 照明を暗くする</label>
+    </div>
+    <hr>
+    <div class="small">寝る前BGM（トリガー）</div>
+    <div class="actions">
+      <a class="btn" id="playAppleMusic" href="#" rel="noopener">🎵 Apple Music 再生</a>
+      <a class="btn" id="runShortcut"    href="#" rel="noopener">🧘 ショートカット実行</a>
+    </div>
+    <div class="small">※ リンク先は下の「設定」で変更できます。</div>
+  </div>
+
+  <!-- 保存/設定 -->
+  <div class="card">
+    <div class="actions">
+      <button class="btn ok" id="saveBtn">💾 保存</button>
+      <button class="btn" id="openMorning">☀️ Morningへ</button>
+      <button class="btn" id="settingsBtn">🔧 設定</button>
+    </div>
+    <div id="saveState" class="small"></div>
+  </div>
+</div>
+
+<script>
+// ========= 共通：日付キー =========
+const todayKey = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD
+document.getElementById('date').textContent = todayKey;
+
+// ========= ストレージ構造 =========
+// localStorage key: "mdash:YYYY-MM-DD"
+// 値: { morning: {...}, evening: {...}, meta: {...} }
+const getDay = () => JSON.parse(localStorage.getItem('mdash:'+todayKey) || '{}');
+const setDay = (obj) => localStorage.setItem('mdash:'+todayKey, JSON.stringify(obj));
+
+// ========= 既定の習慣 =========
+const HABITS_KEY = 'mdash:evening:habits';
+const defaultHabits = ["画面オフ","ストレッチ","瞑想","白湯","日記3行"];
+const readHabits = () => JSON.parse(localStorage.getItem(HABITS_KEY) || '[]');
+const writeHabits = (arr) => localStorage.setItem(HABITS_KEY, JSON.stringify(arr));
+
+// 初期描画（習慣）
+function renderHabits(){
+  const habits = readHabits().length ? readHabits() : defaultHabits;
+  const holder = document.getElementById('habitList');
+  holder.innerHTML = '';
+  const checked = (getDay().evening?.habits)||[];
+  habits.forEach(h=>{
+    const id = 'h_'+btoa(unescape(encodeURIComponent(h))).replace(/=/g,'');
+    const label = document.createElement('label');
+    label.className='chk';
+    label.innerHTML = `<input type="checkbox" id="${id}"> ${h}`;
+    holder.appendChild(label);
+    document.getElementById(id).checked = checked.includes(h);
+  });
+}
+renderHabits();
+
+// 習慣編集
+document.getElementById('editHabitsBtn').onclick = ()=>{
+  const now = readHabits().length? readHabits(): defaultHabits;
+  const input = prompt("習慣をカンマ区切りで編集", now.join(","));
+  if(input!=null){
+    writeHabits(input.split(",").map(s=>s.trim()).filter(Boolean));
+    renderHabits();
+  }
+};
+
+// 気分トグル
+let mood = getDay().evening?.mood || null;
+for(const b of document.querySelectorAll('#moodCard .btn')){
+  if(b.dataset.mood===mood) b.setAttribute('aria-pressed','true');
+  b.addEventListener('click', ()=>{
+    for(const x of document.querySelectorAll('#moodCard .btn')) x.removeAttribute('aria-pressed');
+    b.setAttribute('aria-pressed','true');
+    mood = b.dataset.mood;
+  });
+}
+
+// 設定（音楽リンク/ショートカット）
+const CFG_KEY = 'mdash:evening:cfg';
+const cfg = Object.assign({
+  appleMusicURL: 'https://music.apple.com/jp/playlist/%E5%AF%9D%E3%82%8B%E5%89%8D/pl.u-6mo4lK4tX1', // 任意で変更
+  shortcutURL:  'shortcuts://run-shortcut?name=Wind%20Down' // 任意で変更
+}, JSON.parse(localStorage.getItem(CFG_KEY) || '{}'));
+localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+document.getElementById('playAppleMusic').href = cfg.appleMusicURL;
+document.getElementById('runShortcut').href    = cfg.shortcutURL;
+
+document.getElementById('settingsBtn').onclick = ()=>{
+  const mus = prompt("Apple MusicのURL", cfg.appleMusicURL);
+  if(mus!=null) cfg.appleMusicURL = mus.trim();
+  const sh  = prompt("実行するショートカットURL", cfg.shortcutURL);
+  if(sh!=null) cfg.shortcutURL = sh.trim();
+  localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+  document.getElementById('playAppleMusic').href = cfg.appleMusicURL;
+  document.getElementById('runShortcut').href    = cfg.shortcutURL;
+};
+
+// 既存（夕）データの復元
+(function restore(){
+  const d = getDay().evening || {};
+  if(d.note) document.getElementById('note').value = d.note || '';
+  if(d.flags){
+    document.getElementById('noScreen').checked = !!d.flags.noScreen;
+    document.getElementById('lights').checked   = !!d.flags.lights;
+  }
+})();
+
+// 保存
+document.getElementById('saveBtn').onclick = ()=>{
+  const day = getDay();
+  const habits = [];
+  for(const el of document.querySelectorAll('#habitList input[type="checkbox"]')){
+    if(el.checked){
+      const txt = el.parentElement.textContent.trim();
+      habits.push(txt);
+    }
+  }
+  const payload = {
+    mood,
+    habits,
+    note: document.getElementById('note').value.trim(),
+    flags:{
+      noScreen: document.getElementById('noScreen').checked,
+      lights:   document.getElementById('lights').checked
+    },
+    savedAt: new Date().toISOString()
+  };
+  day.evening = Object.assign({}, day.evening||{}, payload);
+  setDay(day);
+  const s = document.getElementById('saveState');
+  s.textContent = "保存しました ✓";
+  setTimeout(()=>s.textContent="", 2000);
+};
+
+// Morningへ
+document.getElementById('openMorning').onclick = ()=>{
+  location.href = './index.html';
+};
+
+// ====== URLパラメータからの自動入力（任意） ======
+// 例: .../evening.html?mood=ok&habits=ストレッチ,瞑想&note=短いメモ
+(function fromParams(){
+  const p = new URLSearchParams(location.search);
+  if(![...p.keys()].length) return;
+  if(p.get('mood')){
+    const t = document.querySelector(`[data-mood="${p.get('mood')}"]`);
+    if(t) t.click();
+  }
+  if(p.get('habits')){
+    const want = p.get('habits').split(',').map(s=>s.trim());
+    for(const el of document.querySelectorAll('#habitList input[type="checkbox"]')){
+      const txt = el.parentElement.textContent.trim();
+      el.checked = want.includes(txt);
+    }
+  }
+  if(p.get('note')) document.getElementById('note').value = p.get('note');
+})();
+</script>
+</body>
+</html>
 
