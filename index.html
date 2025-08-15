@@ -3,250 +3,109 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MorningDash — v8（ショートカット値が反映されない問題を修正）</title>
+<title>MorningDash — v10</title>
 <meta name="theme-color" content="#0f172a">
 
-<!-- ===== Morning Dash quick facelift (moved into <head>) ===== -->
+<!-- ===== Morning Dash unified theme ===== -->
 <style>
 :root{
-  --bg:#f8fafc;          /* ほの白 */
+  --bg:#f8fafc;          /* 背景 */
   --card:#ffffff;        /* カード面 */
   --line:#e5e7eb;        /* セクション境界 */
-  --text:#0f172a;        /* 文字色（濃紺） */
-  --muted:#64748b;       /* 補助テキスト */
-  --accent:#0ea5e9;      /* アクション色（Morning） */
+  --text:#0f172a;        /* 濃い文字 */
+  --muted:#64748b;       /* 補助文字 */
+  --accent:#0ea5e9;      /* 主要色 */
   --accent-press:#0284c7;
-  --radius:14px;         /* 角丸を少し大きめに */
+  --radius:16px;         /* 角丸 */
   --shadow:0 6px 20px rgba(2,8,23,.06);
 }
 
-/* 全体のトーン */
-html,body{background:var(--bg); color:var(--text);}
-body{font-family:system-ui,-apple-system,"SF Pro","Hiragino Sans",Arial,"Meiryo",sans-serif;}
+html,body{height:100%; background:var(--bg); color:var(--text);}
+body{margin:0; font-family:system-ui,-apple-system,"SF Pro","Hiragino Sans",Arial,"Meiryo",sans-serif;}
 
-/* セクション（カード） */
-.section, .card, .panel{
+.container{max-width:980px; margin:0 auto; padding:16px;}
+
+h1{font-size:28px;margin:0 0 8px 0;font-weight:700}
+h2{font-size:18px;margin:0 0 8px 0;font-weight:700}
+h3{font-size:14px;margin:0 0 6px 0;font-weight:600}
+.muted{color:var(--muted)}
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.text{font-size:14px}
+
+.section,.card,.panel{
   background:var(--card);
   border:1px solid var(--line);
   border-radius:var(--radius);
   box-shadow:var(--shadow);
-  padding:20px !important;
-  margin-block:18px !important;
+  padding:20px;
+  margin-block:18px;
   box-sizing:border-box;
+  /* 角丸の内側はみ出し防止（iOS含む） */
   overflow:hidden;
+  -webkit-mask-image:-webkit-radial-gradient(white,black);
 }
 
-/* 見出し */
-.section h2, .card h2, .panel h2{
-  letter-spacing:.01em;
-  font-weight:700;
-  margin-bottom:10px;
+.titlebar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.badge{font-size:12px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);}
+
+.btn{appearance:none;border:1px solid var(--line);border-radius:14px;padding:10px 14px;background:#fff;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.small{font-size:12px;padding:6px 10px}
+.btn.tiny{font-size:11px;padding:4px 8px;border-radius:10px}
+.btn:hover{filter:brightness(.98)}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:transparent; color:var(--accent); border-color:var(--accent)}
+
+.input{border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;background:#fff}
+
+/* 入力系の横はみ出し防止（自由メモの右端対策） */
+textarea, input[type="text"], input[type="number"], select{
+  display:block; width:100%; max-width:100%; box-sizing:border-box;
 }
 
-/* 主要ボタン */
-button, .btn, input[type=button], input[type=submit]{
-  background:var(--accent);
-  color:#fff;
-  border:none;
-  border-radius:12px;
-  padding:10px 14px;
-  font-weight:600;
-  box-shadow:0 4px 12px rgba(14,165,233,.25);
-  transition:.15s transform ease, .15s background ease;
-}
-button:hover, .btn:hover{background:var(--accent-press);}
-button:active, .btn:active{transform:translateY(1px);}
+.date-big{font-size:40px;font-weight:800;letter-spacing:.02em;line-height:1.15;margin:6px 0 2px}
 
-/* サブボタン（枠のみ） */
-.btn-ghost, .ghost{
-  background:transparent !important;
-  color:var(--accent);
-  border:1px solid var(--accent);
-  box-shadow:none;
-}
+.tabs{display:flex;gap:8px;margin:8px 0}
+.tab{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 
-/* 入力 */
-input[type=text], input[type=number], textarea, select{
-  border:1px solid var(--line);
-  border-radius:10px;
-  padding:10px 12px;
-  background:#fff;
-}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-cell{border:1px solid var(--line);border-radius:10px;padding:4px 2px;text-align:center;cursor:pointer;background:#fff;font-size:12px;line-height:1.1}
+.cal-cell.today{border-color:#0f172a; border-width:2px}
+.cal-cell .dot{display:block;width:7px;height:7px;border-radius:50%;margin:4px auto 0 auto;background:#cbd5e1}
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+.cal-head div{font-size:12px;text-align:center;opacity:.7}
 
-/* 日付を大きく */
-#md-date, #todayStr, .date-today{
-  font-size:clamp(24px, 3.2rem, 44px);
-  font-weight:800;
-  letter-spacing:.02em;
-  line-height:1.15;
-  margin:6px 0 2px;
-}
+.symptom-group{border:1px dashed var(--line);border-radius:12px;padding:12px;margin-bottom:8px;background:rgba(255,255,255,.35)}
+.symptom-group h3{font-size:13px;margin:0 0 6px 0;opacity:.8}
 
-/* ミニカレンダーを“キュッ”と */
-.mini-cal{ transform:scale(.92); transform-origin: top left; }
-.mini-cal .day{ width:2.1rem; height:2.1rem; border-radius:10px; }
-.mini-cal .day.today{
-  outline:1.5px solid var(--accent);
-  outline-offset:1px;
-  font-weight:800;
-}
+.quick-task{display:flex;align-items:center;gap:8px;margin:4px 0}
+.quick-task input[type="text"]{flex:1}
+.toolbar{display:flex;align-items:center;gap:8px}
+.linklike{font-size:12px;text-decoration:underline;cursor:pointer}
 
-/* 元気度のアイコン付与（必要ならHTML側に data-energy を付与） */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.chart{width:100%; height:180px; border:1px solid var(--line); border-radius:12px; background:#fff; overflow:hidden}
+.chart svg{width:100%; height:100%; display:block}
+.chart .axis{stroke:#cbd5e1; stroke-width:1}
+.chart text{fill:#64748b; font-size:10px}
+.chart .bar{fill:#94a3b8}
+.chart .line{fill:none; stroke:#334155; stroke-width:2}
+.chart .dot{fill:#334155}
+
+/* チップ（ボタン）の可読性修正：未選択でも濃い文字、選択で反転 */
+.chip{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;cursor:pointer;font-size:13px;
+  color:#0f172a !important; background:#fff !important; box-shadow:none !important;}
+.chip.active{background:#0ea5e9 !important; border-color:#0ea5e9 !important; color:#fff !important}
+
+/* ミニカレンダーの説明 */
+.text.note{color:var(--muted);}
+
+/* エネルギーの絵文字（必要なら） */
 [data-energy="high"]::before{content:"❤️‍🔥 "; }
 [data-energy="mid"]::before{ content:"❤️ "; }
 [data-energy="low"]::before{ content:"❤️‍🩹 "; }
-
-/* クイックタスク右上ボタンを小ぶりに */
-.quick-actions button, .quick-actions .btn{
-  padding:6px 8px;
-  border-radius:10px;
-  font-size:.9rem;
-}
-
-/* リスト行間 */
-.list, .table{--row-gap:8px;}
-.list li{margin-block:var(--row-gap);}
-
-/* 補助テキスト */
-.muted, .help, .note{ color:var(--muted); }
 </style>
-
-<!-- 既存テーマCSS -->
-<style>
-  :root{ --bg1:#ffffff;--bg2:#f1f5f9;--fg:#0f172a;--muted:#64748b;--accent:#0f172a;--card:#ffffff;--border:#e5e7eb; }
-  html,body{height:100%;}
-  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";color:var(--fg);
-       background:linear-gradient(var(--bg1),var(--bg2));}
-  .container{max-width:980px;margin:0 auto;padding:16px;}
-  h1{font-size:28px;margin:0 0 8px 0;font-weight:700}
-  h2{font-size:18px;margin:0 0 8px 0;font-weight:600}
-  h3{font-size:14px;margin:0 0 6px 0;font-weight:600}
-  .muted{opacity:.7}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
-  .row{display:flex;gap:16px;flex-wrap:wrap}
-  .btn{appearance:none;border:1px solid var(--border);border-radius:14px;padding:10px 14px;background:#fff;cursor:pointer}
-  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-  .btn.small{font-size:12px;padding:6px 10px}
-  .btn.tiny{font-size:11px;padding:4px 8px;border-radius:10px}
-  .chip{border:1px solid var(--border);border-radius:999px;padding:6px 10px;background:#fff;cursor:pointer;font-size:13px}
-  .chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
-  .input{border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:14px}
-  .text{font-size:14px}
-  .list{list-style:none;padding:0;margin:0}
-  .footer{font-size:12px;opacity:.6;margin-top:24px;line-height:1.6}
-  .titlebar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-  .number{width:64px;text-align:center}
-  .badge{font-size:12px;padding:3px 8px;border-radius:999px;border:1px solid var(--border);}
-  .danger{color:#b91c1c}
-  .date-big{font-size:40px;font-weight:700;letter-spacing:0.5px}
-  .symptom-group{border:1px dashed var(--border);border-radius:12px;padding:10px;margin-bottom:8px}
-  .symptom-group h3{font-size:13px;margin:0 0 6px 0;opacity:.8}
-  .quick-task{display:flex;align-items:center;gap:8px;margin:4px 0}
-  .quick-task input[type="text"]{flex:1}
-  .toolbar{display:flex;align-items:center;gap:8px}
-  .linklike{font-size:12px;text-decoration:underline;cursor:pointer}
-  .tabs{display:flex;gap:8px;margin:8px 0}
-  .tab{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#fff;cursor:pointer}
-  .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-  .filterbar{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-  .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-  .cal-cell{border:1px solid var(--border);border-radius:10px;padding:4px 2px;text-align:center;cursor:pointer;background:#fff;font-size:12px;line-height:1.1}
-  .cal-cell.today{border-color:#0f172a; border-width:2px}
-  .cal-cell .dot{display:block;width:7px;height:7px;border-radius:50%;margin:4px auto 0 auto;background:#cbd5e1}
-  .cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
-  .cal-head div{font-size:12px;text-align:center;opacity:.7}
-  .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
-  .pill{display:inline-block;padding:2px 8px;border:1px solid var(--border);border-radius:999px;font-size:12px;margin-right:6px}
-  .chart{width:100%; height:180px; border:1px solid var(--border); border-radius:12px; background:#fff; overflow:hidden}
-  .chart svg{width:100%; height:100%; display:block}
-  .chart .axis{stroke:#cbd5e1; stroke-width:1}
-  .chart text{fill:#64748b; font-size:10px}
-  .chart .bar{fill:#94a3b8}
-  .chart .line{fill:none; stroke:#334155; stroke-width:2}
-  .chart .dot{fill:#334155}
-</style>
-  
-<style>
-/* --- iPhoneで内側の枠がはみ出す対策 --- */
-.section, .card, .panel{
-  overflow: hidden;                                  /* 角丸の外へ出ない */
-  -webkit-mask-image: -webkit-radial-gradient(white, black); /* iOSで角丸切り抜きを強制 */
-}
-
-/* 症状の点線ボックスの余白・角を調整（親の角から安全な距離に） */
-.symptom-group{
-  margin: 10px 0;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px dashed var(--line);
-  background: rgba(255,255,255,.35);                 /* 下地を少し入れてにじみ防止（任意） */
-}
-.card .symptom-group:last-child{ margin-bottom: 0; }
-
-/* --- チップ（未選択時の文字が見えない問題）--- */
-.chip{
-  -webkit-appearance: none; appearance: none;
-  color: var(--text);                                 /* 文字色を明示 */
-  background: #fff;
-  border: 1px solid var(--line);
-  box-shadow: none;                                   /* 青いグローを消す */
-}
-.chip:not(.active){ color: var(--text); opacity: .92; }
-.chip.active{
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;                                        /* 選択時は白文字 */
-}
-</style>
-
-
-<!-- MD v9 quick fixes -->
-<style>
-/* ---- Fix 1: inner card overflow / iOS rounding bleed ---- */
-.section, .card, .panel { overflow: hidden; }
-.section, .card, .panel { -webkit-mask-image: -webkit-radial-gradient(white, black); }
-
-/* ---- Fix 2: textarea/input width stays inside ---- */
-textarea { width: 100% !important; max-width: 100%; box-sizing: border-box; }
-input[type="text"], input[type="number"] { max-width: 100%; box-sizing: border-box; }
-
-/* ---- Fix 3: unselected chips readable / active chips inverted ---- */
-:root { --md-chip-text:#0f172a; --md-chip-bg:#ffffff; --md-chip-border:#e5e7eb; --md-chip-active:#0ea5e9; }
-.chip { color: var(--md-chip-text) !important; background: var(--md-chip-bg) !important; border: 1px solid var(--md-chip-border) !important; }
-.chip.active { background: var(--md-chip-active) !important; border-color: var(--md-chip-active) !important; color: #fff !important; }
-</style>
-<style>
-/* ——— 追加パッチ: 枠はみ出し & 未選択チップの文字色 ——— */
-
-/* 角丸の内側のにじみ・はみ出しを防止（iOS対策含む） */
-.section, .card, .panel{
-  overflow: hidden;
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
-}
-
-/* テキストエリア/入力の横はみ出し防止（自由メモの右端対策） */
-textarea, input[type="text"], input[type="number"], select{
-  display:block;
-  width:100%;
-  max-width:100%;
-  box-sizing:border-box;
-}
-
-/* 未選択チップが背景と同化して読めなくなる問題の上書き */
-.chip{
-  color:#0f172a !important;                 /* 文字は濃い色 */
-  background:#fff !important;               /* 白地 */
-  border:1px solid #e5e7eb !important;      /* 薄い枠 */
-}
-.chip.active{
-  background:#0ea5e9 !important;            /* 強調色 */
-  border-color:#0ea5e9 !important;
-  color:#fff !important;                    /* 反転で白文字 */
-}
-</style>
-</head>
-
-
 </head>
 <body>
   <div class="container">
@@ -279,7 +138,7 @@ textarea, input[type="text"], input[type="number"], select{
           <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
         </div>
         <div id="miniCalendar" class="calendar"></div>
-        <div class="text muted" style="margin-top:6px">●の色：❤️‍🔥元気=濃／❤️=中／❤️‍🩹=薄（記録なし=グレー）</div>
+        <div class="text note" style="margin-top:6px">●の色：❤️‍🔥元気=濃／❤️=中／❤️‍🩹=薄（記録なし=グレー）</div>
       </section>
 
       <section class="card" style="margin-top:16px">
@@ -287,7 +146,7 @@ textarea, input[type="text"], input[type="number"], select{
           <h2>天気（現在地）</h2>
           <span id="wxLoading" class="muted" style="display:none">取得中…</span>
         </div>
-        <div id="wxError" class="text danger"></div>
+        <div id="wxError" class="text" style="color:#b91c1c"></div>
         <div id="wxBlock" class="row"></div>
         <div class="row" style="margin-top:8px">
           <button id="retryWx" class="btn small">再取得</button>
@@ -320,7 +179,7 @@ textarea, input[type="text"], input[type="number"], select{
             <h3>③ メンタル・コンディション</h3>
             <div id="symptomGroup3" class="row"></div>
           </div>
-          <textarea id="note" class="input" rows="3" style="width:100%" placeholder="自由メモ（例：首の張り強め／冷え気味 など）"></textarea>
+          <textarea id="note" class="input" rows="3" placeholder="自由メモ（例：首の張り強め／冷え気味 など）"></textarea>
         </div>
 
         <div class="card" style="flex:1 1 300px;min-width:280px">
@@ -352,8 +211,7 @@ textarea, input[type="text"], input[type="number"], select{
         <button id="saveLog" class="btn primary">この日の記録を保存</button>
         <button id="exportCSV" class="btn">CSV</button>
         <button id="exportJSON" class="btn">JSON</button>
-        <!-- 夜ページへのリンク（②案） -->
-        <a href="./evening.html" class="btn">🌙 夜の記録へ</a>
+        <a href="./evening.html" class="btn ghost">🌙 夜の記録へ</a>
         <label class="btn small" for="importJSON" style="cursor:pointer">JSONを読み込み</label>
         <input id="importJSON" type="file" accept="application/json" style="display:none">
       </section>
@@ -531,7 +389,7 @@ textarea, input[type="text"], input[type="number"], select{
   const bodyFatQ = qp("bodyFat"); const bnum = parseNumMaybe(bodyFatQ); if (bnum!=null) qpPayload.bodyFat = bnum;
 
   // Note & Sleep & Health
-  const sleepH = $("#sleepH"), sleepM = $("#sleepM"), note = $("#note"), sleepTotal = $("#sleepTotal");
+  const sleepH = $("#sleepH"), sleepM = $("#sleepM"), sleepTotal = $("#sleepTotal");
   const weight = $("#weight"), bodyFat = $("#bodyFat");
   function updateSleepLabel(){ sleepTotal.textContent = Math.floor(state.sleepH)+"時間"+(state.sleepM%60)+"分"; }
 
@@ -558,7 +416,6 @@ textarea, input[type="text"], input[type="number"], select{
       };
     });
   }
-  renderQuickTasks();
 
   // Weather
   const wxLoading = $("#wxLoading"), wxError = $("#wxError"), wxBlock = $("#wxBlock");
@@ -618,27 +475,27 @@ textarea, input[type="text"], input[type="number"], select{
   $("#retryWx").addEventListener("click", askGeo);
   askGeo();
 
-  // Storage keys
+  // Storage
   const LOGS_KEY = "md_logs_v2";
   const TASK_HIST_KEY = "md_task_history_v1";
-  function loadAllLogs(){ return JSON.parse(localStorage.getItem(LOGS_KEY) || "[]"); }
-  function saveAllLogs(arr){ localStorage.setItem(LOGS_KEY, JSON.stringify(arr)); }
-  function loadLog(dateKey){ const logs = loadAllLogs(); return logs.find(l => l.date === dateKey) || null; }
-  function upsertLog(payload){
+  const loadAllLogs = () => JSON.parse(localStorage.getItem(LOGS_KEY) || "[]");
+  const saveAllLogs = (arr) => localStorage.setItem(LOGS_KEY, JSON.stringify(arr));
+  const loadLog = (dateKey) => loadAllLogs().find(l => l.date === dateKey) || null;
+  const upsertLog = (payload) => {
     const logs = loadAllLogs();
     const rest = logs.filter(l => l.date !== payload.date);
     saveAllLogs([payload, ...rest].sort((a,b)=> (a.date < b.date ? 1 : -1)));
-  }
-  function loadTaskHistory(){ return JSON.parse(localStorage.getItem(TASK_HIST_KEY) || "[]"); }
-  function saveTaskHistory(arr){ localStorage.setItem(TASK_HIST_KEY, JSON.stringify(arr)); }
-  function saveUnfinishedTasksToHistory(dateKey){
+  };
+  const loadTaskHistory = () => JSON.parse(localStorage.getItem(TASK_HIST_KEY) || "[]");
+  const saveTaskHistory = (arr) => localStorage.setItem(TASK_HIST_KEY, JSON.stringify(arr));
+  const saveUnfinishedTasksToHistory = (dateKey)=>{
     const unfinished = state.quickTasks.filter(x => x.text && !x.done).map(x => ({text:x.text, from:"quick", savedAt: Date.now()}));
     if (!unfinished.length) return 0;
     const hist = loadTaskHistory();
     const rest = hist.filter(h => h.date !== dateKey);
     saveTaskHistory([{date: dateKey, tasks: unfinished}, ...rest]);
     return unfinished.length;
-  }
+  };
 
   // Auto-save
   let saveTimer=null;
@@ -666,13 +523,13 @@ textarea, input[type="text"], input[type="number"], select{
   }
 
   // Form sync
-  function updateSleepLabel(){ $("#sleepTotal").textContent = Math.floor(state.sleepH)+"時間"+(state.sleepM%60)+"分"; }
   function syncFormFromState(){
     $("#sleepH").value = state.sleepH; $("#sleepM").value = state.sleepM; updateSleepLabel();
     $("#note").value = state.note;
     $("#weight").value = state.weight ?? "";
     $("#bodyFat").value = state.bodyFat ?? "";
   }
+  function updateSleepLabel(){ $("#sleepTotal").textContent = Math.floor(state.sleepH)+"時間"+(state.sleepM%60)+"分"; }
 
   function loadLogToForm(log){
     if (!log){
@@ -683,7 +540,7 @@ textarea, input[type="text"], input[type="number"], select{
     } else {
       state.mood = log.mood||"";
       state.energy = log.energy||"";
-      state.symptoms = Array.isArray(log.symptoms) ? log.symptoms.filter(s => allSymptoms.includes(s)) : [];
+      state.symptoms = Array.isArray(log.symptoms) ? log.symptoms.filter(s => [...group1,...group2,...group3].includes(s)) : [];
       const sm = parseInt(log.sleepMin||0,10); state.sleepH = Math.floor(sm/60); state.sleepM = sm%60;
       state.weight = (log.weight ?? null);
       state.bodyFat = (log.bodyFat ?? null);
@@ -691,18 +548,17 @@ textarea, input[type="text"], input[type="number"], select{
       state.weather = log.weather || state.weather;
       state.quickTasks = Array.isArray(log.quickTasks) && log.quickTasks.length===3 ? log.quickTasks : [{done:false,text:""},{done:false,text:""},{done:false,text:""}];
     }
-    renderChips();
-    syncFormFromState();
-    renderQuickTasks();
-    renderHeader();
+    renderChips(); syncFormFromState(); renderQuickTasks(); renderHeader();
   }
 
-  // History render
+  // History list
   function renderHistory(){
     const historyRoot = $("#history");
     const logs = loadAllLogs();
     historyRoot.innerHTML="";
-    if (logs.length===0){ const p=document.createElement("p"); p.className="text muted"; p.textContent="まだ記録がありません"; historyRoot.appendChild(p); return; }
+    if (logs.length===0){
+      const p=document.createElement("p"); p.className="text muted"; p.textContent="まだ記録がありません"; historyRoot.appendChild(p); return;
+    }
     logs.forEach(l => {
       const box=document.createElement("div"); box.className="card"; box.style.marginTop="8px";
       const head=document.createElement("div"); head.className="text"; head.innerHTML = `<span class="muted">${l.date}</span>`;
@@ -781,9 +637,12 @@ textarea, input[type="text"], input[type="number"], select{
   $("#nextMonth").addEventListener("click", () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 1); renderMiniCalendar(); });
 
   // Charts
-  function clear(el){ el.innerHTML=""; }
   function createSVG(w,h){ const s=document.createElementNS("http://www.w3.org/2000/svg","svg"); s.setAttribute("viewBox",`0 0 ${w} ${h}`); return s; }
-  function drawAxes(svg,w,h,margin){ const g=document.createElementNS(svg.namespaceURI,"g"); const ax=document.createElementNS(svg.namespaceURI,"line"); ax.setAttribute("x1",margin.left); ax.setAttribute("y1",h-margin.bottom); ax.setAttribute("x2",w-margin.right); ax.setAttribute("y2",h-margin.bottom); ax.setAttribute("class","axis"); g.appendChild(ax); const ay=document.createElementNS(svg.namespaceURI,"line"); ay.setAttribute("x1",margin.left); ay.setAttribute("y1",margin.top); ay.setAttribute("x2",margin.left); ay.setAttribute("y2",h-margin.bottom); ay.setAttribute("class","axis"); g.appendChild(ay); svg.appendChild(g); }
+  function drawAxes(svg,w,h,margin){ const g=document.createElementNS(svg.namespaceURI,"g");
+    const ax=document.createElementNS(svg.namespaceURI,"line"); ax.setAttribute("x1",margin.left); ax.setAttribute("y1",h-margin.bottom); ax.setAttribute("x2",w-margin.right); ax.setAttribute("y2",h-margin.bottom); ax.setAttribute("class","axis"); g.appendChild(ax);
+    const ay=document.createElementNS(svg.namespaceURI,"line"); ay.setAttribute("x1",margin.left); ay.setAttribute("y1",margin.top); ay.setAttribute("x2",margin.left); ay.setAttribute("y2",h-margin.bottom); ay.setAttribute("class","axis"); g.appendChild(ay);
+    svg.appendChild(g);
+  }
   function drawBars(el, labels, values, maxY){
     el.innerHTML=""; const w=400,h=180, m={top:10,right:10,bottom:20,left:26};
     const svg=createSVG(w,h); drawAxes(svg,w,h,m);
@@ -806,22 +665,11 @@ textarea, input[type="text"], input[type="number"], select{
     const valid = values.filter(v => v!=null);
     if (!valid.length){ el.appendChild(svg); return; }
     const min = Math.min(...valid), max = Math.max(...valid);
-    const ys = (v)=> {
-      if (max===min){ return h - m.bottom - innerH/2; }
-      return m.top + (1 - (v-min)/(max-min)) * innerH;
-    };
+    const ys = (v)=> { if (max===min){ return h - m.bottom - innerH/2; } return m.top + (1 - (v-min)/(max-min)) * innerH; };
     let d="";
-    values.forEach((v,i)=>{
-      if (v==null) return;
-      const x=xs(i), y=ys(v);
-      d += (d==="" ? `M ${x} ${y}` : ` L ${x} ${y}`);
-    });
+    values.forEach((v,i)=>{ if (v==null) return; const x=xs(i), y=ys(v); d += (d==="" ? `M ${x} ${y}` : ` L ${x} ${y}`); });
     const path=document.createElementNS(svg.namespaceURI,"path"); path.setAttribute("d",d); path.setAttribute("class","line"); svg.appendChild(path);
-    values.forEach((v,i)=>{
-      if (v==null) return;
-      const x=xs(i), y=ys(v);
-      const c=document.createElementNS(svg.namespaceURI,"circle"); c.setAttribute("cx",x); c.setAttribute("cy",y); c.setAttribute("r",2.5); c.setAttribute("class","dot"); svg.appendChild(c);
-    });
+    values.forEach((v,i)=>{ if (v==null) return; const x=xs(i), y=ys(v); const c=document.createElementNS(svg.namespaceURI,"circle"); c.setAttribute("cx",x); c.setAttribute("cy",y); c.setAttribute("r",2.5); c.setAttribute("class","dot"); svg.appendChild(c); });
     el.appendChild(svg);
   }
 
