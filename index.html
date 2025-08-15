@@ -1,6 +1,13 @@
 <!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MorningDash — v8（ショートカット値が反映されない問題を修正）</title>
+<meta name="theme-color" content="#0f172a">
+
+<!-- ===== Morning Dash quick facelift (moved into <head>) ===== -->
 <style>
-/* ===== Morning Dash quick facelift ===== */
 :root{
   --bg:#f8fafc;          /* ほの白 */
   --card:#ffffff;        /* カード面 */
@@ -17,24 +24,26 @@
 html,body{background:var(--bg); color:var(--text);}
 body{font-family:system-ui,-apple-system,"SF Pro","Hiragino Sans",Arial,"Meiryo",sans-serif;}
 
-/* セクション（カード）を上品に */
+/* セクション（カード） */
 .section, .card, .panel{
   background:var(--card);
   border:1px solid var(--line);
   border-radius:var(--radius);
   box-shadow:var(--shadow);
-  padding:20px !important;      /* 16px → 20px 相当 */
-  margin-block:18px !important;  /* セクション間を少し広げる */
+  padding:20px !important;
+  margin-block:18px !important;
+  box-sizing:border-box;
+  overflow:hidden;
 }
 
-/* 見出しの字間とウェイト */
+/* 見出し */
 .section h2, .card h2, .panel h2{
   letter-spacing:.01em;
   font-weight:700;
   margin-bottom:10px;
 }
 
-/* 主要ボタンの統一 */
+/* 主要ボタン */
 button, .btn, input[type=button], input[type=submit]{
   background:var(--accent);
   color:#fff;
@@ -56,7 +65,7 @@ button:active, .btn:active{transform:translateY(1px);}
   box-shadow:none;
 }
 
-/* インプットの視認性 */
+/* 入力 */
 input[type=text], input[type=number], textarea, select{
   border:1px solid var(--line);
   border-radius:10px;
@@ -64,8 +73,7 @@ input[type=text], input[type=number], textarea, select{
   background:#fff;
 }
 
-/* —— 日付を大きく（3〜5倍要望→程よく 2.5〜3倍） —— */
-/* 日付テキストに id がある場合（例: #todayStr / #md-date）を優先 */
+/* 日付を大きく */
 #md-date, #todayStr, .date-today{
   font-size:clamp(24px, 3.2rem, 44px);
   font-weight:800;
@@ -74,45 +82,36 @@ input[type=text], input[type=number], textarea, select{
   margin:6px 0 2px;
 }
 
-/* —— ミニカレンダーを“キュッ”と —— */
-/* カレンダーの外枠に .mini-cal がある前提。なければ親に付けてOK */
+/* ミニカレンダーを“キュッ”と */
 .mini-cal{ transform:scale(.92); transform-origin: top left; }
-.mini-cal .day{ 
-  width:2.1rem; height:2.1rem; 
-  border-radius:10px;
-}
+.mini-cal .day{ width:2.1rem; height:2.1rem; border-radius:10px; }
 .mini-cal .day.today{
-  outline:1.5px solid var(--accent);   /* 今日の枠線を少し太く */
+  outline:1.5px solid var(--accent);
   outline-offset:1px;
   font-weight:800;
 }
 
-/* —— 元気（エネルギー）ラジオ／ボタンのアイコン化 —— */
-/* 値に data-energy を持つボタン/ラベルに絵文字を付与（HTML変更不要） */
+/* 元気度のアイコン付与（必要ならHTML側に data-energy を付与） */
 [data-energy="high"]::before{content:"❤️‍🔥 "; }
 [data-energy="mid"]::before{ content:"❤️ "; }
 [data-energy="low"]::before{ content:"❤️‍🩹 "; }
 
-/* —— クイックタスク右上ボタン（3つ）を小ぶりに —— */
+/* クイックタスク右上ボタンを小ぶりに */
 .quick-actions button, .quick-actions .btn{
   padding:6px 8px;
   border-radius:10px;
   font-size:.9rem;
 }
 
-/* テーブル/リストの行間を少しだけ */
+/* リスト行間 */
 .list, .table{--row-gap:8px;}
 .list li{margin-block:var(--row-gap);}
 
-/* 補助説明を落ち着いた色で */
+/* 補助テキスト */
 .muted, .help, .note{ color:var(--muted); }
 </style>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MorningDash — v8（ショートカット値が反映されない問題を修正）</title>
-<meta name="theme-color" content="#0f172a">
+
+<!-- 既存テーマCSS -->
 <style>
   :root{ --bg1:#ffffff;--bg2:#f1f5f9;--fg:#0f172a;--muted:#64748b;--accent:#0f172a;--card:#ffffff;--border:#e5e7eb; }
   html,body{height:100%;}
@@ -150,7 +149,6 @@ input[type=text], input[type=number], textarea, select{
   .tab{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#fff;cursor:pointer}
   .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
   .filterbar{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-  /* Mini calendar (compact) */
   .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
   .cal-cell{border:1px solid var(--border);border-radius:10px;padding:4px 2px;text-align:center;cursor:pointer;background:#fff;font-size:12px;line-height:1.1}
   .cal-cell.today{border-color:#0f172a; border-width:2px}
@@ -159,7 +157,6 @@ input[type=text], input[type=number], textarea, select{
   .cal-head div{font-size:12px;text-align:center;opacity:.7}
   .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
   .pill{display:inline-block;padding:2px 8px;border:1px solid var(--border);border-radius:999px;font-size:12px;margin-right:6px}
-  /* Charts */
   .chart{width:100%; height:180px; border:1px solid var(--border); border-radius:12px; background:#fff; overflow:hidden}
   .chart svg{width:100%; height:100%; display:block}
   .chart .axis{stroke:#cbd5e1; stroke-width:1}
@@ -269,26 +266,12 @@ input[type=text], input[type=number], textarea, select{
         </div>
       </section>
 
-      <section class="card" style="margin-top:16px">
-        <div class="titlebar">
-          <h2>今日のクイックタスク（3項目）</h2>
-          <div class="toolbar">
-            <button id="resetToToday" class="btn tiny">今日に戻る</button>
-            <button id="closeDay" class="btn tiny">日を締める（未完了→タスク履歴）</button>
-            <button id="copyURL" class="btn tiny">URL連携例をコピー</button>
-          </div>
-        </div>
-        <div id="quickTasks">
-          <div class="quick-task"><input type="checkbox" id="qt0c"><input type="text" id="qt0t" class="input" placeholder="例：水やりをする"><span class="linklike" data-copy="#qt0t">コピー</span></div>
-          <div class="quick-task"><input type="checkbox" id="qt1c"><input type="text" id="qt1t" class="input" placeholder="例：買い物の受け取り"><span class="linklike" data-copy="#qt1t">コピー</span></div>
-          <div class="quick-task"><input type="checkbox" id="qt2c"><input type="text" id="qt2t" class="input" placeholder="例：メールを返信する"><span class="linklike" data-copy="#qt2t">コピー</span></div>
-        </div>
-      </section>
-
       <section class="row" style="margin-top:16px">
         <button id="saveLog" class="btn primary">この日の記録を保存</button>
         <button id="exportCSV" class="btn">CSV</button>
         <button id="exportJSON" class="btn">JSON</button>
+        <!-- 夜ページへのリンク（②案） -->
+        <a href="./evening.html" class="btn">🌙 夜の記録へ</a>
         <label class="btn small" for="importJSON" style="cursor:pointer">JSONを読み込み</label>
         <input id="importJSON" type="file" accept="application/json" style="display:none">
       </section>
@@ -447,7 +430,7 @@ input[type=text], input[type=number], textarea, select{
   }
   renderChips();
 
-  // Query params (robust parse)
+  // Query params
   function parseNumMaybe(v){
     if (v==null) return null;
     const s = String(v).trim().replace(/,%20/g,",").replace(/%20/g," ").trim();
@@ -469,7 +452,6 @@ input[type=text], input[type=number], textarea, select{
   const sleepH = $("#sleepH"), sleepM = $("#sleepM"), note = $("#note"), sleepTotal = $("#sleepTotal");
   const weight = $("#weight"), bodyFat = $("#bodyFat");
   function updateSleepLabel(){ sleepTotal.textContent = Math.floor(state.sleepH)+"時間"+(state.sleepM%60)+"分"; }
-  function num(v){ return parseFloat(v||"0") || 0; }
 
   // Quick tasks
   const qtElems = [
@@ -484,7 +466,6 @@ input[type=text], input[type=number], textarea, select{
       q.c.onchange = () => { state.quickTasks[i].done = q.c.checked; autoSave(); };
       q.t.oninput = () => { state.quickTasks[i].text = q.t.value; autoSave(); };
     });
-    // copy link handlers
     $$("#quickTasks .linklike").forEach(el => {
       el.onclick = async () => {
         const sel = el.getAttribute("data-copy");
@@ -497,7 +478,7 @@ input[type=text], input[type=number], textarea, select{
   }
   renderQuickTasks();
 
-  // Weather (same as v7)
+  // Weather
   const wxLoading = $("#wxLoading"), wxError = $("#wxError"), wxBlock = $("#wxBlock");
   function wxCodeToText(code){ const map={0:"快晴",1:"晴れ",2:"薄曇り",3:"曇り",45:"霧",48:"霧氷",51:"弱い霧雨",53:"霧雨",55:"強い霧雨",61:"弱い雨",63:"雨",65:"強い雨",71:"弱い雪",73:"雪",75:"大雪",95:"雷雨"}; return map[code]||"—"; }
   function renderWeather(){
@@ -555,10 +536,9 @@ input[type=text], input[type=number], textarea, select{
   $("#retryWx").addEventListener("click", askGeo);
   askGeo();
 
-  // Storage + Keys
+  // Storage keys
   const LOGS_KEY = "md_logs_v2";
   const TASK_HIST_KEY = "md_task_history_v1";
-
   function loadAllLogs(){ return JSON.parse(localStorage.getItem(LOGS_KEY) || "[]"); }
   function saveAllLogs(arr){ localStorage.setItem(LOGS_KEY, JSON.stringify(arr)); }
   function loadLog(dateKey){ const logs = loadAllLogs(); return logs.find(l => l.date === dateKey) || null; }
@@ -567,10 +547,8 @@ input[type=text], input[type=number], textarea, select{
     const rest = logs.filter(l => l.date !== payload.date);
     saveAllLogs([payload, ...rest].sort((a,b)=> (a.date < b.date ? 1 : -1)));
   }
-
   function loadTaskHistory(){ return JSON.parse(localStorage.getItem(TASK_HIST_KEY) || "[]"); }
   function saveTaskHistory(arr){ localStorage.setItem(TASK_HIST_KEY, JSON.stringify(arr)); }
-
   function saveUnfinishedTasksToHistory(dateKey){
     const unfinished = state.quickTasks.filter(x => x.text && !x.done).map(x => ({text:x.text, from:"quick", savedAt: Date.now()}));
     if (!unfinished.length) return 0;
@@ -580,7 +558,7 @@ input[type=text], input[type=number], textarea, select{
     return unfinished.length;
   }
 
-  // Auto-save (debounced)
+  // Auto-save
   let saveTimer=null;
   function autoSave(){
     clearTimeout(saveTimer);
@@ -605,7 +583,8 @@ input[type=text], input[type=number], textarea, select{
     }, 400);
   }
 
-  // Apply to UI from state
+  // Form sync
+  function updateSleepLabel(){ $("#sleepTotal").textContent = Math.floor(state.sleepH)+"時間"+(state.sleepM%60)+"分"; }
   function syncFormFromState(){
     $("#sleepH").value = state.sleepH; $("#sleepM").value = state.sleepM; updateSleepLabel();
     $("#note").value = state.note;
@@ -636,7 +615,7 @@ input[type=text], input[type=number], textarea, select{
     renderHeader();
   }
 
-  // History render (same as v7)
+  // History render
   function renderHistory(){
     const historyRoot = $("#history");
     const logs = loadAllLogs();
@@ -684,7 +663,7 @@ input[type=text], input[type=number], textarea, select{
     });
   }
 
-  // Mini Calendar (same)
+  // Mini Calendar
   let calMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   function renderMiniCalendar(){
     $("#calLabel").textContent = `${calMonth.getFullYear()}年 ${calMonth.getMonth()+1}月`;
@@ -719,7 +698,7 @@ input[type=text], input[type=number], textarea, select{
   $("#prevMonth").addEventListener("click", () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()-1, 1); renderMiniCalendar(); });
   $("#nextMonth").addEventListener("click", () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 1); renderMiniCalendar(); });
 
-  // Charts (same as v7)
+  // Charts
   function clear(el){ el.innerHTML=""; }
   function createSVG(w,h){ const s=document.createElementNS("http://www.w3.org/2000/svg","svg"); s.setAttribute("viewBox",`0 0 ${w} ${h}`); return s; }
   function drawAxes(svg,w,h,margin){ const g=document.createElementNS(svg.namespaceURI,"g"); const ax=document.createElementNS(svg.namespaceURI,"line"); ax.setAttribute("x1",margin.left); ax.setAttribute("y1",h-margin.bottom); ax.setAttribute("x2",w-margin.right); ax.setAttribute("y2",h-margin.bottom); ax.setAttribute("class","axis"); g.appendChild(ax); const ay=document.createElementNS(svg.namespaceURI,"line"); ay.setAttribute("x1",margin.left); ay.setAttribute("y1",margin.top); ay.setAttribute("x2",margin.left); ay.setAttribute("y2",h-margin.bottom); ay.setAttribute("class","axis"); g.appendChild(ay); svg.appendChild(g); }
@@ -775,19 +754,16 @@ input[type=text], input[type=number], textarea, select{
     }).sort((a,b)=> new Date(a.date) - new Date(b.date));
   }
   function renderCharts(){
-    // Sleep 7 days
     const sleep7 = getLogsInDays(7);
     const vals7 = sleep7.map(l=> (l.sleepMin||0)/60 );
     const maxY = Math.max(8, Math.ceil((Math.max(...vals7,0)+1)));
     drawBars($("#chartSleep7"), [], vals7, maxY);
 
-    // Energy 30 days
     const e30 = getLogsInDays(30);
     const cnt = {"❤️‍🔥元気":0,"❤️まずまず":0,"❤️‍🩹だるい":0};
     e30.forEach(l => { if (cnt[l.energy]!=null) cnt[l.energy]++; });
     drawBars($("#chartEnergy30"), [], [cnt["❤️‍🔥元気"], cnt["❤️まずまず"], cnt["❤️‍🩹だるい"]], Math.max(5, ...Object.values(cnt)));
 
-    // Weight line 30 days
     const w30 = getLogsInDays(30);
     const wvals = w30.map(l => (l.weight!=null ? Number(l.weight) : null));
     drawLine($("#chartWeight30"), [], wvals);
@@ -844,10 +820,10 @@ input[type=text], input[type=number], textarea, select{
     renderHistory(); renderMiniCalendar(); if ($("#pageSummary").style.display !== "none") renderCharts();
   });
 
-  // Task history (same as v7)
+  // Task history
   function renderTaskHistory(){
     const root = $("#taskHistoryList"); root.innerHTML = "";
-    const hist = loadTaskHistory();
+    const hist = JSON.parse(localStorage.getItem("md_task_history_v1") || "[]");
     const q = ($("#thSearch").value || "").trim();
     const dateFilter = $("#thDate").value;
     const toKeyFromInput = (s) => (!s ? null : toKey(fromInputDate(s)));
@@ -882,12 +858,12 @@ input[type=text], input[type=number], textarea, select{
         copy.onclick=async()=>{ try{ await navigator.clipboard.writeText(t.text); alert("コピーしました"); }catch(e){ alert(t.text); } };
         const del=document.createElement("button"); del.className="btn small"; del.textContent="削除";
         del.onclick=()=>{
-          const h = loadTaskHistory();
+          const h = JSON.parse(localStorage.getItem("md_task_history_v1") || "[]");
           const target = h.find(x => x.date === day.date);
           if (!target) return;
           target.tasks.splice(idx,1);
           const cleaned = target.tasks.length ? h : h.filter(x => x.date !== day.date);
-          saveTaskHistory(cleaned);
+          localStorage.setItem("md_task_history_v1", JSON.stringify(cleaned));
           renderTaskHistory();
         };
         li.appendChild(span); li.appendChild(add); li.appendChild(copy); li.appendChild(del);
@@ -901,24 +877,33 @@ input[type=text], input[type=number], textarea, select{
   $("#thDate").addEventListener("change", renderTaskHistory);
   $("#thClear").addEventListener("click", () => { $("#thSearch").value=""; $("#thDate").value=""; renderTaskHistory(); });
 
-  // Initial render (fix: load saved -> then apply QP overrides -> save)
+  // Initial render
   function initialRender(){
     renderHistory();
     renderMiniCalendar();
     const saved = loadLog(todayKey);
     loadLogToForm(saved);
-    // Apply query param overrides after loading saved data
+    // QP overrides after loading
+    const payload = {};
+    const url = new URL(window.location.href);
+    const qp = k => url.searchParams.get(k);
+    if (qp("sleepMin")!=null) payload.sleepMin = parseInt(qp("sleepMin"),10)||0;
+    if (qp("mood")) payload.mood = qp("mood");
+    if (qp("energy")) payload.energy = qp("energy");
+    if (qp("symptoms")) payload.symptoms = qp("symptoms").split(",").filter(Boolean);
+    if (qp("note")) payload.note = qp("note");
+    if (qp("weight")!=null){ const n = parseFloat(qp("weight")); if(!isNaN(n)) payload.weight = n; }
+    if (qp("bodyFat")!=null){ const n = parseFloat(qp("bodyFat")); if(!isNaN(n)) payload.bodyFat = n; }
+
     let changed = false;
-    if (qpPayload){
-      if (qpPayload.sleepMin!=null){ state.sleepH = Math.floor(qpPayload.sleepMin/60); state.sleepM = qpPayload.sleepMin%60; changed = true; }
-      if (qpPayload.mood){ state.mood = qpPayload.mood; changed = true; }
-      if (qpPayload.energy){ state.energy = qpPayload.energy; changed = true; }
-      if (qpPayload.symptoms){ state.symptoms = qpPayload.symptoms; changed = true; }
-      if (qpPayload.note){ state.note = qpPayload.note; changed = true; }
-      if (qpPayload.weight!=null){ state.weight = qpPayload.weight; changed = true; }
-      if (qpPayload.bodyFat!=null){ state.bodyFat = qpPayload.bodyFat; changed = true; }
-      if (changed){ renderChips(); syncFormFromState(); autoSave(); }
-    }
+    if (payload.sleepMin!=null){ state.sleepH = Math.floor(payload.sleepMin/60); state.sleepM = payload.sleepMin%60; changed = true; }
+    if (payload.mood){ state.mood = payload.mood; changed = true; }
+    if (payload.energy){ state.energy = payload.energy; changed = true; }
+    if (payload.symptoms){ state.symptoms = payload.symptoms; changed = true; }
+    if (payload.note){ state.note = payload.note; changed = true; }
+    if (payload.weight!=null){ state.weight = payload.weight; changed = true; }
+    if (payload.bodyFat!=null){ state.bodyFat = payload.bodyFat; changed = true; }
+    if (changed){ renderChips(); syncFormFromState(); autoSave(); }
   }
   initialRender();
 })();
