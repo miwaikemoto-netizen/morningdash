@@ -85,6 +85,70 @@ textarea, input[type="text"], input[type="number"], select{
 </style>
   
 <link rel="stylesheet" href="./morningdash_v14_patch.css">
+<!-- v14 header + spacing patch (inline, cache-safe) -->
+<style id="v14-patch">
+:root{
+  --md-hero-gap: 18px;
+  --md-brand-opacity: .5;
+  --md-brand-scale: .5;
+  --md-line-tight: 1.15;
+}
+
+/* 全体の行間を少しだけ詰める */
+body, .container, .card, .text, .row, h1, h2, h3, p, li, label, input, button{
+  line-height: var(--md-line-tight);
+}
+
+/* ヘッダの配置微調整（左：日付群 / 右：MorningDash） */
+.header, .titlebar { align-items: flex-start; }
+
+.md-hero{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: var(--md-hero-gap);
+  margin-bottom: clamp(10px, 2.4vh, 24px);
+}
+
+/* 左の「08/16」を大きく太く */
+.md-hero .date-mmdd,
+.date-big{
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  line-height: 0.92;      /* 更に詰める */
+  margin: 0;
+}
+
+/* 右の「MorningDash」を右上に寄せ、小さめ＆半透明 */
+.md-hero .brand{
+  text-align:right;
+  opacity: var(--md-brand-opacity);
+  transform: scale(var(--md-brand-scale));
+  transform-origin: top right;
+  margin-top: 4px;
+}
+
+/* 西暦・曜日・時刻のブロックをタイトルから少し離す */
+.md-hero .date-meta{
+  margin-top: 2px;
+}
+.md-hero .date-meta .weekday{
+  color:#0ea5e9;  /* 青系（見やすさ向上） */
+  font-weight:700;
+}
+.md-hero .date-meta .time{
+  font-style: italic;
+  font-weight:700;
+}
+
+/* 各セクションカードの上下余白を少し詰める */
+.section, .card, .panel{
+  margin-block: 14px !important;
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+}
+.row{ gap: 12px; }
+</style>
 
 </head>
 
