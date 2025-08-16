@@ -1,120 +1,136 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>MorningDash v12 (layout preview 2)</title>
-<meta name="theme-color" content="#0f172a" />
-<style>
-:root{
-  --bg:#e8efff; --card:#fff; --line:#e5e7eb; --text:#0f172a; --muted:#64748b;
-  --radius:16px; --shadow:0 6px 18px rgba(15,23,42,.08);
-}
-html,body{height:100%}
-body{margin:0;font-family:system-ui,-apple-system,"SF Pro","Hiragino Sans",Arial,"Meiryo",sans-serif;color:var(--text);background:var(--bg)}
-.container{max-width:980px;margin:0 auto;padding:16px}
-
-/* ===== ヘッダー ===== */
-.header{
-  position:relative;
-  display:grid;
-  grid-template-columns: 1fr auto; /* 左=年+月日, 右=曜日+時刻 */
-  column-gap:16px;
-  align-items:end;
-  margin:8px 0 12px;
-}
-
-/* 左：上に年、下に月/日（左寄せ） */
-.left-stack{display:flex;flex-direction:column;gap:4px}
-.year{
-  font-size:clamp(16px, 2.8vw, 22px);
-  font-weight:700;
-  opacity:.9;
-  align-self:flex-start;      /* 左上寄せ */
-}
-.md-mmdd{display:flex;align-items:flex-end;gap:8px}
-.mm, .dd{
-  font-size:clamp(52px,12vw,84px); /* 月と日を同サイズに統一 */
-  font-weight:900; letter-spacing:.02em; line-height:.9;
-}
-.slash{font-size:clamp(40px,8vw,64px);font-weight:900;opacity:.9;transform:translateY(-2px)}
-
-/* 右：曜日・時刻（縦） */
-.md-side{display:flex;flex-direction:column;gap:2px;transform:translateY(4px)}
-.weekday{font-size:clamp(16px,3vw,22px);font-weight:700;color:#0ea5e9}
-.clock{font-size:clamp(18px,4.6vw,28px);font-weight:800;font-style:italic;
-  font-family:ui-rounded,system-ui,-apple-system,"SF Pro Rounded","Hiragino Sans",Arial,"Meiryo",sans-serif}
-
-/* 右上：タイトル（少し大きく / 透明50%） */
-.brand{
-  position:absolute; right:0; top:-6px;
-  font-weight:800; letter-spacing:.02em;
-  font-size:clamp(16px,4vw,24px);
-  opacity:.5;
-  transform:scale(.8);        /* 0.5 → 0.8 に拡大 */
-  transform-origin: top right;
-}
-
-/* ダミーのカード */
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-  box-shadow:var(--shadow);padding:16px;margin:14px 0}
-h2{margin:0 0 10px 0;font-size:18px}
-.text{font-size:14px}.muted{color:var(--muted)}
-.btn{appearance:none;border:1px solid var(--line);background:#fff;border-radius:12px;
-  padding:8px 12px;cursor:pointer;font-weight:600}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MorningDash</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f0f4ff;
+      color: #333;
+    }
+    header {
+      position: relative;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .date-left {
+      font-size: 3rem;
+      font-weight: bold;
+    }
+    .date-details {
+      margin-left: 15px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .year {
+      font-size: 1rem;
+      text-align: left;
+    }
+    .weekday {
+      font-size: 1rem;
+      color: #007bff;
+      text-align: left;
+    }
+    .time {
+      font-size: 1.2rem;
+      font-style: italic;
+      font-weight: bold;
+      text-align: left;
+    }
+    .title {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: rgba(0,0,0,0.5);
+    }
+    main {
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      margin-top: 0;
+      font-size: 1.2rem;
+    }
+    .button {
+      display: inline-block;
+      padding: 8px 16px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #f9f9f9;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <!-- 左：年（上）＋ 月/日（下） -->
-      <div class="left-stack">
-        <div class="year" id="yyyy">2025</div>
-        <div class="md-mmdd" id="md-mmdd" title="フルカレンダーへ">
-          <div class="mm" id="mm">08</div>
-          <div class="slash">/</div>
-          <div class="dd" id="dd">16</div>
-        </div>
-      </div>
-
-      <!-- 右：曜日・時刻 -->
-      <div class="md-side">
-        <div class="weekday" id="weekday">土曜日</div>
-        <div class="clock" id="clock">11:16</div>
-      </div>
-
-      <!-- 右上：薄いブランド -->
-      <div class="brand">MorningDash</div>
+  <header>
+    <div class="date-left" id="monthDay">08/16</div>
+    <div class="date-details">
+      <div class="year" id="year">2025</div>
+      <div class="weekday" id="weekday">土曜日</div>
+      <div class="time" id="time">11:16</div>
     </div>
+    <div class="title">MorningDash</div>
+  </header>
 
-    <section class="card">
+  <main>
+    <div class="card">
       <h2>天気（現在地）</h2>
-      <div class="text muted">※ この版はレイアウト確認用。天気連携や保存ロジックは入れていません。</div>
-      <div style="margin-top:8px"><button class="btn" id="fakeFetch">再取得（ダミー）</button></div>
-    </section>
-  </div>
+      <div id="weather">読み込み中...</div>
+      <button class="button" onclick="loadWeather()">再取得</button>
+    </div>
+  </main>
 
-<script>
-(function(){
-  const $ = s => document.querySelector(s);
-  const z2 = n => String(n).padStart(2,'0');
-  const WEEK = ["日曜日","月曜日","火曜日","水曜日","木曜日","金曜日","土曜日"];
+  <script>
+    function updateDateTime() {
+      const now = new Date();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const year = now.getFullYear();
+      const weekDays = ["日曜日","月曜日","火曜日","水曜日","木曜日","金曜日","土曜日"];
+      const weekday = weekDays[now.getDay()];
+      const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  function render(now){
-    $("#yyyy").textContent = now.getFullYear();
-    $("#mm").textContent = z2(now.getMonth()+1);
-    $("#dd").textContent = z2(now.getDate());
-    $("#weekday").textContent = WEEK[now.getDay()];
-    $("#clock").textContent = `${z2(now.getHours())}:${z2(now.getMinutes())}`;
-  }
-  render(new Date());
-  setInterval(()=>render(new Date()), 15*1000);
+      document.getElementById("monthDay").textContent = `${month}/${day}`;
+      document.getElementById("year").textContent = year;
+      document.getElementById("weekday").textContent = weekday;
+      document.getElementById("time").textContent = time;
+    }
 
-  // 将来のカレンダー遷移（ダミー）
-  $("#md-mmdd").style.cursor="pointer";
-  $("#md-mmdd").addEventListener("click", ()=>alert("ここからフルカレンダーへ遷移（別ページ）する想定です。"));
-  $("#fakeFetch").addEventListener("click", ()=>alert("ダミー：天気を再取得する想定です"));
-})();
-</script>
+    function loadWeather() {
+      // ダミーの天気データ（本来はAPIやショートカット連携で取得）
+      const dummyWeather = "28℃　雨　風:6m/s";
+      document.getElementById("weather").textContent = dummyWeather;
+      localStorage.setItem("lastWeather", dummyWeather);
+    }
+
+    function loadSavedWeather() {
+      const saved = localStorage.getItem("lastWeather");
+      if (saved) {
+        document.getElementById("weather").textContent = saved;
+      } else {
+        loadWeather();
+      }
+    }
+
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+    loadSavedWeather();
+  </script>
 </body>
 </html>
