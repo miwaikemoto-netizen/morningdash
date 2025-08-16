@@ -7,148 +7,66 @@
 <meta name="theme-color" content="#0f172a">
 
 <!-- ===== base theme ===== -->
-<style>
+<!-- v14 header/spacing patch (inline) -->
+<style id="md-v14-patch">
 :root{
-  --bg:#eef2ff;          /* 淡い背景 */
-  --card:#ffffff;
-  --line:#e5e7eb;
-  --text:#0f172a;
-  --muted:#64748b;
-  --accent:#0ea5e9;
-  --accent-press:#0284c7;
-  --radius:16px;
-  --shadow:0 6px 22px rgba(2,8,23,.06);
+  --md-hero-gap: 8px;         /* 以前よりさらに詰める */
+  --md-brand-opacity:.5; 
+  --md-brand-scale:.55; 
+  --md-line-tight:1.12;       /* 全体の行間をさらにタイトに */
 }
-html,body{background:var(--bg); color:var(--text);}
-body{margin:0;font-family:system-ui,-apple-system,"SF Pro","Hiragino Sans",Arial,"Meiryo",sans-serif;}
-.container{max-width:980px;margin:0 auto;padding:16px;}
-
-.section,.card,.panel{
-  background:var(--card); border:1px solid var(--line);
-  border-radius:var(--radius); box-shadow:var(--shadow);
-  padding:18px; margin:16px 0; box-sizing:border-box;
-  overflow:hidden;
-  -webkit-mask-image: -webkit-radial-gradient(white, black); /* iOS bleed fix */
-}
-h1{margin:0 0 4px 0;font-weight:800;letter-spacing:.3px}
-h2{margin:0 0 8px 0;font-weight:700}
-h3{margin:0 0 6px 0;font-weight:600}
-.text{font-size:14px}
-.muted{color:var(--muted)}
-.row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
-
-.btn{appearance:none;border:1px solid var(--line);border-radius:14px;padding:10px 14px;background:#fff;cursor:pointer}
-.btn.small{font-size:12px;padding:6px 10px}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(14,165,233,.25)}
-.btn.primary:hover{background:var(--accent-press)}
-.input{border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;background:#fff}
-
-.badge{font-size:12px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);}
-
-.chip{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#fff;cursor:pointer;font-size:13px}
-.chip{color:#0f172a !important; background:#fff !important; border:1px solid #e5e7eb !important;}
-.chip.active{background:#0ea5e9 !important; border-color:#0ea5e9 !important; color:#fff !important;}
-
-textarea, input[type="text"], input[type="number"], select{
-  display:block; width:100%; max-width:100%; box-sizing:border-box;
-  border:1px solid var(--line); border-radius:12px; padding:10px 12px; background:#fff;
+/* 全体の行間を統一して少しだけ詰める */
+body,.container,.card,.text,.row,h1,h2,h3,p,li,label,input,button{
+  line-height:var(--md-line-tight);
 }
 
-/* ===== v13 header layout ===== */
-.head{
-  position:relative;
-  padding:18px 8px 10px 8px;
-}
-.brandGhost{
-  position:absolute; right:6px; top:0;
-  font-weight:800; font-size:clamp(16px,6vw,28px);
-  opacity:.5;
-}
-.dateWrap{ display:flex; align-items:flex-end; gap:16px; }
-.bigMD{ font-weight:900; letter-spacing:.02em; line-height:.9;
-  font-size: clamp(40px, 14vw, 84px); }
-.mdSep{ font-weight:900; font-size: clamp(30px, 10vw, 60px); padding:0 .1em; }
-
-.sideInfo{display:flex; flex-direction:column; gap:8px; margin-bottom:6px}
-.year{ font-weight:700; opacity:.9 }
-.wday{ font-weight:800; color:#0ea5e9; }
-.clock{ font-weight:900; font-style:italic; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-
-/* cards below header */
-.grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px}
-
-/* history blocks */
-.list{list-style:none;padding:0;margin:0}
-
-/* footer */
-.footer{font-size:12px;opacity:.7;margin:24px 8px 40px;line-height:1.6}
-</style>
-  
-<link rel="stylesheet" href="./morningdash_v14_patch.css?v=4">
-
-<!-- v14 header + spacing patch (inline, cache-safe) -->
-<style id="v14-patch">
-:root{
-  --md-hero-gap: 18px;
-  --md-brand-opacity: .5;
-  --md-brand-scale: .5;
-  --md-line-tight: 1.15;
-}
-
-/* 全体の行間を少しだけ詰める */
-body, .container, .card, .text, .row, h1, h2, h3, p, li, label, input, button{
-  line-height: var(--md-line-tight);
-}
-
-/* ヘッダの配置微調整（左：日付群 / 右：MorningDash） */
-.header, .titlebar { align-items: flex-start; }
-
+/* ヒーロー（上部）の2カラム。左：日付、右：年/曜日/時刻/ロゴ */
+.header,.titlebar{align-items:flex-start;}
 .md-hero{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap: var(--md-hero-gap);
-  margin-bottom: clamp(10px, 2.4vh, 24px);
+  display:flex; justify-content:space-between; align-items:flex-start;
+  gap:var(--md-hero-gap);
+  margin-bottom:clamp(6px,2vh,18px);
 }
 
-/* 左の「08/16」を大きく太く */
-.md-hero .date-mmdd,
-.date-big{
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  line-height: 0.92;      /* 更に詰める */
-  margin: 0;
+/* 左：月/日（大きい表示） */
+.md-hero .date-mmdd,.date-big{
+  font-weight:800;
+  font-size:clamp(44px,12vw,92px);
+  letter-spacing:.02em;
+  margin:0;
 }
 
-/* 右の「MorningDash」を右上に寄せ、小さめ＆半透明 */
-.md-hero .brand{
-  text-align:right;
-  opacity: var(--md-brand-opacity);
-  transform: scale(var(--md-brand-scale));
-  transform-origin: top right;
-  margin-top: 4px;
+/* 右スタック（年→曜日→時刻）。行間をさらに詰める */
+.md-hero .right-stack{
+  display:flex; flex-direction:column; align-items:flex-start;
+  gap:2px;        /* ←行間を詰める要 */
+}
+.md-hero .year{ font-size:clamp(14px,3.6vw,20px); font-weight:700; }
+.md-hero .dow{  font-size:clamp(16px,4.2vw,22px); font-weight:800; color:#0ea5e9; }
+.md-hero .time{ font-size:clamp(16px,4.2vw,24px); font-weight:800; font-style:italic; }
+
+/* 右上の「MorningDash」を右寄せ・半透明・やや小さく */
+.md-brand{
+  position:absolute; right:12px; top:10px;
+  transform:scale(var(--md-brand-scale)); transform-origin:top right;
+  opacity:var(--md-brand-opacity); font-weight:800;
 }
 
-/* 西暦・曜日・時刻のブロックをタイトルから少し離す */
-.md-hero .date-meta{
-  margin-top: 2px;
-}
-.md-hero .date-meta .weekday{
-  color:#0ea5e9;  /* 青系（見やすさ向上） */
-  font-weight:700;
-}
-.md-hero .date-meta .time{
-  font-style: italic;
-  font-weight:700;
-}
+/* 「日付ボタン／保存／CSV／JSON」行の高さと余白を省スペース化 */
+.toolbar-compact{ display:flex; flex-wrap:wrap; gap:8px 10px; margin:8px 0 12px; }
+.toolbar-compact .btn{ padding:8px 12px; border-radius:12px; }
+.toolbar-compact .btn.small{ padding:6px 10px; }
+.toolbar-compact .chip{ padding:6px 10px; }
 
-/* 各セクションカードの上下余白を少し詰める */
-.section, .card, .panel{
-  margin-block: 14px !important;
-  padding-top: 16px !important;
-  padding-bottom: 16px !important;
+/* セクション間の上下マージンも詰める */
+.section,.card,.panel{ margin-block:10px !important; }
+
+/* コンポーネント内の行間も少し詰める（見出しまわり） */
+.card h2{ margin:0 0 8px 0; }
+/* 画面幅が狭い時の微調整 */
+@media (max-width:420px){
+  .md-hero .date-mmdd,.date-big{ font-size:clamp(40px,15vw,84px); }
 }
-.row{ gap: 12px; }
 </style>
 
 </head>
