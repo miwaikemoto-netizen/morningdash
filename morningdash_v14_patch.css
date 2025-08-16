@@ -1,0 +1,70 @@
+
+/* MorningDash v14 header + spacing patch (non-destructive)
+   — Add with: <link rel="stylesheet" href="./morningdash_v14_patch.css">
+   It only adjusts layout/spacing; no HTML edits required.
+*/
+
+:root{
+  --md-hero-gap: 18px;
+  --md-brand-opacity: .5;
+  --md-brand-scale: .5;
+  --md-line-tight: 1.15;
+}
+
+/* ===== Global rhythm: slightly tighter lines ===== */
+body, .container, .card, .text, .row, h1, h2, h3, p, li, label, input, button{
+  line-height: var(--md-line-tight);
+}
+
+/* ===== Header (hero) ===== */
+/* Try to use existing blocks; be defensive with selectors */
+.header, .titlebar { align-items: flex-start; }
+
+/* A flexible two-column hero at the very top */
+.md-hero{
+  display:flex; 
+  align-items:flex-start; 
+  justify-content:space-between;
+  gap: var(--md-hero-gap);
+  margin-bottom: clamp(10px, 2.4vh, 24px);
+}
+
+/* Left: big Month/Day (assume it uses .date-big OR an h1-like block) */
+.md-hero .date-mmdd,
+.date-big{
+  font-weight: 800;
+  letter-spacing: .02em;
+  font-size: clamp(42px, 12vw, 72px);
+}
+
+/* Right: small stack (year / weekday / time) */
+.md-hero .sub-date{
+  display:flex;
+  flex-direction:column;
+  gap: 4px;
+  margin-top: 6px;
+}
+.md-hero .sub-date .year{ font-size: clamp(14px, 3.6vw, 18px); font-weight: 700; opacity: .9; }
+.md-hero .sub-date .weekday{ font-size: clamp(14px, 3.6vw, 18px); font-weight: 800; color:#0ea5e9; }
+.md-hero .sub-date .clock{ font-size: clamp(16px, 4.2vw, 22px); font-weight: 900; font-style: italic; }
+
+/* Brand (MorningDash) to the far right, smaller and transparent */
+.md-hero .brand{
+  margin-left: auto;
+  text-align:right;
+  transform: scale(var(--md-brand-scale));
+  transform-origin: top right;
+  opacity: var(--md-brand-opacity);
+  font-weight: 800;
+}
+
+/* If the title is an h1, reuse it as .brand look */
+.md-hero h1.brand{
+  margin:0;
+  font-size: clamp(18px, 6vw, 28px);
+}
+
+/* Tighter vertical gaps for the common cards/sections */
+.section, .card{ margin-block: 12px !important; }
+.card h2{ margin-bottom: 8px !important; }
+.row{ gap: 12px; }
