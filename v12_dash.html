@@ -1,265 +1,209 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MorningDash – v12 dash</title>
-<meta name="theme-color" content="#0f172a">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>MorningDash v12 (layout preview)</title>
+<meta name="theme-color" content="#0f172a" />
+
 <style>
 :root{
-  --bg:#f6f7fb; --fg:#0f172a; --muted:#64748b; --card:#ffffff; --line:#e5e7eb;
-  --accent:#0ea5e9; --accent-press:#0284c7; --radius:16px; --shadow:0 8px 28px rgba(2,8,23,.06);
+  --bg:#e8efff;          /* 背景（仮） */
+  --card:#ffffff;        /* カード */
+  --line:#e5e7eb;        /* 枠線 */
+  --text:#0f172a;        /* 標準文字色 */
+  --muted:#64748b;       /* 説明文字 */
+  --radius:16px;
+  --shadow:0 6px 18px rgba(15,23,42,.08);
 }
-*{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial}
+
+/* ベース */
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, "SF Pro", "Hiragino Sans", Arial, "Meiryo", sans-serif;
+  color:var(--text);
+  background:var(--bg);
+}
 .container{max-width:980px;margin:0 auto;padding:16px}
 
-/* 背景（天気で差し替え） */
-.bg-sunny{background:linear-gradient(180deg,#e0f2fe,#f8fafc)}
-.bg-cloudy{background:linear-gradient(180deg,#e5e7eb,#f8fafc)}
-.bg-rainy{background:linear-gradient(180deg,#c7d2fe,#eef2ff)}
-.bg-storm{background:linear-gradient(180deg,#cbd5e1,#f1f5f9)}
-.bg-snow{background:linear-gradient(180deg,#e2e8f0,#ffffff)}
+/* ====== 新ヘッダー ====== */
+.header{
+  position:relative;
+  display:grid;
+  grid-template-columns:auto 1fr;
+  column-gap:16px;
+  align-items:end;
+  margin:8px 0 12px;
+}
 
-/* ーーーー ヘッダー（新レイアウト） ーーーー */
-.header{display:flex;align-items:flex-end;justify-content:space-between;margin:6px 0 10px;gap:12px}
-.app{font-size:28px;font-weight:800;letter-spacing:.2px;opacity:.9} /* タイトルは少し薄く */
-.whenLink{display:block;text-decoration:none;color:inherit}
-.dateBlock{display:flex;flex-direction:column;align-items:flex-end;line-height:1}
-.row1{display:flex;gap:8px;align-items:flex-end}
-.year{font-size:16px;font-weight:700;opacity:.9}     /* 青の枠(Y)：西暦 */
-.md{font-size:40px;font-weight:900;letter-spacing:.5px} /* 赤の枠：月日（大） */
-.sep{font-size:32px;font-weight:800;opacity:.9}
-.row2{display:flex;gap:10px;align-items:center;margin-top:2px}
-.wday{font-size:14px;font-weight:700;color:#059669}     /* 緑の枠：曜日（日本語） */
-.clock{font-size:13px;color:var(--muted)}                /* 赤丸：小さい時計 */
-.mono{font-feature-settings:"tnum";font-variant-numeric:tabular-nums}
+/* 左：デカい 月/日 */
+.md-mmdd{
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+}
+.mm{
+  font-size:clamp(44px, 10vw, 72px);
+  font-weight:900;
+  letter-spacing:.02em;
+  line-height:0.9;
+}
+.slash{
+  font-size:clamp(40px, 8vw, 64px);
+  font-weight:900;
+  opacity:.9;
+  transform:translateY(-2px);
+}
+.dd{
+  font-size:clamp(52px, 12vw, 84px);
+  font-weight:900;
+  letter-spacing:.02em;
+  line-height:0.9;
+}
 
-/* カード・行 */
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin:14px 0;overflow:hidden;-webkit-mask-image:-webkit-radial-gradient(white, black)}
-.card h2{font-size:18px;margin:0 0 8px 0}
-.row{display:flex;gap:12px;flex-wrap:wrap}
+/* 右：縦3行（西暦・曜日・時刻） */
+.md-side{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  transform:translateY(4px);
+}
+.year{
+  font-size:clamp(16px, 2.8vw, 22px);
+  font-weight:700;
+  opacity:.9;
+}
+.weekday{
+  font-size:clamp(16px, 3vw, 22px);
+  font-weight:700;
+  color:#0ea5e9;             /* 曜日は色変えOKの指定 */
+}
+.clock{
+  font-size:clamp(18px, 4.6vw, 28px);
+  font-weight:800;
+  font-style:italic;         /* 斜体 */
+  font-family: ui-rounded, system-ui, -apple-system, "SF Pro Rounded", "Hiragino Sans", Arial, "Meiryo", sans-serif;
+}
 
-/* KPIカード */
-.kpi{flex:1 1 220px;min-width:220px}
-.kpi .big{font-size:36px;font-weight:800;line-height:1.1}
-.kpi .sub{color:var(--muted);margin-top:4px}
+/* タイトル（右上／50%サイズ・50%透明） */
+.brand{
+  position:absolute;
+  right:0; top:-6px;
+  font-weight:800;
+  font-size:clamp(16px, 4vw, 24px);
+  opacity:.5;                /* 透明度50% */
+  transform:scale(.5);       /* 視覚的に小さく（=50%） */
+  transform-origin: top right;
+  letter-spacing:.02em;
+}
 
-/* 天気 */
-.weather{display:flex;align-items:center;gap:14px}
-.wx-emoji{font-size:44px}
-.wx-lines{line-height:1.4}
+/* セクション（サンプル） */
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:16px;
+  margin:14px 0;
+}
+h2{margin:0 0 10px 0;font-size:18px}
 
-/* 入力・チップ・ボタン */
-.input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff}
-textarea.input{min-height:96px}
-.chip{border:1px solid var(--line);background:#fff;color:var(--fg);border-radius:999px;padding:6px 10px;font-size:13px}
-.chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn{appearance:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 14px;cursor:pointer}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn.small{font-size:12px;padding:6px 10px}
-
-.footer{font-size:12px;color:var(--muted);margin:24px 0}
+/* 情報テキスト */
+.text{font-size:14px}
+.muted{color:var(--muted)}
+.btn{
+  appearance:none; border:1px solid var(--line); background:#fff;
+  border-radius:12px; padding:8px 12px; cursor:pointer; font-weight:600;
+}
 </style>
 </head>
-<body class="bg-sunny">
-<div class="container">
-  <div class="header">
-    <div class="app">MorningDash ☀️</div>
-    <!-- ヘッダー右：年 / 月日（大） / 曜日・時計。タップでカレンダーへ -->
-    <a id="whenLink" class="whenLink" href="./v12_calendar.html">
-      <div class="dateBlock mono">
-        <div class="row1">
-          <span id="year" class="year">—</span>
-          <span id="month" class="md">—</span><span class="sep">/</span><span id="day" class="md">—</span>
-        </div>
-        <div class="row2">
-          <span id="weekday" class="wday">—</span>
-          <span id="clock" class="clock">--:--</span>
-        </div>
+
+<body>
+  <div class="container">
+    <!-- ===== ヘッダー（要求仕様） ===== -->
+    <div class="header">
+      <!-- 左：月日（左寄せ） -->
+      <div class="md-mmdd" id="md-mmdd">
+        <div class="mm" id="mm">08</div>
+        <div class="slash">/</div>
+        <div class="dd" id="dd">16</div>
       </div>
-    </a>
-  </div>
 
-  <!-- 天気 -->
-  <section class="card">
-    <h2>天気（現在地）</h2>
-    <div id="wx" class="weather">
-      <div class="wx-emoji" id="wxEmoji">⛅️</div>
-      <div class="wx-lines" id="wxLines">
-        <div class="mono" id="wxTemp">—°C</div>
-        <div class="muted" id="wxDesc">位置情報の許可後に表示</div>
+      <!-- 右：西暦・曜日・時刻（3行） -->
+      <div class="md-side">
+        <div class="year" id="yyyy">2025</div>
+        <div class="weekday" id="weekday">土曜日</div>
+        <div class="clock" id="clock">10:21</div>
       </div>
-    </div>
-    <div style="margin-top:8px">
-      <button id="btnWx" class="btn small">再取得</button>
-    </div>
-  </section>
 
-  <!-- 今日の数値（KPI） -->
-  <section class="row">
-    <div class="card kpi">
-      <h2>睡眠</h2>
-      <div class="big mono" id="kpiSleep">—h —m</div>
-      <div class="sub">表示中の日付</div>
+      <!-- 右上：タイトル（50%/50%/☀️無し） -->
+      <div class="brand">MorningDash</div>
     </div>
-    <div class="card kpi">
-      <h2>体重</h2>
-      <div class="big mono" id="kpiWeight">— kg</div>
-      <div class="sub">表示中の日付</div>
-    </div>
-    <div class="card kpi">
-      <h2>体脂肪</h2>
-      <div class="big mono" id="kpiBodyFat">— %</div>
-      <div class="sub">表示中の日付</div>
-    </div>
-    <div class="card kpi">
-      <h2>気分・元気</h2>
-      <div class="big" id="kpiMood">—</div>
-      <div class="sub" id="kpiEnergy">—</div>
-    </div>
-  </section>
 
-  <!-- メモ -->
-  <section class="card">
-    <h2>自由メモ</h2>
-    <textarea id="note" class="input" placeholder="今日のメモ…"></textarea>
-    <div style="margin-top:8px"><button id="btnSave" class="btn primary">この日の記録を保存</button></div>
-  </section>
+    <!-- ===== 以下はレイアウト確認用のダミーセクション ===== -->
+    <section class="card">
+      <h2>天気（現在地）</h2>
+      <div class="text muted">※ この版はレイアウト確認用。天気連携や保存ロジックは入れていません。</div>
+      <div style="margin-top:8px">
+        <button class="btn" id="fakeFetch">再取得（ダミー）</button>
+      </div>
+    </section>
 
-  <!-- 履歴（抜粋） -->
-  <section class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <h2>履歴（最近）</h2>
-      <button id="btnReload" class="btn small">再読込</button>
-    </div>
-    <div id="history"></div>
-  </section>
+    <section class="card">
+      <h2>気分</h2>
+      <div class="text muted">ここにチップ等を配置予定。</div>
+    </section>
 
-  <div class="footer">
-    Tips: 共有 → ホーム画面に追加 でアプリ風に使えます。保存先はこの端末のブラウザ（localStorage）。
+    <section class="card">
+      <h2>元気度</h2>
+      <div class="text muted">ここにチップ等を配置予定。</div>
+    </section>
+
+    <section class="card">
+      <h2>メモ</h2>
+      <div class="text muted">ここにメモ欄を配置予定。</div>
+    </section>
   </div>
-</div>
 
 <script>
 (function(){
-  // ====== ユーティリティ ======
-  const $ = s => document.querySelector(s);
-  const pad = n => String(n).padStart(2,"0");
-  const wdays = ["日","月","火","水","木","金","土"];
-  const toKey = d => d.toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo"}); // 2025/8/16
-  const toISO = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-  const fromISO = s => { const [y,m,da]=(s||"").split("-").map(Number); return (y&&m&&da)? new Date(y,m-1,da): null; };
+  const $ = (s)=>document.querySelector(s);
+  const z2 = n => String(n).padStart(2,'0');
+  const WEEK = ["日曜日","月曜日","火曜日","水曜日","木曜日","金曜日","土曜日"];
 
-  const LOGS_KEY = "md_logs_v2";
-  const loadAll = () => JSON.parse(localStorage.getItem(LOGS_KEY) || "[]");
-  const load = (k) => loadAll().find(x => x.date === k) || null;
-  const upsert = (p) => { const arr = loadAll().filter(x => x.date !== p.date); localStorage.setItem(LOGS_KEY, JSON.stringify([p, ...arr])); };
+  function applyHeader(now){
+    const y = now.getFullYear();
+    const m = z2(now.getMonth()+1);
+    const d = z2(now.getDate());
+    const wd = WEEK[now.getDay()];
+    const hh = z2(now.getHours());
+    const mm = z2(now.getMinutes());
 
-  // ====== 対象日（?date=YYYY-MM-DD があればそれ） ======
-  const url = new URL(location.href);
-  const qpDate = url.searchParams.get("date");
-  const today = new Date();
-  let currentDate = fromISO(qpDate) || today;
-  let currentKey = toKey(currentDate);
-
-  // ヘッダー：年・月日・曜日・時計
-  function renderHeaderWhen(){
-    $("#year").textContent = currentDate.getFullYear();
-    $("#month").textContent = pad(currentDate.getMonth()+1);
-    $("#day").textContent   = pad(currentDate.getDate());
-    $("#weekday").textContent = wdays[currentDate.getDay()];
-    $("#whenLink").href = `./v12_calendar.html?date=${toISO(currentDate)}`; // カレンダーに受け渡し
+    $("#yyyy").textContent = y;
+    $("#mm").textContent = m;
+    $("#dd").textContent = d;
+    $("#weekday").textContent = wd;
+    $("#clock").textContent = `${hh}:${mm}`;
   }
-  function tickClock(){
-    const now = new Date();
-    $("#clock").textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
-  }
-  renderHeaderWhen(); tickClock(); setInterval(tickClock, 1000);
-
-  // ====== KPI表示 ======
-  function showKPI(){
-    const log = load(currentKey);
-    const sleepMin = log ? (log.sleepMin || 0) : 0;
-    const h = Math.floor(sleepMin/60), m = sleepMin%60;
-    $("#kpiSleep").textContent = sleepMin ? `${h}h ${m}m` : "—h —m";
-    $("#kpiWeight").textContent = (log && log.weight!=null) ? `${log.weight} kg` : "— kg";
-    $("#kpiBodyFat").textContent = (log && log.bodyFat!=null) ? `${log.bodyFat} %` : "— %";
-    $("#kpiMood").textContent = (log && log.mood) || "—";
-    $("#kpiEnergy").textContent = (log && log.energy) || "—";
-    $("#note").value = (log && log.note) || "";
-  }
-
-  // ====== 履歴（最近5件） ======
-  function renderHistory(){
-    const root = $("#history"); root.innerHTML = "";
-    const logs = loadAll();
-    if (!logs.length){ root.innerHTML = '<div class="muted">まだ記録がありません</div>'; return; }
-    logs.slice(0,5).forEach(l=>{
-      const div=document.createElement("div"); div.className="card"; div.style.margin="10px 0";
-      const sm = l.sleepMin||0;
-      div.innerHTML = `
-        <div class="muted">${l.date}</div>
-        <div style="margin-top:6px">
-          気分：${l.mood||"—"}　元気：${l.energy||"—"}　睡眠：${Math.floor(sm/60)}時間${sm%60}分
-          ${l.weight!=null?`　体重：${l.weight}kg`:""} ${l.bodyFat!=null?`　体脂肪：${l.bodyFat}%`:""}
-        </div>
-        ${l.note?`<div style="margin-top:4px">${l.note}</div>`:""}
-      `;
-      root.appendChild(div);
-    });
-  }
-
-  // ====== 天気（絵文字＆背景） ======
-  function codeToEmoji(code){
-    if ([0,1].includes(code)) return {e:"☀️",bg:"bg-sunny",desc:"快晴/晴れ"};
-    if ([2,3,45,48].includes(code)) return {e:"⛅️",bg:"bg-cloudy",desc:"曇り/霧"};
-    if ([51,53,55,61,63,65].includes(code)) return {e:"🌧️",bg:"bg-rainy",desc:"雨"};
-    if ([95,96,99].includes(code)) return {e:"⛈️",bg:"bg-storm",desc:"雷雨"};
-    if ([71,73,75,85,86].includes(code)) return {e:"🌨️",bg:"bg-snow",desc:"雪"};
-    return {e:"⛅️",bg:"bg-cloudy",desc:"—"};
-  }
-  function setBg(bg){ document.body.className = bg; }
-  function renderWeather(w){
-    const m = codeToEmoji(w.code||3);
-    $("#wxEmoji").textContent = m.e;
-    $("#wxTemp").textContent = `${Math.round(w.temp)}°C`;
-    $("#wxDesc").textContent = `${m.desc}　風:${Math.round(w.wind)}m/s`;
-    setBg(m.bg);
-  }
-  function fetchWeather(){
-    $("#wxDesc").textContent="取得中…";
-    if (!("geolocation" in navigator)){ $("#wxDesc").textContent="位置情報非対応"; return; }
-    navigator.geolocation.getCurrentPosition(pos=>{
-      const {latitude, longitude} = pos.coords;
-      const u = new URL("https://api.open-meteo.com/v1/forecast");
-      u.searchParams.set("latitude", latitude);
-      u.searchParams.set("longitude", longitude);
-      u.searchParams.set("current_weather","true");
-      u.searchParams.set("timezone","Asia/Tokyo");
-      fetch(u.toString()).then(r=>r.json()).then(d=>{
-        const c = d.current_weather||{};
-        renderWeather({temp:c.temperature, wind:c.windspeed, code:c.weathercode});
-      }).catch(()=>{$("#wxDesc").textContent="取得失敗";});
-    }, ()=>{$("#wxDesc").textContent="位置情報未許可";},{timeout:8000});
-  }
-  $("#btnWx").addEventListener("click", fetchWeather);
-  fetchWeather();
-
-  // ====== 保存 & 再読込 ======
-  $("#btnSave").addEventListener("click", ()=>{
-    const existing = load(currentKey) || {date:currentKey, mood:"", energy:"", symptoms:[], sleepMin:0, weight:null, bodyFat:null, note:"", weather:null, quickTasks:[{done:false,text:""},{done:false,text:""},{done:false,text:""}]};
-    existing.note = $("#note").value||"";
-    existing.ts = Date.now();
-    upsert(existing);
-    renderHistory();
-    alert("保存しました");
-  });
-  $("#btnReload").addEventListener("click", ()=>{ showKPI(); renderHistory(); });
 
   // 初期表示
-  showKPI();
-  renderHistory();
+  applyHeader(new Date());
+  // 時計は1分ごとに更新（秒は不要なので軽量）
+  setInterval(()=>applyHeader(new Date()), 15*1000);
+
+  // クリックで（将来の）フルカレンダーに遷移する想定
+  const mmddArea = $("#md-mmdd");
+  mmddArea.style.cursor = "pointer";
+  mmddArea.title = "フルカレンダーへ";
+  mmddArea.addEventListener("click", ()=>{
+    // まだページが無い想定なので、そのままアラートにしておきます。
+    alert("ここからフルカレンダーへ遷移（別ページ）する想定です。");
+    // 例）location.href = "./calendar.html";
+  });
+
+  // ダミー操作
+  $("#fakeFetch").addEventListener("click", ()=>alert("ダミー：天気を再取得する想定です"));
 })();
 </script>
 </body>
