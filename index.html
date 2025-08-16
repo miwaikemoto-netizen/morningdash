@@ -54,6 +54,106 @@ h3{font-size:14px;margin:0 0 6px 0;font-weight:600}
 #debugBox{position:fixed;right:10px;bottom:10px;z-index:9999;background:#111;color:#fff;border-radius:12px;padding:10px 12px;font-size:12px;max-width:80vw;display:none}
 #debugBox pre{white-space:pre-wrap;word-break:break-word}
 </style>
+<!-- ===== MorningDash v12: Layout-only override ===== -->
+<style>
+/* 角丸内のにじみ＆はみ出しを完全封じ（iOS含む） */
+.section, .card, .panel {
+  overflow: hidden !important;
+  -webkit-mask-image: -webkit-radial-gradient(white, black) !important;
+}
+
+/* モバイル余白・影・角丸の統一 */
+:root{
+  --md-radius: 16px;
+  --md-border: #e5e7eb;
+  --md-shadow: 0 6px 20px rgba(2,8,23,.06);
+  --md-text:   #0f172a;
+  --md-muted:  #64748b;
+  --md-accent: #0ea5e9;
+}
+.card, .section, .panel{
+  border-radius: var(--md-radius) !important;
+  border: 1px solid var(--md-border) !important;
+  box-shadow: var(--md-shadow) !important;
+  padding: 18px 16px !important;
+  background: #fff !important;
+}
+
+/* 見出しのバランス */
+h1,h2,h3{ letter-spacing:.01em }
+h2{ font-size: clamp(16px, 3.8vw, 20px) !important; margin: 0 0 10px !important; }
+h3{ font-size: 14px !important; margin: 0 0 8px !important; color: var(--md-text) }
+
+/* チップ（未選択の文字が見えない問題を強制上書き） */
+.chip{
+  -webkit-appearance:none; appearance:none;
+  color: var(--md-text) !important;
+  background: #fff !important;
+  border: 1px solid var(--md-border) !important;
+  border-radius: 999px !important;
+  padding: 8px 12px !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+}
+.chip:not(.active){ opacity: .95 !important; }
+.chip.active{
+  background: var(--md-accent) !important;
+  border-color: var(--md-accent) !important;
+  color: #fff !important;
+}
+
+/* 入力系の横オーバーフロー対策（自由メモ含む） */
+input[type="text"], input[type="number"], textarea, select{
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  border: 1px solid var(--md-border) !important;
+  border-radius: 12px !important;
+  padding: 10px 12px !important;
+  background: #fff !important;
+}
+
+/* 行間とグリッドの詰まり修正 */
+.row{ gap: 12px !important; }
+.list li{ margin-block: 8px !important; }
+
+/* ボタンの視認性アップ */
+.btn, button, input[type=button], input[type=submit]{
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+  padding: 10px 14px !important;
+}
+.btn.primary, .btn.primary:where(*) {
+  background: var(--md-accent) !important;
+  border-color: var(--md-accent) !important;
+  color:#fff !important;
+}
+
+/* ミニカレンダーの今月ボックスに余白を確保 */
+.calendar{ gap: 6px !important; }
+.cal-cell{ border-radius: 10px !important; }
+.cal-cell.today{ border-width: 2px !important; }
+
+/* 症状グループの点線枠の内側に安全マージン */
+.symptom-group{
+  margin: 10px 0 !important;
+  padding: 12px !important;
+  border: 1px dashed var(--md-border) !important;
+  border-radius: 12px !important;
+  background: rgba(255,255,255,.6) !important;
+}
+
+/* 履歴カードのテキスト詰まりを緩和 */
+#history .card .text{ line-height: 1.5 !important; }
+
+/* 小さな端末でのボタン折返し */
+@media (max-width: 430px){
+  .toolbar, .row{ flex-wrap: wrap !important; }
+  .btn.small, .btn.tiny{ font-size: 12px !important; padding: 6px 10px !important; }
+}
+</style>
+<!-- /Layout-only override -->
+
 </head>
 
 <body>
