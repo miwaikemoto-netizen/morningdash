@@ -3,206 +3,116 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>MorningDash v12 (layout preview)</title>
+<title>MorningDash v12 (layout preview 2)</title>
 <meta name="theme-color" content="#0f172a" />
-
 <style>
 :root{
-  --bg:#e8efff;          /* 背景（仮） */
-  --card:#ffffff;        /* カード */
-  --line:#e5e7eb;        /* 枠線 */
-  --text:#0f172a;        /* 標準文字色 */
-  --muted:#64748b;       /* 説明文字 */
-  --radius:16px;
-  --shadow:0 6px 18px rgba(15,23,42,.08);
+  --bg:#e8efff; --card:#fff; --line:#e5e7eb; --text:#0f172a; --muted:#64748b;
+  --radius:16px; --shadow:0 6px 18px rgba(15,23,42,.08);
 }
-
-/* ベース */
 html,body{height:100%}
-body{
-  margin:0;
-  font-family: system-ui, -apple-system, "SF Pro", "Hiragino Sans", Arial, "Meiryo", sans-serif;
-  color:var(--text);
-  background:var(--bg);
-}
+body{margin:0;font-family:system-ui,-apple-system,"SF Pro","Hiragino Sans",Arial,"Meiryo",sans-serif;color:var(--text);background:var(--bg)}
 .container{max-width:980px;margin:0 auto;padding:16px}
 
-/* ====== 新ヘッダー ====== */
+/* ===== ヘッダー ===== */
 .header{
   position:relative;
   display:grid;
-  grid-template-columns:auto 1fr;
+  grid-template-columns: 1fr auto; /* 左=年+月日, 右=曜日+時刻 */
   column-gap:16px;
   align-items:end;
   margin:8px 0 12px;
 }
 
-/* 左：デカい 月/日 */
-.md-mmdd{
-  display:flex;
-  align-items:flex-end;
-  gap:8px;
-}
-.mm{
-  font-size:clamp(44px, 10vw, 72px);
-  font-weight:900;
-  letter-spacing:.02em;
-  line-height:0.9;
-}
-.slash{
-  font-size:clamp(40px, 8vw, 64px);
-  font-weight:900;
-  opacity:.9;
-  transform:translateY(-2px);
-}
-.dd{
-  font-size:clamp(52px, 12vw, 84px);
-  font-weight:900;
-  letter-spacing:.02em;
-  line-height:0.9;
-}
-
-/* 右：縦3行（西暦・曜日・時刻） */
-.md-side{
-  display:flex;
-  flex-direction:column;
-  gap:2px;
-  transform:translateY(4px);
-}
+/* 左：上に年、下に月/日（左寄せ） */
+.left-stack{display:flex;flex-direction:column;gap:4px}
 .year{
   font-size:clamp(16px, 2.8vw, 22px);
   font-weight:700;
   opacity:.9;
+  align-self:flex-start;      /* 左上寄せ */
 }
-.weekday{
-  font-size:clamp(16px, 3vw, 22px);
-  font-weight:700;
-  color:#0ea5e9;             /* 曜日は色変えOKの指定 */
+.md-mmdd{display:flex;align-items:flex-end;gap:8px}
+.mm, .dd{
+  font-size:clamp(52px,12vw,84px); /* 月と日を同サイズに統一 */
+  font-weight:900; letter-spacing:.02em; line-height:.9;
 }
-.clock{
-  font-size:clamp(18px, 4.6vw, 28px);
-  font-weight:800;
-  font-style:italic;         /* 斜体 */
-  font-family: ui-rounded, system-ui, -apple-system, "SF Pro Rounded", "Hiragino Sans", Arial, "Meiryo", sans-serif;
-}
+.slash{font-size:clamp(40px,8vw,64px);font-weight:900;opacity:.9;transform:translateY(-2px)}
 
-/* タイトル（右上／50%サイズ・50%透明） */
+/* 右：曜日・時刻（縦） */
+.md-side{display:flex;flex-direction:column;gap:2px;transform:translateY(4px)}
+.weekday{font-size:clamp(16px,3vw,22px);font-weight:700;color:#0ea5e9}
+.clock{font-size:clamp(18px,4.6vw,28px);font-weight:800;font-style:italic;
+  font-family:ui-rounded,system-ui,-apple-system,"SF Pro Rounded","Hiragino Sans",Arial,"Meiryo",sans-serif}
+
+/* 右上：タイトル（少し大きく / 透明50%） */
 .brand{
-  position:absolute;
-  right:0; top:-6px;
-  font-weight:800;
-  font-size:clamp(16px, 4vw, 24px);
-  opacity:.5;                /* 透明度50% */
-  transform:scale(.5);       /* 視覚的に小さく（=50%） */
+  position:absolute; right:0; top:-6px;
+  font-weight:800; letter-spacing:.02em;
+  font-size:clamp(16px,4vw,24px);
+  opacity:.5;
+  transform:scale(.8);        /* 0.5 → 0.8 に拡大 */
   transform-origin: top right;
-  letter-spacing:.02em;
 }
 
-/* セクション（サンプル） */
-.card{
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  padding:16px;
-  margin:14px 0;
-}
+/* ダミーのカード */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:16px;margin:14px 0}
 h2{margin:0 0 10px 0;font-size:18px}
-
-/* 情報テキスト */
-.text{font-size:14px}
-.muted{color:var(--muted)}
-.btn{
-  appearance:none; border:1px solid var(--line); background:#fff;
-  border-radius:12px; padding:8px 12px; cursor:pointer; font-weight:600;
-}
+.text{font-size:14px}.muted{color:var(--muted)}
+.btn{appearance:none;border:1px solid var(--line);background:#fff;border-radius:12px;
+  padding:8px 12px;cursor:pointer;font-weight:600}
 </style>
 </head>
-
 <body>
   <div class="container">
-    <!-- ===== ヘッダー（要求仕様） ===== -->
     <div class="header">
-      <!-- 左：月日（左寄せ） -->
-      <div class="md-mmdd" id="md-mmdd">
-        <div class="mm" id="mm">08</div>
-        <div class="slash">/</div>
-        <div class="dd" id="dd">16</div>
-      </div>
-
-      <!-- 右：西暦・曜日・時刻（3行） -->
-      <div class="md-side">
+      <!-- 左：年（上）＋ 月/日（下） -->
+      <div class="left-stack">
         <div class="year" id="yyyy">2025</div>
-        <div class="weekday" id="weekday">土曜日</div>
-        <div class="clock" id="clock">10:21</div>
+        <div class="md-mmdd" id="md-mmdd" title="フルカレンダーへ">
+          <div class="mm" id="mm">08</div>
+          <div class="slash">/</div>
+          <div class="dd" id="dd">16</div>
+        </div>
       </div>
 
-      <!-- 右上：タイトル（50%/50%/☀️無し） -->
+      <!-- 右：曜日・時刻 -->
+      <div class="md-side">
+        <div class="weekday" id="weekday">土曜日</div>
+        <div class="clock" id="clock">11:16</div>
+      </div>
+
+      <!-- 右上：薄いブランド -->
       <div class="brand">MorningDash</div>
     </div>
 
-    <!-- ===== 以下はレイアウト確認用のダミーセクション ===== -->
     <section class="card">
       <h2>天気（現在地）</h2>
       <div class="text muted">※ この版はレイアウト確認用。天気連携や保存ロジックは入れていません。</div>
-      <div style="margin-top:8px">
-        <button class="btn" id="fakeFetch">再取得（ダミー）</button>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>気分</h2>
-      <div class="text muted">ここにチップ等を配置予定。</div>
-    </section>
-
-    <section class="card">
-      <h2>元気度</h2>
-      <div class="text muted">ここにチップ等を配置予定。</div>
-    </section>
-
-    <section class="card">
-      <h2>メモ</h2>
-      <div class="text muted">ここにメモ欄を配置予定。</div>
+      <div style="margin-top:8px"><button class="btn" id="fakeFetch">再取得（ダミー）</button></div>
     </section>
   </div>
 
 <script>
 (function(){
-  const $ = (s)=>document.querySelector(s);
+  const $ = s => document.querySelector(s);
   const z2 = n => String(n).padStart(2,'0');
   const WEEK = ["日曜日","月曜日","火曜日","水曜日","木曜日","金曜日","土曜日"];
 
-  function applyHeader(now){
-    const y = now.getFullYear();
-    const m = z2(now.getMonth()+1);
-    const d = z2(now.getDate());
-    const wd = WEEK[now.getDay()];
-    const hh = z2(now.getHours());
-    const mm = z2(now.getMinutes());
-
-    $("#yyyy").textContent = y;
-    $("#mm").textContent = m;
-    $("#dd").textContent = d;
-    $("#weekday").textContent = wd;
-    $("#clock").textContent = `${hh}:${mm}`;
+  function render(now){
+    $("#yyyy").textContent = now.getFullYear();
+    $("#mm").textContent = z2(now.getMonth()+1);
+    $("#dd").textContent = z2(now.getDate());
+    $("#weekday").textContent = WEEK[now.getDay()];
+    $("#clock").textContent = `${z2(now.getHours())}:${z2(now.getMinutes())}`;
   }
+  render(new Date());
+  setInterval(()=>render(new Date()), 15*1000);
 
-  // 初期表示
-  applyHeader(new Date());
-  // 時計は1分ごとに更新（秒は不要なので軽量）
-  setInterval(()=>applyHeader(new Date()), 15*1000);
-
-  // クリックで（将来の）フルカレンダーに遷移する想定
-  const mmddArea = $("#md-mmdd");
-  mmddArea.style.cursor = "pointer";
-  mmddArea.title = "フルカレンダーへ";
-  mmddArea.addEventListener("click", ()=>{
-    // まだページが無い想定なので、そのままアラートにしておきます。
-    alert("ここからフルカレンダーへ遷移（別ページ）する想定です。");
-    // 例）location.href = "./calendar.html";
-  });
-
-  // ダミー操作
+  // 将来のカレンダー遷移（ダミー）
+  $("#md-mmdd").style.cursor="pointer";
+  $("#md-mmdd").addEventListener("click", ()=>alert("ここからフルカレンダーへ遷移（別ページ）する想定です。"));
   $("#fakeFetch").addEventListener("click", ()=>alert("ダミー：天気を再取得する想定です"));
 })();
 </script>
