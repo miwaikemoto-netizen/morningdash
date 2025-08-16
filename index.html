@@ -195,6 +195,60 @@ h3{font-size:14px;margin:0 0 6px 0;font-weight:600}
 
 <!-- デバッグ出力 -->
 <div id="debugBox"><b>Debug</b><pre id="debugOut"></pre></div>
+<script>
+/* ===== MD: クエリ取り込み・先行保存ホットフィックス =====
+   ?sleepMin=441&weight=66.4&bodyFat=33.4 を開いた瞬間に
+   localStorage(md_logs_v2 / 今日の日付)へ先に書き込み、
+   その後UIが起動しても値が消えないようにする。
+*/
+(function(){
+  try{
+    const u = new URL(location.href);
+    const hasQP =
+      u.searchParams.has("sleepMin") ||
+      u.searchParams.has("weight")   ||
+      u.searchParams.has("bodyFat");
+    if(!hasQP) return;
+
+    // 受け取り & 数値化
+    const nInt = v => { const n = parseInt(v,10); return Number.isFinite(n) ? n : null; };
+    const nFloat = v => { const n = parseFloat(v); return Number.isFinite(n) ? n : null; };
+
+    const sleepMin = nInt(u.searchParams.get("sleepMin"));
+    const weight   = nFloat(u.searchParams.get("weight"));
+    const bodyFat  = nFloat(u.searchParams.get("bodyFat"));
+
+    // 保存先キーと “今日” のキー（Asia/Tokyo 固定）
+    const LOGS_KEY = "md_logs_v2";
+    const todayKey = new Date().toLocaleDateString("ja-JP",{ timeZone:"Asia/Tokyo" });
+
+    // 既存ログの読み出し
+    const logs = JSON.parse(localStorage.getItem(LOGS_KEY) || "[]");
+    const others = logs.filter(x => x.date !== todayKey);
+    const existing = logs.find(x => x.date === todayKey) || {
+      date: todayKey,
+      mood: "", energy: "", symptoms: [],
+      sleepMin: 0, weight: null, bodyFat: null, note: "",
+      weather: null,
+      quickTasks: [{done:false,text:""},{done:false,text:""},{done:false,text:""}],
+    };
+
+    // 上書き（来ている値だけ）
+    if (sleepMin != null) existing.sleepMin = sleepMin;
+    if (weight   != null) existing.weight   = weight;
+    if (bodyFat  != null) existing.bodyFat  = bodyFat;
+    existing.ts = Date.now();
+
+    // 先に保存
+    localStorage.setItem(LOGS_KEY, JSON.stringify([existing, ...others]));
+
+    // クエリを消してリロードしない（そのままUIが読みに行く）
+    history.replaceState(null, "", location.pathname);
+  }catch(e){
+    console.warn("ingest hotfix failed:", e);
+  }
+})();
+</script>
 
 <script>
 (function(){
