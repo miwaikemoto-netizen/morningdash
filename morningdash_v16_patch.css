@@ -1,25 +1,53 @@
-<script>
-(function(){
-  // 入力（YYYY-MM-DD） → YYYY/M/D へ
-  function ymdFromInputOrToday(){
-    const inp = document.querySelector('#datePicker');
-    if (inp?.value) {
-      const [y,m,d] = inp.value.split('-');
-      return `${y}/${+m}/${+d}`;
-    }
-    const dt = new Date();
-    return `${dt.getFullYear()}/${dt.getMonth()+1}/${dt.getDate()}`;
-  }
-  function syncCalendarLink(){
-    const ymd = ymdFromInputOrToday();
-    const u = new URL('v12_calendar.html', location.href);
-    u.searchParams.set('date', ymd);
-    const a = document.getElementById('btnOpenCalendar');
-    if (a) a.href = u.toString();
-  }
-  // 初期化＋日付変更で更新
-  syncCalendarLink();
-  const inp = document.querySelector('#datePicker');
-  if (inp) inp.addEventListener('change', syncCalendarLink);
-})();
-</script>
+/* === v16g: セクション見出しは左寄せ / 中身はセンタリング ================= */
+
+/* すべてのカードの見出しは左寄せ */
+.card > h2{ text-align:left; margin-bottom:10px; }
+
+/* 見出し直後に来るブロック群を中央寄せ（ボタン行・内容など） */
+.card > h2 + .row,
+.card > h2 + div,
+.card .content,
+.card .controls{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:10px;
+  text-align:center;
+}
+
+/* === 睡眠欄・ヘルス欄：入力幅を小さくして1行に収まりやすく ================ */
+
+/* 睡眠（時間/分）のブロックも中央寄せに */
+#sleepFields{ display:flex; align-items:center; justify-content:center; gap:10px; }
+
+/* 数値入力の標準高さを合わせる（睡眠とヘルスで同じ見た目） */
+.input.number{ padding:10px 12px; height:44px; }
+
+/* 各入力の幅をコンパクト化 */
+#sleepH, #sleepM{ width:6ch; }   /* 00..23 / 00..59 */
+#weight{ width:7ch; }            /* 66.2 等 */
+#bodyFat{ width:5.5ch; }         /* 33.4 等 */
+
+/* ヘルス行：中央寄せ＋折返し最小限 */
+#healthLine{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;                /* 画面が狭い時だけ折り返し */
+}
+
+/* 単位やラベルを改行させない（kg / 体脂肪 / % など） */
+#healthLine span,
+#healthLine small,
+#healthLine label{
+  white-space: nowrap;
+}
+
+/* === 余白（カード間 & カード内）少し詰める ================================== */
+:root{
+  --md-card-gap: 12px;
+  --md-line-tight: 1.14;
+}
+.card{ margin-bottom: var(--md-card-gap); padding: clamp(12px, 3.0vw, 18px); }
+.card .row{ gap:10px; }
