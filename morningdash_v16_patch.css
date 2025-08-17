@@ -1,159 +1,25 @@
-/* MorningDash v16c patch (cache-bust + stronger selectors)
-   - Right-top brand (既存 h1 を右上へ移動・半透明)
-   - コンデンス系の標準フォント優先（Impact 風）
-   - 年を大日付の上に余白確保（DOMを触らず安全に）
-   - 入力欄コンパクト化 / 余白圧縮 / 見出し小さめ
-*/
-
-:root{
-  --md-hero-gap: 12px;
-  --md-brand-opacity: .33;
-  --md-brand-scale: .42;
-  --md-line-tight: 1.12;
-  --md-card-gap: 16px;
-}
-
-/* 全体の行間を少し詰める */
-html body, .container, .card, .text, .row, h1, h2, h3, p, li, label, input, button{
-  line-height: var(--md-line-tight) !important;
-}
-.card{ margin-bottom: var(--md-card-gap) !important; }
-
-/* ===== ヘッダー配置 ===== */
-.titlebar{ position: relative !important; }
-
-/* 左：大きな月日。上に年のスペースを少し空ける */
-.date-big{ margin-top: 8px !important; } /* 年を上に置く余白の確保用 */
-.date-big b{ font-weight: 800 !important; }
-
-/* 右上：ブランドを“薄く・凝縮フォント”で */
-.titlebar > h1{
-  position: absolute !important;
-  right: 12px !important;
-  top: 6px !important;
-  margin: 0 !important;
-  opacity: var(--md-brand-opacity) !important;
-  transform: scale(var(--md-brand-scale)) !important;
-  transform-origin: right top !important;
-  text-align: right !important;
-  /* Safari で Impact 風に見える候補を優先 */
-  font-family:
-    "HelveticaNeue-CondensedBlack",
-    "Helvetica Neue Condensed Bold",
-    "Apple SD Gothic Neo",
-    "Arial Black",
-    "SF Pro Display",
-    "Helvetica Neue",
-    Arial, sans-serif !important;
-  font-weight: 800 !important;
-  letter-spacing: .01em !important;
-  line-height: 1 !important;
-}
-
-/* 右カラム：曜日と時刻の縦詰め */
-.dateWrap{ gap: 4px !important; margin-top: 10px !important; }
-.wday{ font-size: clamp(16px, 4.5vw, 24px) !important; font-weight: 800 !important; }
-.clock{ font-size: clamp(16px, 4.3vw, 22px) !important; font-style: italic !important; font-weight: 800 !important; }
-
-/* 見出しを少し小さく */
-.card > h2, h2.section-title{ font-size: clamp(18px, 4.5vw, 22px) !important; }
-
-/* 天気：再取得ボタンを同一行右寄せ */
-.weatherTitle{ display:flex !important; align-items:center !important; justify-content: space-between !important; gap: 8px !important; }
-.weatherTitle .btn, .weatherTitle .pill{ margin-left: auto !important; }
-
-/* 入力欄コンパクト化（折り返し防止） */
-#sleepH, #sleepM{ width: 6ch !important; }
-#weight{ width: 7ch !important; }
-#bodyFat{ width: 5.5ch !important; }
-.input{ padding: 10px 12px !important; }
-
-.healthRow{ display:flex !important; align-items:center !important; gap:10px !important; flex-wrap: wrap !important; }
-
-/* カード内の行間も詰める */
-.card .row{ gap: 10px !important; }
-.card{ padding: clamp(12px, 3.2vw, 18px) !important; }
-/* === v16e micro patch: lower big MM/DD, keep layout solid === */
-:root{
-  /* 少しだけ下げたい & ゴーストロゴもほんのり強めに */
-  --md-hero-shift: 10px;   /* 0 → 10px 相当の微調整 */
-  --md-brand-scale: .46;   /* 右上 MorningDash のスケール微増 */
-  --md-brand-opacity: .36; /* 透明度ほんの少しだけ上げる */
-}
-
-/* ヒーロー全体に上の余白を追加して日付ブロックを下げる */
-.md-hero{ padding-top: var(--md-hero-shift); }
-
-/* 月/日のブロックをさらに 2px だけ下へ（端末差をならすため） */
-.bigMD,
-.date-big{ margin-top: 2px; }
-
-/* 小画面ではもう少しだけ下げる（iPhone 縦想定） */
-@media (max-width: 420px){
-  :root{ --md-hero-shift: 12px; }
-  .bigMD, .date-big{ margin-top: 4px; }
-}
-/* ===== v16 move MM/DD down visibly ===== */
-/* まずは大きめに 32px 下げる。足りなければ数字だけ増減で微調整 */
-.date-big,
-.bigMD{
-  transform: translateY(32px);
-}
-
-/* 年(2025)は上に寄せておく（相対バランス用） */
-.md-hero .year{
-  top: -0.35em; /* 以前より少し上げる */
-}
-
-/* 上下の余白バランスを合わせる：ヘッダと次カードの間を詰める */
-.md-hero{
-  margin-bottom: clamp(4px, 1.2vh, 10px);
-}
-
-/* 右側の曜日・時刻の縦位置も少し下げて揃える（必要なら） */
-.dateWrap{ margin-top: 16px; }   /* 10px → 16px */
-/* ===== v16b tweak position & MorningDash font ===== */
-
-/* 日付の位置: 28px 下げる */
-.date-big,
-.bigMD{
-  transform: translateY(28px);
-}
-
-/* 年の位置微調整 */
-.md-hero .year{
-  top: -0.35em;
-}
-
-/* MorningDash のフォント・サイズ強化 */
-.site-title, .siteName, .md-hero h1{
-  font-family: "Arial Black", "Helvetica Neue", sans-serif;
-  font-weight: 700;
-  font-size: 1.1rem; /* ← 今よりやや大きめ */
-  letter-spacing: 0.5px; /* 少し間隔を開けて読みやすく */
-}
-/* === v16c: hero微調整 === */
-
-/* 月/日ブロック：24px 下げ（= 28→24 で少し上に） */
-.date-big,
-.bigMD{
-  transform: translateY(24px) !important;
-}
-
-/* 年(2025)の位置もほんの少し上げる */
-.md-hero .year{
-  top: -0.45em !important;
-}
-
-/* ゴーストの "MorningDash" を見やすく大きめに */
-:root{
-  --md-brand-scale: .55 !important;   /* 0.42 → 0.55 */
-  --md-brand-opacity: .42 !important; /* 0.33 → 0.42 */
-}
-
-/* 念のためタイトル文字の最小サイズ底上げ */
-.brandGhost{
-  font-size: clamp(26px, 7vw, 54px) !important;
-  font-weight: 800 !important;
-  letter-spacing: .015em !important;
-}
+<script>
+(function(){
+  // 入力（YYYY-MM-DD） → YYYY/M/D へ
+  function ymdFromInputOrToday(){
+    const inp = document.querySelector('#datePicker');
+    if (inp?.value) {
+      const [y,m,d] = inp.value.split('-');
+      return `${y}/${+m}/${+d}`;
+    }
+    const dt = new Date();
+    return `${dt.getFullYear()}/${dt.getMonth()+1}/${dt.getDate()}`;
+  }
+  function syncCalendarLink(){
+    const ymd = ymdFromInputOrToday();
+    const u = new URL('v12_calendar.html', location.href);
+    u.searchParams.set('date', ymd);
+    const a = document.getElementById('btnOpenCalendar');
+    if (a) a.href = u.toString();
+  }
+  // 初期化＋日付変更で更新
+  syncCalendarLink();
+  const inp = document.querySelector('#datePicker');
+  if (inp) inp.addEventListener('change', syncCalendarLink);
+})();
+</script>
