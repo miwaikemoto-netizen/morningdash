@@ -1,0 +1,125 @@
+/* MorningDash v16 compat patch (CSS-only)
+   - 既存HTMLのクラス/IDに依存せず、よくある命名を広く拾うセレクタで上書き
+   - 年を大日付の上に配置／曜日と時刻を詰める／右上ブランド薄め
+   - セクション見出しを少し小さく／カード間隔と入力幅を圧縮
+*/
+
+/* ===== rhythm & gaps ===== */
+:root{
+  --md-hero-gap: 12px;
+  --md-brand-opacity: .33;
+  --md-brand-scale: .42;
+  --md-line-tight: 1.12;
+  --md-card-gap: 16px;
+}
+body, .container, .card, .text, .row, h1, h2, h3, p, li, label, input, button{
+  line-height: var(--md-line-tight);
+}
+.card{ margin-bottom: var(--md-card-gap); }
+.card .row{ gap: 10px; }
+.card{ padding: clamp(12px, 3.2vw, 18px); }
+.container{ padding-bottom: 64px; }
+
+/* ===== header（タイトル周り）===== */
+/* 大日付ブロック：.date-big もしくは id に date を含む要素を対象 */
+.date-big, [id*="dateBig"], [class*="date-big"]{
+  position: relative;
+  font-weight: 800;
+  font-size: clamp(44px, 11vw, 92px);
+  letter-spacing: .01em;
+}
+/* 年：id/name/class に year を含む要素を上に絶対配置 */
+.date-big [id*="year"], .date-big [class*="year"],
+[id*="yearText"], [class*="yearText"]{
+  position: absolute;
+  left: 0;
+  top: -0.35em;
+  font-size: clamp(16px, 3.5vw, 26px);
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: #222;
+}
+/* 右側スタック（曜日＋時刻）：id/class に weekday / wday / time / clock を含む */
+.header .right, .titlebar .right, .dateWrap,
+[id*="rightCol"], [class*="dateWrap"]{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  margin-top: 10px; /* 年を避ける */
+}
+[id*="weekday"], [id*="wday"], .wday{
+  font-size: clamp(16px, 4.5vw, 24px);
+  font-weight: 800;
+}
+[id*="time"], [id*="clock"], .clock{
+  font-size: clamp(16px, 4.3vw, 22px);
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+
+/* 右上の “MorningDash” を薄く大きく（h1 が右側にある前提を広く拾う） */
+.titlebar h1, .header h1, h1.brand, [id*="brand"], [class*="brandGhost"]{
+  margin-left: auto;
+  text-align: right;
+  font-family: "Inter","SF Pro Display","Helvetica Neue",Arial,sans-serif;
+  font-weight: 800;
+  letter-spacing: .015em;
+  opacity: var(--md-brand-opacity);
+  font-size: clamp(24px, 6.5vw, 48px);
+  line-height: 1;
+  transform: scale(var(--md-brand-scale));
+  transform-origin: right top;
+}
+
+/* ヘッダー下のボタングループを詰める（ラベルは .btn/.pill を想定し広めに拾う） */
+.row.buttons, .btns, .toolbar, [class*="buttons"]{
+  gap: 10px;
+}
+.btn, .pill, [class*="button"], button{
+  --padx: 14px; --pady: 10px;
+  padding: var(--pady) var(--padx);
+}
+
+/* ===== セクション見出し ===== */
+.card > h2, h2.section-title{
+  font-size: clamp(18px, 4.5vw, 22px);
+}
+
+/* ===== 天気：再取得を同一行・右寄せ ===== */
+.weatherTitle, .weather .title, [id*="weather"] h2{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.weatherTitle .btn, .weatherTitle .pill,
+[id*="weather"] h2 + * .btn, [id*="weather"] h2 + * .pill{
+  margin-left: auto;
+}
+
+/* ===== 入力欄の折返し防止（睡眠/ヘルス）===== */
+/* 睡眠：hour/minute っぽい名前を幅指定で拾う */
+#sleepH, #sleepM, [id*="sleepHour"], [id*="sleepMin"],
+[name*="sleepHour"], [name*="sleepMin"]{ width: 6ch; }
+
+/* 体重・体脂肪：id/name に weight / bodyFat を含む */
+#weight, [id*="weight"], [name*="weight"]{ width: 7ch; }
+#bodyFat, [id*="bodyFat"], [name*="bodyFat"]{ width: 5.5ch; }
+
+/* 入力全般を少しだけ密に */
+.input, input[type="text"], input[type="number"]{
+  padding: 10px 12px;
+}
+
+/* 体重行が極力1行に収まるように */
+#healthLine, .healthRow, [id*="health"] .row{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ===== カード同士の間隔を少し詰める（余白の二重取り回避）===== */
+.section, .card{ scroll-margin-top: 10px; }
