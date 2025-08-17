@@ -1,0 +1,123 @@
+/* MorningDash v16 layout+spacing patch
+   - Move Year above the big date (left)
+   - Tighten weekday/time lines
+   - Make MorningDash cleaner (lighter, narrower tracking) on the right
+   - Shrink section titles a bit
+   - Keep '再取得' on the same line (weather)
+   - Make inputs (sleep/health) compact to avoid line breaks
+   - Reduce vertical gaps between cards
+   Non-destructive: CSS only. Safe to add via:
+   <link rel="stylesheet" href="./morningdash_v16_patch.css?v=1">
+*/
+
+:root{
+  --md-hero-gap: 12px;
+  --md-brand-opacity: .33;
+  --md-brand-scale: .42;
+  --md-line-tight: 1.12;
+  --md-card-gap: 16px;
+}
+
+/* Global rhythm */
+body, .container, .card, .text, .row, h1, h2, h3, p, li, label, input, button{
+  line-height: var(--md-line-tight);
+}
+.card{ margin-bottom: var(--md-card-gap); }
+.container{ padding-bottom: 64px; } /* room for bottom buttons if added later */
+
+/* ===== Header (hero) ===== */
+.header, .titlebar { align-items: flex-start; }
+
+.md-hero{
+  position: relative;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: var(--md-hero-gap);
+  margin-bottom: clamp(8px, 1.8vh, 16px);
+}
+
+/* Left: big Month/Day block */
+.bigMD,.date-big{ font-weight:800; font-size: clamp(44px, 11vw, 92px); letter-spacing: .01em; }
+.bigMD b,.date-big b{ font-weight: inherit; }
+.bigMD .slash{ padding: 0 .12em; }
+
+/* Put YEAR above the big date (absolute so we don't need to move HTML) */
+.md-hero .year{
+  position:absolute;
+  left:0;
+  top: -0.2em; /* pull a bit above */
+  font-size: clamp(16px, 3.5vw, 26px);
+  font-weight:700;
+  letter-spacing: .02em;
+  color:#222;
+}
+
+/* Right: weekday + time stack, tighter spacing */
+.dateWrap{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap: 4px;
+  margin-top: 10px; /* leave room for the absolute year */
+}
+.wday{ font-size: clamp(16px, 4.5vw, 24px); font-weight: 800; }
+.clock{ font-size: clamp(16px, 4.3vw, 22px); font-style: italic; font-weight: 800; letter-spacing: .02em; }
+
+/* Ghost brand on the top-right */
+.brandGhost{
+  margin-left: auto;
+  text-align: right;
+  font-family: "Inter","SF Pro Display","Helvetica Neue",Arial,sans-serif;
+  font-weight: 800;
+  letter-spacing: .015em;
+  opacity: var(--md-brand-opacity);
+  font-size: clamp(24px, 6.5vw, 48px);
+  line-height: 1;
+  transform: scale(var(--md-brand-scale));
+  transform-origin: right top;
+}
+
+/* Buttons row below header: make it denser */
+.header .row.buttons,
+.btns,
+.btns .row{
+  gap: 10px;
+}
+.btns .btn,
+.btns .pill{
+  padding: 10px 14px;
+}
+
+/* Section titles a touch smaller */
+.card > h2,
+h2.section-title{
+  font-size: clamp(18px, 4.5vw, 22px);
+}
+
+/* Weather: keep refresh on the same line, right aligned */
+.weatherTitle{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.weatherTitle .btn, .weatherTitle .pill{ margin: 0 0 0 auto; }
+
+/* Inputs — compact widths so they don't wrap */
+#sleepH, #sleepM{ width: 6ch; }           /* 00..23 / 00..59 */
+#weight{ width: 7ch; }                     /* 66.2 etc */
+#bodyFat{ width: 5.5ch; }                  /* 33.4 etc */
+.input{ padding: 10px 12px; }              /* slightly denser */
+
+/* Keep “kg 体脂肪 %” on one line when space allows */
+.healthRow{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Cards: tighten inner paddings/smaller gaps between blocks */
+.card .row{ gap: 10px; }
+.card{ padding: clamp(12px, 3.2vw, 18px); }
