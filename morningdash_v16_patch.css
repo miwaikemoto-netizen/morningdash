@@ -132,3 +132,28 @@ html body, .container, .card, .text, .row, h1, h2, h3, p, li, label, input, butt
   font-size: 1.1rem; /* ← 今よりやや大きめ */
   letter-spacing: 0.5px; /* 少し間隔を開けて読みやすく */
 }
+/* === v16c: hero微調整 === */
+
+/* 月/日ブロック：24px 下げ（= 28→24 で少し上に） */
+.date-big,
+.bigMD{
+  transform: translateY(24px) !important;
+}
+
+/* 年(2025)の位置もほんの少し上げる */
+.md-hero .year{
+  top: -0.45em !important;
+}
+
+/* ゴーストの "MorningDash" を見やすく大きめに */
+:root{
+  --md-brand-scale: .55 !important;   /* 0.42 → 0.55 */
+  --md-brand-opacity: .42 !important; /* 0.33 → 0.42 */
+}
+
+/* 念のためタイトル文字の最小サイズ底上げ */
+.brandGhost{
+  font-size: clamp(26px, 7vw, 54px) !important;
+  font-weight: 800 !important;
+  letter-spacing: .015em !important;
+}
