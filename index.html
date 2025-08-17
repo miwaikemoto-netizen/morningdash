@@ -1,98 +1,118 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MorningDash — v13</title>
-<meta name="theme-color" content="#0f172a">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>MorningDash — v14</title>
+<meta name="theme-color" content="#0f172a" />
 
-<!-- ===== base theme ===== -->
-<!-- v14 header/spacing patch (inline) -->
-<style id="md-v14-patch">
+<!-- ===== unified styles (v14) ===== -->
+<style>
 :root{
-  --md-hero-gap: 8px;         /* 以前よりさらに詰める */
-  --md-brand-opacity:.5; 
-  --md-brand-scale:.55; 
-  --md-line-tight:1.12;       /* 全体の行間をさらにタイトに */
-}
-/* 全体の行間を統一して少しだけ詰める */
-body,.container,.card,.text,.row,h1,h2,h3,p,li,label,input,button{
-  line-height:var(--md-line-tight);
-}
+  /* 色 */
+  --bg1:#ffffff; --bg2:#f1f5f9; --fg:#0f172a; --muted:#64748b;
+  --accent:#0ea5e9; --accent-press:#0284c7;
+  --card:#ffffff; --border:#e5e7eb;
 
-/* ヒーロー（上部）の2カラム。左：日付、右：年/曜日/時刻/ロゴ */
-.header,.titlebar{align-items:flex-start;}
-.md-hero{
-  display:flex; justify-content:space-between; align-items:flex-start;
-  gap:var(--md-hero-gap);
-  margin-bottom:clamp(6px,2vh,18px);
+  /* 余白・角丸・影 */
+  --radius:16px; --shadow:0 6px 20px rgba(2,8,23,.06);
+
+  /* v14 追加（行間＆ヘッダー間隔） */
+  --line-tight:1.12;
+  --hero-gap:8px;
+  --brand-scale:.55;
+  --brand-opacity:.5;
 }
 
-/* 左：月/日（大きい表示） */
-.md-hero .date-mmdd,.date-big{
-  font-weight:800;
-  font-size:clamp(44px,12vw,92px);
-  letter-spacing:.02em;
-  margin:0;
+/* ベース */
+html,body{height:100%; background:linear-gradient(var(--bg1),var(--bg2)); color:var(--fg);}
+body{margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
+*,*::before,*::after{box-sizing:border-box}
+p,li,label,button,input,textarea,h1,h2,h3,.row,.card,.container{ line-height:var(--line-tight); }
+
+.container{max-width:980px; margin:0 auto; padding:16px;}
+
+/* カード/パネル */
+.card,.panel,.section{
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:16px; margin-block:10px;
+  overflow:hidden;                                   /* iOS角丸にじみ対策 */
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+.card h2{margin:0 0 8px 0}
+h1{font-size:28px; margin:0}
+
+/* ボタン */
+.btn{appearance:none; border:1px solid var(--border); border-radius:14px; padding:10px 14px; background:#fff; cursor:pointer}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+.btn.small{font-size:12px; padding:6px 10px}
+.btn.tiny{font-size:11px; padding:4px 8px; border-radius:10px}
+.btn:hover{filter:brightness(0.98)} .btn.primary:hover{background:var(--accent-press)}
+.input{border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:14px; background:#fff}
+
+/* フレックス行 */
+.row{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+
+/* ---- v14 ヒーロー（上部ヘッダー） ---- */
+.head{position:relative; margin-bottom:clamp(6px,2vh,18px);}
+.brandGhost{
+  position:absolute; right:12px; top:10px; opacity:var(--brand-opacity);
+  transform:scale(var(--brand-scale)); transform-origin:top right; font-weight:800;
+}
+.dateWrap{display:flex; gap:var(--hero-gap); align-items:flex-start}
+.bigDate{display:flex; align-items:flex-end; gap:4px}
+.bigMD{font-weight:800; font-size:clamp(44px,12vw,92px); letter-spacing:.02em}
+.mdSep{font-size:clamp(28px,8vw,56px); transform:translateY(-4px)}
+.sideInfo{display:flex; flex-direction:column; gap:2px; align-items:flex-start; margin-top:2px}
+.sideInfo .year{font-size:clamp(14px,3.6vw,20px); font-weight:700}
+.sideInfo .wday{font-size:clamp(16px,4.2vw,22px); font-weight:800; color:var(--accent)}
+.sideInfo .clock{font-size:clamp(16px,4.2vw,24px); font-weight:800; font-style:italic}
+
+/* 文字・ラベル */
+.muted{color:var(--muted); opacity:.95}
+.text{font-size:14px}
+
+/* チップ（選択肢ボタン） */
+.chip{
+  border:1px solid var(--border); border-radius:999px; padding:6px 10px; background:#fff; cursor:pointer; font-size:13px;
+  color:var(--fg) !important;
+}
+.chip.active{background:var(--accent) !important; border-color:var(--accent) !important; color:#fff !important}
+
+/* 入力のはみ出し対策（自由メモ右端） */
+textarea, input[type="text"], input[type="number"], select{
+  display:block; width:100%; max-width:100%; box-sizing:border-box;
 }
 
-/* 右スタック（年→曜日→時刻）。行間をさらに詰める */
-.md-hero .right-stack{
-  display:flex; flex-direction:column; align-items:flex-start;
-  gap:2px;        /* ←行間を詰める要 */
-}
-.md-hero .year{ font-size:clamp(14px,3.6vw,20px); font-weight:700; }
-.md-hero .dow{  font-size:clamp(16px,4.2vw,22px); font-weight:800; color:#0ea5e9; }
-.md-hero .time{ font-size:clamp(16px,4.2vw,24px); font-weight:800; font-style:italic; }
+/* グリッド2列（モバイルで縦積み） */
+.grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px}
 
-/* 右上の「MorningDash」を右寄せ・半透明・やや小さく */
-.md-brand{
-  position:absolute; right:12px; top:10px;
-  transform:scale(var(--md-brand-scale)); transform-origin:top right;
-  opacity:var(--md-brand-opacity); font-weight:800;
-}
-
-/* 「日付ボタン／保存／CSV／JSON」行の高さと余白を省スペース化 */
-.toolbar-compact{ display:flex; flex-wrap:wrap; gap:8px 10px; margin:8px 0 12px; }
-.toolbar-compact .btn{ padding:8px 12px; border-radius:12px; }
-.toolbar-compact .btn.small{ padding:6px 10px; }
-.toolbar-compact .chip{ padding:6px 10px; }
-
-/* セクション間の上下マージンも詰める */
-.section,.card,.panel{ margin-block:10px !important; }
-
-/* コンポーネント内の行間も少し詰める（見出しまわり） */
-.card h2{ margin:0 0 8px 0; }
-/* 画面幅が狭い時の微調整 */
-@media (max-width:420px){
-  .md-hero .date-mmdd,.date-big{ font-size:clamp(40px,15vw,84px); }
-}
+/* バッジなど */
+.badge{font-size:12px; padding:3px 8px; border-radius:999px; border:1px solid var(--border)}
+.danger{color:#b91c1c}
+.footer{font-size:12px; opacity:.7; margin-top:18px; line-height:1.6}
 </style>
-<link rel="stylesheet" href="morningdash_v14_patch_fixed.css?v=1">
-
 </head>
 
 <body>
   <div class="container">
-    <!-- ===== Header (v13) ===== -->
+    <!-- ===== Header ===== -->
     <div class="head">
-      <div class="brandGhost">MorningDash</div>
+      <div class="brandGhost">Morning Dash</div>
       <div class="dateWrap">
         <div class="bigDate">
-          <span class="bigMD" id="mdM">08</span>
-          <span class="mdSep">/</span>
-          <span class="bigMD" id="mdD">16</span>
+          <span class="bigMD" id="mdM">08</span><span class="mdSep">/</span><span class="bigMD" id="mdD">16</span>
         </div>
         <div class="sideInfo">
           <div class="year" id="mdY">2025</div>
           <div class="wday" id="mdW">土曜日</div>
-          <div class="clock" id="mdT">11:16</div>
+          <div class="clock" id="mdT">09:41</div>
         </div>
       </div>
     </div>
 
     <!-- ===== Tool bar ===== -->
-    <div class="row" style="justify-content:space-between;align-items:center;margin:4px 2px 8px">
+    <div class="row" style="justify-content:space-between; margin:6px 2px 10px">
       <div class="row">
         <input id="datePicker" type="date" class="input" style="padding:8px 10px">
         <span id="editBadge" class="badge" style="display:none">編集モード</span>
@@ -108,13 +128,13 @@ body,.container,.card,.text,.row,h1,h2,h3,p,li,label,input,button{
 
     <!-- ===== Weather ===== -->
     <section class="card">
-      <div class="row" style="justify-content:space-between;align-items:center">
+      <div class="row" style="justify-content:space-between">
         <h2>天気（現在地）</h2>
         <span id="wxLoading" class="muted" style="display:none">取得中…</span>
       </div>
       <div id="wxError" class="text danger"></div>
       <div id="wxBlock" class="row"></div>
-      <div class="row" style="margin-top:8px">
+      <div class="row" style="margin-top:6px">
         <button id="retryWx" class="btn small">再取得</button>
       </div>
     </section>
@@ -136,15 +156,15 @@ body,.container,.card,.text,.row,h1,h2,h3,p,li,label,input,button{
       <div class="card">
         <h2>体調メモ</h2>
         <div class="section" style="margin:8px 0">
-          <h3>① よくある不調</h3>
+          <h3 style="margin:0 0 6px">① よくある不調</h3>
           <div id="symptomGroup1" class="row"></div>
         </div>
         <div class="section" style="margin:8px 0">
-          <h3>② 季節・生活リズム</h3>
+          <h3 style="margin:0 0 6px">② 季節・生活リズム</h3>
           <div id="symptomGroup2" class="row"></div>
         </div>
         <div class="section" style="margin:8px 0">
-          <h3>③ メンタル・コンディション</h3>
+          <h3 style="margin:0 0 6px">③ メンタル・コンディション</h3>
           <div id="symptomGroup3" class="row"></div>
         </div>
         <textarea id="note" rows="3" placeholder="自由メモ（例：首の張り強め／冷え気味 など）"></textarea>
@@ -152,7 +172,7 @@ body,.container,.card,.text,.row,h1,h2,h3,p,li,label,input,button{
 
       <div class="card">
         <h2>睡眠</h2>
-        <div class="row" style="align-items:center;margin-bottom:8px">
+        <div class="row" style="align-items:center; margin-bottom:6px">
           <div style="flex:1">
             <label class="muted">時間</label>
             <input id="sleepH" class="input" type="number" min="0" max="23" value="0">
@@ -162,11 +182,11 @@ body,.container,.card,.text,.row,h1,h2,h3,p,li,label,input,button{
             <input id="sleepM" class="input" type="number" min="0" max="59" value="0">
           </div>
         </div>
-        <div class="text muted" style="margin-bottom:6px">※ ショートカット連携で自動入力（?sleepMin=合計分）</div>
+        <div class="text muted" style="margin-bottom:4px">※ ショートカット連携で自動入力（?sleepMin=合計分）</div>
         <div class="text">合計：<b id="sleepTotal">0時間0分</b></div>
 
-        <div class="card" style="margin-top:12px">
-          <h3>ヘルス（任意）</h3>
+        <div class="card" style="margin-top:10px">
+          <h3 style="margin:0 0 6px">ヘルス（任意）</h3>
           <div class="row" style="align-items:center">
             <span>体重</span>
             <input id="weight" class="input" type="number" step="0.1" min="0" style="width:90px">
@@ -175,19 +195,19 @@ body,.container,.card,.text,.row,h1,h2,h3,p,li,label,input,button{
             <input id="bodyFat" class="input" type="number" step="0.1" min="0" max="100" style="width:90px">
             <span>%</span>
           </div>
-          <div class="row" style="align-items:center;margin-top:8px">
+          <div class="row" style="align-items:center; margin-top:8px">
             <button id="copyHealthShortcut" class="btn small">ヘルス取り込みショートカット用URLをコピー</button>
           </div>
-          <div class="text muted" style="margin-top:6px">※ ショートカットでヘルスケアから取得→URLで <code>?sleepMin=&weight=&bodyFat=</code> を渡すと自動入力</div>
+          <div class="text muted" style="margin-top:4px">※ URL で <code>?sleepMin=&weight=&bodyFat=</code> を渡すと自動入力</div>
         </div>
       </div>
     </section>
 
     <!-- ===== History ===== -->
     <section class="card">
-      <div class="row" style="justify-content:space-between;align-items:center">
+      <div class="row" style="justify-content:space-between">
         <h2>履歴</h2>
-        <button id="reloadHistory" class="btn small">履歴を再読込</button>
+        <button id="reloadHistory" class="btn small">再読込</button>
       </div>
       <div id="history"></div>
     </section>
@@ -198,19 +218,20 @@ body,.container,.card,.text,.row,h1,h2,h3,p,li,label,input,button{
     </div>
   </div>
 
+<!-- ===== Script ===== -->
 <script>
 (function(){
-  const $ = (s) => document.querySelector(s);
-  const $$ = (s) => Array.from(document.querySelectorAll(s));
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
 
-  // ===== date/time =====
+  /* ==== 日付・時刻 ==== */
   const tz = "Asia/Tokyo";
   const z2 = n => String(n).padStart(2,"0");
-  const toKey = (d) => d.toLocaleDateString("ja-JP", { timeZone: tz });
-  const toInputDate = d => `${d.getFullYear()}-${z2(d.getMonth()+1)}-${z2(d.getDate())}`;
-  const fromInputDate = s => { const [y,m,da]=s.split("-").map(Number); return new Date(y, m-1, da); };
-
   const wdJP = ["日曜日","月曜日","火曜日","水曜日","木曜日","金曜日","土曜日"];
+  const toKey = d => d.toLocaleDateString("ja-JP",{timeZone:tz});
+  const toInputDate = d => `${d.getFullYear()}-${z2(d.getMonth()+1)}-${z2(d.getDate())}`;
+  const fromInputDate = s => { const [y,m,d]=s.split("-").map(Number); return new Date(y, m-1, d); };
+
   function renderHeaderDate(d){
     $("#mdM").textContent = z2(d.getMonth()+1);
     $("#mdD").textContent = z2(d.getDate());
@@ -226,30 +247,30 @@ body,.container,.card,.text,.row,h1,h2,h3,p,li,label,input,button{
   const today = new Date();
   const todayKey = toKey(today);
   let currentDateKey = todayKey;
-  let currentDate = today;
 
+  /* ==== ツールバー ==== */
   const datePicker = $("#datePicker");
   datePicker.value = toInputDate(today);
   renderHeaderDate(today);
   $("#editBadge").style.display = "none";
 
-  datePicker.addEventListener("change", () => {
+  datePicker.addEventListener("change", ()=>{
     const d = fromInputDate(datePicker.value);
-    currentDate = d; currentDateKey = toKey(d);
+    currentDateKey = toKey(d);
     renderHeaderDate(d);
     $("#editBadge").style.display = (currentDateKey === todayKey) ? "none" : "inline-block";
     loadLogToForm(loadLog(currentDateKey));
   });
 
-  // ===== state =====
+  /* ==== ステート ==== */
   const state = {
-    mood: "", energy: "", symptoms: [], note:"",
+    mood:"", energy:"", symptoms:[], note:"",
     sleepH:0, sleepM:0, weight:null, bodyFat:null,
     weather:null,
     quickTasks:[{done:false,text:""},{done:false,text:""},{done:false,text:""}],
   };
 
-  // UI chips
+  /* ==== チップUI ==== */
   const moods = [{v:"🙂",label:"良い"},{v:"😐",label:"ふつう"},{v:"🙁",label:"いまいち"}];
   const energies = ["❤️‍🔥元気","❤️まずまず","❤️‍🩹だるい"];
   const group1 = ["首・肩こり","頭痛","腹痛／お腹の張り","腰の張り／腰痛","胃腸弱め（胃もたれ・下痢・便秘など）","むくみ","目の疲れ／ドライアイ","自律神経の乱れ","睡眠の質低下（浅い眠り・途中覚醒）","生理"];
@@ -259,50 +280,50 @@ body,.container,.card,.text,.row,h1,h2,h3,p,li,label,input,button{
 
   function buildChips(root, options, isActive, onClick){
     root.innerHTML = "";
-    options.forEach(opt => {
-      const v = typeof opt === "string" ? opt : opt.v;
-      const label = typeof opt === "string" ? opt : (opt.v+" "+opt.label);
-      const b = document.createElement("button");
-      b.className = "chip" + (isActive(v) ? " active" : "");
-      b.textContent = label;
-      b.addEventListener("click", () => onClick(v));
+    options.forEach(opt=>{
+      const v = typeof opt==="string" ? opt : opt.v;
+      const label = typeof opt==="string" ? opt : (opt.v+" "+opt.label);
+      const b=document.createElement("button");
+      b.className="chip"+(isActive(v)?" active":"");
+      b.textContent=label;
+      b.addEventListener("click",()=>onClick(v));
       root.appendChild(b);
     });
   }
   function renderChips(){
-    buildChips($("#moodBtns"), moods, v => state.mood===v, v => { state.mood=v; renderChips(); autoSave(); });
-    buildChips($("#energyBtns"), energies, v => state.energy===v, v => { state.energy=v; renderChips(); autoSave(); });
-    const mk = (id, arr) => buildChips($(id), arr, v => state.symptoms.includes(v), v => {
-      if (state.symptoms.includes(v)) state.symptoms = state.symptoms.filter(x=>x!==v);
-      else state.symptoms = [...state.symptoms, v];
+    buildChips($("#moodBtns"), moods, v=>state.mood===v, v=>{state.mood=v; renderChips(); autoSave();});
+    buildChips($("#energyBtns"), energies, v=>state.energy===v, v=>{state.energy=v; renderChips(); autoSave();});
+    const mk=(id,arr)=>buildChips($(id), arr, v=>state.symptoms.includes(v), v=>{
+      if(state.symptoms.includes(v)) state.symptoms=state.symptoms.filter(x=>x!==v);
+      else state.symptoms=[...state.symptoms, v];
       renderChips(); autoSave();
     });
     mk("#symptomGroup1", group1); mk("#symptomGroup2", group2); mk("#symptomGroup3", group3);
   }
   renderChips();
 
-  // ===== Weather =====
+  /* ==== 天気 ==== */
   const wxLoading=$("#wxLoading"), wxError=$("#wxError"), wxBlock=$("#wxBlock");
-  function wxCodeToText(code){ const map={0:"快晴",1:"晴れ",2:"薄曇り",3:"曇り",45:"霧",48:"霧氷",51:"弱い霧雨",53:"霧雨",55:"強い霧雨",61:"弱い雨",63:"雨",65:"強い雨",71:"弱い雪",73:"雪",75:"大雪",95:"雷雨"}; return map[code]||"—"; }
+  const wxMap={0:"快晴",1:"晴れ",2:"薄曇り",3:"曇り",45:"霧",48:"霧氷",51:"弱い霧雨",53:"霧雨",55:"強い霧雨",61:"弱い雨",63:"雨",65:"強い雨",71:"弱い雪",73:"雪",75:"大雪",95:"雷雨"};
+  const wxCodeToText = code => wxMap[code]||"—";
   function renderWeather(){
     wxBlock.innerHTML="";
-    if (!state.weather){ const p=document.createElement("p"); p.className="text muted"; p.textContent="位置情報の許可後、自動表示されます。"; wxBlock.appendChild(p); return; }
-    const icon = document.createElement("div");
-    icon.style.fontSize="48px";
+    if(!state.weather){ const p=document.createElement("p"); p.className="text muted"; p.textContent="位置情報の許可後、自動表示されます。"; wxBlock.appendChild(p); return; }
+    const icon = document.createElement("div"); icon.style.fontSize="48px";
     const code = state.weather.code||0;
     icon.textContent = (code>=61&&code<=65) ? "🌧️" : (code===0||code===1?"☀️": (code===2?"🌤️": (code===3?"☁️":"🌦️")));
     const big=document.createElement("div"); big.style.fontSize="40px"; big.style.fontWeight="700"; big.textContent=Math.round(state.weather.temp)+"°C";
     const small=document.createElement("div"); small.className="text"; small.style.marginTop="4px";
     const lines=[]; lines.push("状況："+state.weather.condition); lines.push("風："+Math.round(state.weather.wind)+"m/s");
-    if (state.weather.humidity!=null) lines.push("湿度："+Math.round(state.weather.humidity)+"%");
-    small.innerHTML = lines.join("　");
+    if(state.weather.humidity!=null) lines.push("湿度："+Math.round(state.weather.humidity)+"%");
+    small.innerHTML=lines.join("　");
     const wrap=document.createElement("div"); wrap.className="row"; wrap.style.alignItems="center";
     wrap.appendChild(icon); wrap.appendChild(big); wrap.appendChild(small);
     wxBlock.appendChild(wrap);
   }
   function fetchWeatherFromGeo(lat, lon){
     wxLoading.style.display="inline"; wxError.textContent="";
-    const u = new URL("https://api.open-meteo.com/v1/forecast");
+    const u=new URL("https://api.open-meteo.com/v1/forecast");
     u.searchParams.set("latitude", lat);
     u.searchParams.set("longitude", lon);
     u.searchParams.set("current_weather","true");
@@ -310,81 +331,76 @@ body,.container,.card,.text,.row,h1,h2,h3,p,li,label,input,button{
     u.searchParams.set("timezone","Asia/Tokyo");
     fetch(u.toString()).then(r=>r.json()).then(data=>{
       const c=data.current_weather||{};
-      const times=(data.hourly&&data.hourly.time)||[]; const idx = times.indexOf(c.time);
+      const times=(data.hourly&&data.hourly.time)||[]; const idx=times.indexOf(c.time);
       const hum = (idx>-1 && data.hourly.relativehumidity_2m) ? data.hourly.relativehumidity_2m[idx] : null;
-      state.weather={
-        temp:c.temperature, wind:c.windspeed, code:c.weathercode, condition:wxCodeToText(c.weathercode),
-        humidity:hum
-      };
+      state.weather={temp:c.temperature, wind:c.windspeed, code:c.weathercode, condition:wxCodeToText(c.weathercode), humidity:hum};
       renderWeather(); autoSave();
-    }).catch(e=>{ wxError.textContent="天気の取得に失敗しました。"; })
-     .finally(()=>{ wxLoading.style.display="none"; });
+    }).catch(()=>{ wxError.textContent="天気の取得に失敗しました。"; })
+      .finally(()=>{ wxLoading.style.display="none"; });
   }
   function askGeo(){
     wxLoading.style.display="inline"; wxError.textContent="";
-    if (!("geolocation" in navigator)){ wxError.textContent="この端末は位置情報に対応していません。"; wxLoading.style.display="none"; return; }
+    if(!("geolocation" in navigator)){ wxError.textContent="この端末は位置情報に対応していません。"; wxLoading.style.display="none"; return; }
     navigator.geolocation.getCurrentPosition(
-      pos => { const {latitude, longitude}=pos.coords; fetchWeatherFromGeo(latitude, longitude); },
-      err => { wxError.textContent="位置情報を取得できませんでした。設定でSafariに位置情報を許可してください。"; wxLoading.style.display="none"; },
+      pos=>{ const {latitude, longitude}=pos.coords; fetchWeatherFromGeo(latitude, longitude); },
+      ()=>{ wxError.textContent="位置情報を取得できませんでした。設定でSafariに位置情報を許可してください。"; wxLoading.style.display="none"; },
       { enableHighAccuracy:false, timeout:8000 }
     );
   }
-  $("#retryWx").addEventListener("click", askGeo);
-  askGeo();
+  $("#retryWx").addEventListener("click", askGeo); askGeo();
 
-  // ===== Storage & history =====
+  /* ==== 保存領域 ==== */
   const LOGS_KEY="md_logs_v2";
-  function loadAllLogs(){ return JSON.parse(localStorage.getItem(LOGS_KEY)||"[]"); }
-  function saveAllLogs(arr){ localStorage.setItem(LOGS_KEY, JSON.stringify(arr)); }
-  function loadLog(dateKey){ const logs = loadAllLogs(); return logs.find(l => l.date === dateKey) || null; }
-  function upsertLog(payload){
-    const logs = loadAllLogs();
-    const rest = logs.filter(l => l.date !== payload.date);
-    saveAllLogs([payload, ...rest].sort((a,b)=> (a.date < b.date ? 1 : -1)));
-  }
+  const loadAllLogs =()=> JSON.parse(localStorage.getItem(LOGS_KEY)||"[]");
+  const saveAllLogs =arr=> localStorage.setItem(LOGS_KEY, JSON.stringify(arr));
+  const loadLog =key=> loadAllLogs().find(l=>l.date===key)||null;
+  const upsertLog =payload=>{
+    const logs=loadAllLogs();
+    const rest=logs.filter(l=>l.date!==payload.date);
+    saveAllLogs([payload, ...rest].sort((a,b)=> (a.date<b.date ? 1 : -1)));
+  };
 
-  // ===== form sync =====
+  /* ==== フォーム同期 ==== */
   function updateSleepLabel(){ $("#sleepTotal").textContent = Math.floor(state.sleepH)+"時間"+(state.sleepM%60)+"分"; }
   function syncFormFromState(){
-    $("#sleepH").value = state.sleepH; $("#sleepM").value = state.sleepM; updateSleepLabel();
-    $("#note").value = state.note;
-    $("#weight").value = state.weight ?? "";
-    $("#bodyFat").value = state.bodyFat ?? "";
+    $("#sleepH").value=state.sleepH; $("#sleepM").value=state.sleepM; updateSleepLabel();
+    $("#note").value=state.note;
+    $("#weight").value=state.weight??""; $("#bodyFat").value=state.bodyFat??"";
   }
   function loadLogToForm(log){
-    if (!log){
+    if(!log){
       state.mood=""; state.energy=""; state.symptoms=[]; state.note="";
       state.sleepH=0; state.sleepM=0; state.weight=null; state.bodyFat=null;
     }else{
       state.mood=log.mood||""; state.energy=log.energy||"";
       state.symptoms=Array.isArray(log.symptoms)? log.symptoms.filter(s=>allSymptoms.includes(s)):[];
       const sm=parseInt(log.sleepMin||0,10); state.sleepH=Math.floor(sm/60); state.sleepM=sm%60;
-      state.weight = (log.weight ?? null); state.bodyFat=(log.bodyFat ?? null);
+      state.weight=(log.weight ?? null); state.bodyFat=(log.bodyFat ?? null);
       state.note=log.note||""; state.weather=log.weather||state.weather;
     }
     renderChips(); syncFormFromState(); renderHistory();
   }
 
-  // ===== auto-save =====
+  /* ==== 自動保存 ==== */
   let saveTimer=null;
   function autoSave(){
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(()=>{
-      const payload = {
+    saveTimer=setTimeout(()=>{
+      const payload={
         date: currentDateKey,
-        mood: state.mood, energy: state.energy, symptoms: state.symptoms,
-        sleepMin: (parseInt(state.sleepH,10)||0)*60 + (parseInt(state.sleepM,10)||0),
-        weight: state.weight, bodyFat: state.bodyFat,
-        note: state.note, weather: state.weather, quickTasks: state.quickTasks, ts: Date.now()
+        mood:state.mood, energy:state.energy, symptoms:state.symptoms,
+        sleepMin:(parseInt(state.sleepH,10)||0)*60 + (parseInt(state.sleepM,10)||0),
+        weight:state.weight, bodyFat:state.bodyFat,
+        note:state.note, weather:state.weather, quickTasks:state.quickTasks, ts:Date.now()
       };
       upsertLog(payload); renderHistory();
-    }, 350);
+    }, 300);
   }
 
-  // ===== history render =====
+  /* ==== 履歴 ==== */
   function renderHistory(){
     const root=$("#history"); const logs=loadAllLogs(); root.innerHTML="";
-    if (!logs.length){ const p=document.createElement("p"); p.className="text muted"; p.textContent="まだ記録がありません"; root.appendChild(p); return; }
+    if(!logs.length){ const p=document.createElement("p"); p.className="text muted"; p.textContent="まだ記録がありません"; root.appendChild(p); return; }
     logs.forEach(l=>{
       const box=document.createElement("div"); box.className="card"; box.style.marginTop="8px";
       const head=document.createElement("div"); head.className="text"; head.innerHTML=`<span class="muted">${l.date}</span>`;
@@ -397,23 +413,22 @@ body,.container,.card,.text,.row,h1,h2,h3,p,li,label,input,button{
       const memo=document.createElement("div"); memo.className="text"; if(l.note){ memo.textContent="メモ："+l.note; }
       const actions=document.createElement("div"); actions.className="row"; actions.style.marginTop="8px";
       const editBtn=document.createElement("button"); editBtn.className="btn small"; editBtn.textContent="編集";
-      editBtn.onclick=()=>{ currentDateKey=l.date; currentDate = new Date(l.date); renderHeaderDate(currentDate); $("#editBadge").style.display="inline-block"; loadLogToForm(l); window.scrollTo({top:0,behavior:"smooth"}); };
+      editBtn.onclick=()=>{ currentDateKey=l.date; renderHeaderDate(new Date(l.date)); $("#editBadge").style.display="inline-block"; loadLogToForm(l); window.scrollTo({top:0,behavior:"smooth"}); };
       const delBtn=document.createElement("button"); delBtn.className="btn small"; delBtn.textContent="削除";
       delBtn.onclick=()=>{ if(!confirm(`${l.date} の記録を削除しますか？`))return; const rest=loadAllLogs().filter(x=>x.date!==l.date); saveAllLogs(rest); renderHistory(); };
       actions.appendChild(editBtn); actions.appendChild(delBtn);
-      box.appendChild(head); box.appendChild(row); if(memo.textContent)box.appendChild(memo); box.appendChild(actions);
+      box.appendChild(head); box.appendChild(row); if(memo.textContent) box.appendChild(memo); box.appendChild(actions);
       root.appendChild(box);
     });
   }
   $("#reloadHistory").addEventListener("click", renderHistory);
 
-  // ===== buttons & helpers =====
+  /* ==== ボタン ==== */
   $("#saveLog").addEventListener("click", ()=>{ autoSave(); alert(`${currentDateKey} の記録を保存しました`); });
-
   $("#exportCSV").addEventListener("click", ()=>{
     const logs=loadAllLogs(); if(!logs.length){ alert("データがありません"); return; }
     const header=["date","mood","energy","sleepMin","weight","bodyFat","note"].join(",");
-    const rows=logs.map(l=>[l.date,l.mood||"",l.energy||"",l.sleepMin||0,l.weight??"",l.bodyFat??"", (l.note||"").replace(/,/g," ")] .join(","));
+    const rows=logs.map(l=>[l.date,l.mood||"",l.energy||"",l.sleepMin||0,l.weight??"",l.bodyFat??"", (l.note||"").replace(/,/g," ")].join(","));
     const csv=[header,...rows].join("\n");
     const blob=new Blob([csv],{type:"text/csv"}); const url=URL.createObjectURL(blob);
     const a=document.createElement("a"); a.href=url; a.download="morningdash.csv"; a.click(); URL.revokeObjectURL(url);
@@ -433,40 +448,38 @@ body,.container,.card,.text,.row,h1,h2,h3,p,li,label,input,button{
     try{ await navigator.clipboard.writeText(template); alert("ショートカット用URLをコピーしました"); }catch(e){ alert(template); }
   });
 
-  // ===== URL params ingest (sleepMin/weight/bodyFat ほか) =====
+  /* ==== URL パラメータ取り込み ==== */
   const url = new URL(window.location.href);
   const qp = k => url.searchParams.get(k);
-  function parseNumMaybe(v){ if(v==null) return null; const n=parseFloat(String(v)); return isNaN(n)?null:n; }
-  const payload = {};
-  if (qp("sleepMin")!=null) payload.sleepMin = parseInt(qp("sleepMin"),10)||0;
-  if (qp("mood")) payload.mood = qp("mood");
-  if (qp("energy")) payload.energy = qp("energy");
-  if (qp("symptoms")) payload.symptoms = qp("symptoms").split(",").filter(Boolean);
-  if (qp("note")) payload.note = qp("note");
-  const wnum=parseNumMaybe(qp("weight")); if(wnum!=null) payload.weight = wnum;
-  const bnum=parseNumMaybe(qp("bodyFat")); if(bnum!=null) payload.bodyFat = bnum;
+  const numMaybe = v => (v==null? null : (isNaN(parseFloat(v))? null : parseFloat(v)));
+  const payload={};
+  if(qp("sleepMin")!=null) payload.sleepMin = parseInt(qp("sleepMin"),10)||0;
+  if(qp("mood")) payload.mood = qp("mood");
+  if(qp("energy")) payload.energy = qp("energy");
+  if(qp("symptoms")) payload.symptoms = qp("symptoms").split(",").filter(Boolean);
+  if(qp("note")) payload.note = qp("note");
+  const w = numMaybe(qp("weight")); if(w!=null) payload.weight = w;
+  const b = numMaybe(qp("bodyFat")); if(b!=null) payload.bodyFat = b;
 
-  // ===== initial load =====
+  /* ==== 初期描画 ==== */
   function initial(){
     renderHistory();
-    // 既存ログを読み込み
-    const saved=loadLog(todayKey);
-    if (saved) loadLogToForm(saved); else loadLogToForm(null);
+    const saved = loadLog(todayKey);
+    if(saved) loadLogToForm(saved); else loadLogToForm(null);
 
-    // QP override
     let changed=false;
-    if (payload.sleepMin!=null){ state.sleepH=Math.floor(payload.sleepMin/60); state.sleepM=payload.sleepMin%60; changed=true; }
-    if (payload.mood){ state.mood=payload.mood; changed=true; }
-    if (payload.energy){ state.energy=payload.energy; changed=true; }
-    if (payload.symptoms){ state.symptoms=payload.symptoms; changed=true; }
-    if (payload.note){ state.note=payload.note; changed=true; }
-    if (payload.weight!=null){ state.weight=payload.weight; changed=true; }
-    if (payload.bodyFat!=null){ state.bodyFat=payload.bodyFat; changed=true; }
-    if (changed){ renderChips(); syncFormFromState(); autoSave(); }
+    if(payload.sleepMin!=null){ state.sleepH=Math.floor(payload.sleepMin/60); state.sleepM=payload.sleepMin%60; changed=true; }
+    if(payload.mood){ state.mood=payload.mood; changed=true; }
+    if(payload.energy){ state.energy=payload.energy; changed=true; }
+    if(payload.symptoms){ state.symptoms=payload.symptoms; changed=true; }
+    if(payload.note){ state.note=payload.note; changed=true; }
+    if(payload.weight!=null){ state.weight=payload.weight; changed=true; }
+    if(payload.bodyFat!=null){ state.bodyFat=payload.bodyFat; changed=true; }
+    if(changed){ renderChips(); syncFormFromState(); autoSave(); }
   }
   initial();
 
-  // form handlers
+  /* 入力イベント */
   $("#sleepH").addEventListener("input", ()=>{ state.sleepH=parseInt($("#sleepH").value||0,10); updateSleepLabel(); autoSave(); });
   $("#sleepM").addEventListener("input", ()=>{ state.sleepM=parseInt($("#sleepM").value||0,10); updateSleepLabel(); autoSave(); });
   $("#note").addEventListener("input", ()=>{ state.note=$("#note").value; autoSave(); });
