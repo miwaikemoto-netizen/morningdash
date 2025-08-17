@@ -1,9 +1,80 @@
-/* === v16g: セクション見出しは左寄せ / 中身はセンタリング ================= */
+/* ===== MorningDash v16h consolidated patch =====
+   - Keep hero layout (big date lower) and ghost brand size
+   - Center content of each card, keep section titles left
+   - Compact inputs (sleep/health)
+   - Hide mini calendar card (when it has id="miniCalCard")
+   ---------------------------------------------------------- */
 
-/* すべてのカードの見出しは左寄せ */
+/* ---- rhythm / spacing ---- */
+:root{
+  --md-card-gap: 12px;
+  --md-line-tight: 1.14;
+}
+body, .container, .card, .row, .text, h1, h2, h3, p, li, label, input, button{
+  line-height: var(--md-line-tight);
+}
+.card{ margin-bottom: var(--md-card-gap); padding: clamp(12px, 3.0vw, 18px); }
+.card .row{ gap:10px; }
+
+/* ---- HERO (top area) ------------------------------------ */
+.header, .titlebar{ align-items:flex-start; }
+
+/* 2カラムヒーロー */
+.md-hero{
+  position:relative;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom: clamp(10px, 2.2vh, 18px);
+}
+
+/* 大きい「月/日」ブロック */
+.date-big, .bigMD{
+  font-weight:800;
+  font-size: clamp(44px, 11vw, 92px);
+  letter-spacing:.01em;
+  /* ← ここで下げ具合を固定（24pxと32pxの中間） */
+  margin-top: 28px !important;
+}
+
+/* 西暦を上に */
+.md-hero .year{
+  position:absolute;
+  left:0;
+  top:-0.2em;
+  font-size: clamp(16px, 3.5vw, 26px);
+  font-weight:700;
+  letter-spacing:.02em;
+  color:#222;
+}
+
+/* 右側：曜日＋時刻（ややタイト） */
+.dateWrap{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:4px;
+}
+.wday{ font-size: clamp(16px, 4.5vw, 24px); font-weight:800; }
+.clock{ font-size: clamp(16px, 4.3vw, 22px); font-style:italic; font-weight:800; letter-spacing:.02em; }
+
+/* ゴースト見出し（MorningDash） */
+.brandGhost{
+  margin-left:auto;
+  text-align:right;
+  font-family: system-ui, -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  font-weight:800;
+  letter-spacing:.015em;
+  opacity:.33;
+  font-size: clamp(26px, 6.3vw, 48px);
+  line-height:1;
+  transform: scale(.42);
+  transform-origin:right top;
+}
+
+/* ---- タイトル左寄せ / 中身センター ----------------------- */
 .card > h2{ text-align:left; margin-bottom:10px; }
-
-/* 見出し直後に来るブロック群を中央寄せ（ボタン行・内容など） */
 .card > h2 + .row,
 .card > h2 + div,
 .card .content,
@@ -15,39 +86,30 @@
   text-align:center;
 }
 
-/* === 睡眠欄・ヘルス欄：入力幅を小さくして1行に収まりやすく ================ */
+/* 天気タイトルの右端に再取得ボタンを収める */
+.weatherTitle{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.weatherTitle .btn, .weatherTitle .pill{ margin-left:auto; }
 
-/* 睡眠（時間/分）のブロックも中央寄せに */
-#sleepFields{ display:flex; align-items:center; justify-content:center; gap:10px; }
-
-/* 数値入力の標準高さを合わせる（睡眠とヘルスで同じ見た目） */
+/* ---- 入力欄をコンパクトに（睡眠/ヘルス共通化） ---------- */
 .input.number{ padding:10px 12px; height:44px; }
+#sleepFields{ display:flex; align-items:center; justify-content:center; gap:10px; }
+#sleepH, #sleepM{ width:6ch; }
 
-/* 各入力の幅をコンパクト化 */
-#sleepH, #sleepM{ width:6ch; }   /* 00..23 / 00..59 */
-#weight{ width:7ch; }            /* 66.2 等 */
-#bodyFat{ width:5.5ch; }         /* 33.4 等 */
-
-/* ヘルス行：中央寄せ＋折返し最小限 */
 #healthLine{
   display:flex;
   align-items:center;
   justify-content:center;
   gap:10px;
-  flex-wrap:wrap;                /* 画面が狭い時だけ折り返し */
+  flex-wrap:wrap;   /* 画面が狭いときだけ折り返し */
 }
+#weight{ width:7ch; }
+#bodyFat{ width:5.5ch; }
+#healthLine span, #healthLine small, #healthLine label{ white-space:nowrap; }
 
-/* 単位やラベルを改行させない（kg / 体脂肪 / % など） */
-#healthLine span,
-#healthLine small,
-#healthLine label{
-  white-space: nowrap;
-}
-
-/* === 余白（カード間 & カード内）少し詰める ================================== */
-:root{
-  --md-card-gap: 12px;
-  --md-line-tight: 1.14;
-}
-.card{ margin-bottom: var(--md-card-gap); padding: clamp(12px, 3.0vw, 18px); }
-.card .row{ gap:10px; }
+/* ---- ミニカレンダーを隠す（idを付ける前提。下に手順） --- */
+#miniCalCard{ display:none !important; }
