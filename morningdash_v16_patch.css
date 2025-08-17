@@ -1,13 +1,8 @@
-/* MorningDash v16 layout+spacing patch
-   - Move Year above the big date (left)
-   - Tighten weekday/time lines
-   - Make MorningDash cleaner (lighter, narrower tracking) on the right
-   - Shrink section titles a bit
-   - Keep '再取得' on the same line (weather)
-   - Make inputs (sleep/health) compact to avoid line breaks
-   - Reduce vertical gaps between cards
-   Non-destructive: CSS only. Safe to add via:
-   <link rel="stylesheet" href="./morningdash_v16_patch.css?v=1">
+/* MorningDash v16c patch (cache-bust + stronger selectors)
+   - Right-top brand (既存 h1 を右上へ移動・半透明)
+   - コンデンス系の標準フォント優先（Impact 風）
+   - 年を大日付の上に余白確保（DOMを触らず安全に）
+   - 入力欄コンパクト化 / 余白圧縮 / 見出し小さめ
 */
 
 :root{
@@ -18,106 +13,63 @@
   --md-card-gap: 16px;
 }
 
-/* Global rhythm */
-body, .container, .card, .text, .row, h1, h2, h3, p, li, label, input, button{
-  line-height: var(--md-line-tight);
+/* 全体の行間を少し詰める */
+html body, .container, .card, .text, .row, h1, h2, h3, p, li, label, input, button{
+  line-height: var(--md-line-tight) !important;
 }
-.card{ margin-bottom: var(--md-card-gap); }
-.container{ padding-bottom: 64px; } /* room for bottom buttons if added later */
+.card{ margin-bottom: var(--md-card-gap) !important; }
 
-/* ===== Header (hero) ===== */
-.header, .titlebar { align-items: flex-start; }
+/* ===== ヘッダー配置 ===== */
+.titlebar{ position: relative !important; }
 
-.md-hero{
-  position: relative;
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap: var(--md-hero-gap);
-  margin-bottom: clamp(8px, 1.8vh, 16px);
-}
+/* 左：大きな月日。上に年のスペースを少し空ける */
+.date-big{ margin-top: 8px !important; } /* 年を上に置く余白の確保用 */
+.date-big b{ font-weight: 800 !important; }
 
-/* Left: big Month/Day block */
-.bigMD,.date-big{ font-weight:800; font-size: clamp(44px, 11vw, 92px); letter-spacing: .01em; }
-.bigMD b,.date-big b{ font-weight: inherit; }
-.bigMD .slash{ padding: 0 .12em; }
-
-/* Put YEAR above the big date (absolute so we don't need to move HTML) */
-.md-hero .year{
-  position:absolute;
-  left:0;
-  top: -0.2em; /* pull a bit above */
-  font-size: clamp(16px, 3.5vw, 26px);
-  font-weight:700;
-  letter-spacing: .02em;
-  color:#222;
-}
-
-/* Right: weekday + time stack, tighter spacing */
-.dateWrap{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-  gap: 4px;
-  margin-top: 10px; /* leave room for the absolute year */
-}
-.wday{ font-size: clamp(16px, 4.5vw, 24px); font-weight: 800; }
-.clock{ font-size: clamp(16px, 4.3vw, 22px); font-style: italic; font-weight: 800; letter-spacing: .02em; }
-
-/* Ghost brand on the top-right */
-.brandGhost{
-  margin-left: auto;
-  text-align: right;
-  font-family: "Inter","SF Pro Display","Helvetica Neue",Arial,sans-serif;
-  font-weight: 800;
-  letter-spacing: .015em;
-  opacity: var(--md-brand-opacity);
-  font-size: clamp(24px, 6.5vw, 48px);
-  line-height: 1;
-  transform: scale(var(--md-brand-scale));
-  transform-origin: right top;
+/* 右上：ブランドを“薄く・凝縮フォント”で */
+.titlebar > h1{
+  position: absolute !important;
+  right: 12px !important;
+  top: 6px !important;
+  margin: 0 !important;
+  opacity: var(--md-brand-opacity) !important;
+  transform: scale(var(--md-brand-scale)) !important;
+  transform-origin: right top !important;
+  text-align: right !important;
+  /* Safari で Impact 風に見える候補を優先 */
+  font-family:
+    "HelveticaNeue-CondensedBlack",
+    "Helvetica Neue Condensed Bold",
+    "Apple SD Gothic Neo",
+    "Arial Black",
+    "SF Pro Display",
+    "Helvetica Neue",
+    Arial, sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: .01em !important;
+  line-height: 1 !important;
 }
 
-/* Buttons row below header: make it denser */
-.header .row.buttons,
-.btns,
-.btns .row{
-  gap: 10px;
-}
-.btns .btn,
-.btns .pill{
-  padding: 10px 14px;
-}
+/* 右カラム：曜日と時刻の縦詰め */
+.dateWrap{ gap: 4px !important; margin-top: 10px !important; }
+.wday{ font-size: clamp(16px, 4.5vw, 24px) !important; font-weight: 800 !important; }
+.clock{ font-size: clamp(16px, 4.3vw, 22px) !important; font-style: italic !important; font-weight: 800 !important; }
 
-/* Section titles a touch smaller */
-.card > h2,
-h2.section-title{
-  font-size: clamp(18px, 4.5vw, 22px);
-}
+/* 見出しを少し小さく */
+.card > h2, h2.section-title{ font-size: clamp(18px, 4.5vw, 22px) !important; }
 
-/* Weather: keep refresh on the same line, right aligned */
-.weatherTitle{
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  gap: 8px;
-}
-.weatherTitle .btn, .weatherTitle .pill{ margin: 0 0 0 auto; }
+/* 天気：再取得ボタンを同一行右寄せ */
+.weatherTitle{ display:flex !important; align-items:center !important; justify-content: space-between !important; gap: 8px !important; }
+.weatherTitle .btn, .weatherTitle .pill{ margin-left: auto !important; }
 
-/* Inputs — compact widths so they don't wrap */
-#sleepH, #sleepM{ width: 6ch; }           /* 00..23 / 00..59 */
-#weight{ width: 7ch; }                     /* 66.2 etc */
-#bodyFat{ width: 5.5ch; }                  /* 33.4 etc */
-.input{ padding: 10px 12px; }              /* slightly denser */
+/* 入力欄コンパクト化（折り返し防止） */
+#sleepH, #sleepM{ width: 6ch !important; }
+#weight{ width: 7ch !important; }
+#bodyFat{ width: 5.5ch !important; }
+.input{ padding: 10px 12px !important; }
 
-/* Keep “kg 体脂肪 %” on one line when space allows */
-.healthRow{
-  display:flex;
-  align-items:center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
+.healthRow{ display:flex !important; align-items:center !important; gap:10px !important; flex-wrap: wrap !important; }
 
-/* Cards: tighten inner paddings/smaller gaps between blocks */
-.card .row{ gap: 10px; }
-.card{ padding: clamp(12px, 3.2vw, 18px); }
+/* カード内の行間も詰める */
+.card .row{ gap: 10px !important; }
+.card{ padding: clamp(12px, 3.2vw, 18px) !important; }
