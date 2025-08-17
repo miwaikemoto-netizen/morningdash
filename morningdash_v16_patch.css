@@ -73,3 +73,23 @@ html body, .container, .card, .text, .row, h1, h2, h3, p, li, label, input, butt
 /* カード内の行間も詰める */
 .card .row{ gap: 10px !important; }
 .card{ padding: clamp(12px, 3.2vw, 18px) !important; }
+/* === v16e micro patch: lower big MM/DD, keep layout solid === */
+:root{
+  /* 少しだけ下げたい & ゴーストロゴもほんのり強めに */
+  --md-hero-shift: 10px;   /* 0 → 10px 相当の微調整 */
+  --md-brand-scale: .46;   /* 右上 MorningDash のスケール微増 */
+  --md-brand-opacity: .36; /* 透明度ほんの少しだけ上げる */
+}
+
+/* ヒーロー全体に上の余白を追加して日付ブロックを下げる */
+.md-hero{ padding-top: var(--md-hero-shift); }
+
+/* 月/日のブロックをさらに 2px だけ下へ（端末差をならすため） */
+.bigMD,
+.date-big{ margin-top: 2px; }
+
+/* 小画面ではもう少しだけ下げる（iPhone 縦想定） */
+@media (max-width: 420px){
+  :root{ --md-hero-shift: 12px; }
+  .bigMD, .date-big{ margin-top: 4px; }
+}
