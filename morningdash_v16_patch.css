@@ -112,3 +112,23 @@ html body, .container, .card, .text, .row, h1, h2, h3, p, li, label, input, butt
 
 /* 右側の曜日・時刻の縦位置も少し下げて揃える（必要なら） */
 .dateWrap{ margin-top: 16px; }   /* 10px → 16px */
+/* ===== v16b tweak position & MorningDash font ===== */
+
+/* 日付の位置: 28px 下げる */
+.date-big,
+.bigMD{
+  transform: translateY(28px);
+}
+
+/* 年の位置微調整 */
+.md-hero .year{
+  top: -0.35em;
+}
+
+/* MorningDash のフォント・サイズ強化 */
+.site-title, .siteName, .md-hero h1{
+  font-family: "Arial Black", "Helvetica Neue", sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem; /* ← 今よりやや大きめ */
+  letter-spacing: 0.5px; /* 少し間隔を開けて読みやすく */
+}
