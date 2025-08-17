@@ -93,3 +93,22 @@ html body, .container, .card, .text, .row, h1, h2, h3, p, li, label, input, butt
   :root{ --md-hero-shift: 12px; }
   .bigMD, .date-big{ margin-top: 4px; }
 }
+/* ===== v16 move MM/DD down visibly ===== */
+/* まずは大きめに 32px 下げる。足りなければ数字だけ増減で微調整 */
+.date-big,
+.bigMD{
+  transform: translateY(32px);
+}
+
+/* 年(2025)は上に寄せておく（相対バランス用） */
+.md-hero .year{
+  top: -0.35em; /* 以前より少し上げる */
+}
+
+/* 上下の余白バランスを合わせる：ヘッダと次カードの間を詰める */
+.md-hero{
+  margin-bottom: clamp(4px, 1.2vh, 10px);
+}
+
+/* 右側の曜日・時刻の縦位置も少し下げて揃える（必要なら） */
+.dateWrap{ margin-top: 16px; }   /* 10px → 16px */
