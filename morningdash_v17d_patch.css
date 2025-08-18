@@ -1,0 +1,36 @@
+/* MorningDash v17d quick-fix
+   - Push hero down so big date doesn't overlap status bar
+   - Keep only left calendar pill; hide any accidental right link
+   - Pull weekday/time closer to the big date (slightly left & down)
+   - Keep mini calendar card hidden
+*/
+
+/* 1) ヒーローの上に余白を追加（上部時刻との重なり回避） */
+.head{
+  padding-top: 28px; /* 必要なら 30〜34 に微調整OK */
+}
+
+/* 大きな月/日の出だし位置（少し下げ気味に） */
+.bigDate{
+  margin-top: 24px; /* 22〜28 の範囲で好み調整可 */
+}
+
+/* 2) もしツールバー右側にカレンダーピルが出たら隠す（左の1個だけ使う） */
+.toolbar .right a{
+  display: none !important;
+}
+
+/* 3) 曜日/時刻をもう少し日付に寄せる（左＆少し下） */
+.sideInfo{
+  margin-top: 14px !important;       /* 12〜18 あたりで微調整 */
+  transform: translate(-10px, 4px);   /* 左へ 8〜12px、下へ 2〜6px くらい */
+  align-items: flex-end;
+}
+
+/* ブランドゴーストの高さも少しだけ下げてバランス取り */
+.brandGhost{
+  top: 16px; /* 14〜18 で微調整可 */
+}
+
+/* 念のため：ミニカレンダーカードは常に非表示 */
+#miniCalCard{ display: none !important; }
