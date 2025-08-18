@@ -1,0 +1,63 @@
+/* ===== MorningDash v17b patch =====
+   - Weekday/Time: さらに 4px 下へ (合計 +44px 相当)
+   - MorningDash を右上に固定（スクロールや高さの影響を受けない）
+   - カレンダーのボタンを左側だけに統一（右側の datePicker を隠す）
+   - 自由メモ の幅をカードいっぱいに
+   - ミニカレンダーの凡例・説明行を非表示（必要なら後でID付け）
+   CSSのみ。HTMLは変更不要（※ ミニカレンダー丸ごと非表示にする場合はID付け推奨）
+*/
+
+/* ヒーロー周り */
+.md-hero{ position:relative; }
+
+/* 月/日の縦位置をもう少し下へ（前回+40px→今回+44px相当） */
+.md-hero .date-big,
+.md-hero .bigMD{
+  margin-top: 44px;   /* ここを ±2〜5px 調整で好みに寄せられます */
+}
+
+/* 右上のブランド（MorningDash）を固定配置に */
+.brandGhost{
+  position:absolute;
+  top: 10px;          /* 画面上端からの固定距離 */
+  right: 16px;
+  margin: 0 !important;
+  line-height: 1;
+  transform-origin: right top;
+  pointer-events: none;
+}
+
+/* 右側のカレンダーボタン（datePicker）を隠す＝左の一つに統一 */
+.toolbar,           /* 既存ツールバーごと隠す（右ボタンがここに居る） */
+#datePicker,
+#datePickerWrap{
+  display: none !important;
+}
+
+/* 自由メモをカード幅いっぱいに（はみ出しや縮みを防ぐ） */
+#freeMemo, .freeMemo, textarea#freeMemoText{
+  display: block;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+textarea#freeMemoText{
+  min-height: 64px;
+}
+
+/* ミニカレンダーの凡例・説明行を目立たなく/消す
+   （クラス名が環境で異なる可能性に備えて “説明らしい行” を幅広く抑える） */
+#miniCalCard .legend,
+#miniCalCard .note,
+.miniCalLegend, .miniCalNote,
+.card:has(> h2:contains("ミニカレンダー")) .legend,
+.card:has(> h2:contains("ミニカレンダー")) .note{
+  display: none !important;
+}
+
+/* Safari 用の :has / :contains 非対応時の逃げ（凡例に使っていそうな small/p を抑える） */
+.card:has(> h2) .legend,
+.card:has(> h2) small.mini,
+.card:has(> h2) p.mini{
+  display: none;
+}
