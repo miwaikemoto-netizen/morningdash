@@ -1,0 +1,32 @@
+/* ===== MorningDash v17c tiny patch =====
+   - カレンダーのリンク2つは表示（横並び・左寄せ）
+   - ミニカレンダー本体だけ非表示
+   - 月/日（大きい日付）を少しだけ上へ戻す
+   - 自由メモの入力欄をカード幅いっぱいに
+   - カード間の余白は少しだけ縮める
+   すべて上書き用。既存HTMLの編集は不要。
+*/
+
+/* 1) ミニカレンダーは隠すが、リンク類は表示 */
+#miniCalCard { display: none !important; }
+
+/* 旧/新どちらのクラス名でも拾えるようにワイドに指定 */
+.controlsTop,
+.toolbar     { display:flex !important; align-items:center; gap:12px; justify-content:flex-start; }
+.controlsTop .pill,
+.toolbar .pill,
+.controlsTop .btn,
+.toolbar .btn { display:inline-flex !important; }
+
+/* 2) 月/日のブロックを少しだけ上に（下がり過ぎの補正） */
+.bigDate, .date-big, .bigMD { margin-top: -10px !important; }  /* もう少し下げたいなら -8 → -6 に */
+
+/* 3) 自由メモをカード幅いっぱいに（input/textareaどちらでも拾う） */
+#freeMemo, #freeNote, #freeText,
+input[placeholder*="自由メモ"], textarea[placeholder*="自由メモ"] {
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* 4) カード間のマージンを少しだけ詰める（重なり防止で控えめに） */
+.card { margin-bottom: 14px !important; }
