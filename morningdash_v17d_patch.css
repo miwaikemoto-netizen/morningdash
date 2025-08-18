@@ -23,7 +23,7 @@
 /* 3) 曜日/時刻をもう少し日付に寄せる（左＆少し下） */
 .sideInfo{
   margin-top: 14px !important;       /* 12〜18 あたりで微調整 */
-  transform: translate(-10px, 4px);   /* 左へ 8〜12px、下へ 2〜6px くらい */
+  transform: translate(-50px, 4px);   /* 左へ 8〜12px、下へ 2〜6px くらい */
   align-items: flex-end;
 }
 
