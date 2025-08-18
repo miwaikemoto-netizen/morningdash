@@ -85,3 +85,23 @@ body::after{ content:"v17d"; position:fixed; top:6px; left:6px;
 .toolbar .left a {
   display: inline-flex !important;
 }
+/* 日付と曜日・時間を横並び */
+.dateRow {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 10px; /* 間隔 */
+}
+
+/* 曜日と時間の文字サイズ調整 */
+.sideInfo {
+  font-size: 0.9em !important;
+  margin: 0 !important;
+  color: #333; /* 好みで */
+}
+
+/* 右上カレンダーを完全非表示 */
+ion-buttons[slot="end"],
+.toolbar .right,
+.toolbar button {
+  display: none !important;
+}
