@@ -61,3 +61,27 @@ body::after{ content:"v17d"; position:fixed; top:6px; left:6px;
   font:600 12px/1 -apple-system,system-ui; color:#999; background:#fff8;
   padding:2px 6px; border-radius:6px; z-index:9999; }
 */
+/* ===== v17f fix ===== */
+
+/* 日付：もうOKなのでそのまま */
+.bigDate {
+  margin-top: 40px !important;
+}
+
+/* 曜日・時間：日付の横あたりに下げて左に寄せる */
+.sideInfo {
+  margin-top: 50px !important;          /* 下げる */
+  margin-left: -40px !important;        /* 左に寄せる */
+  transform: none !important;           /* 上下のズレ解除 */
+  align-items: flex-start !important;   /* 左寄せ */
+}
+
+/* 右カレンダーだけ非表示 */
+.toolbar .right a {
+  display: none !important;
+}
+
+/* 左のカレンダー（そのまま表示させる） */
+.toolbar .left a {
+  display: inline-flex !important;
+}
