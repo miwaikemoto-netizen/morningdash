@@ -113,3 +113,39 @@ body, .container, .card, .row, .text, h1, h2, h3, p, li, label, input, button{
 
 /* ---- ミニカレンダーを隠す（idを付ける前提。下に手順） --- */
 #miniCalCard{ display:none !important; }
+/* === v17b finisher patch =============================== */
+/* 1) 右側の 曜日/時刻 をもう少し下へ（+4px） */
+.md-hero .dateWrap{
+  margin-top: 44px; /* 40→44（2〜5px下げたいとのこと。お好みで42〜45に） */
+}
+
+/* 2) カレンダーのボタンを「左の1個だけ」に統一（右側の重複ボタンを隠す） */
+.titlebar .toolbar{
+  display:flex; gap:10px; justify-content:flex-start; width:100%;
+}
+.titlebar .toolbar .pill:nth-of-type(2){ display:none !important; } /* 右側の重複ボタンを強制非表示 */
+
+/* 3) ミニカレンダーの説明カードを隠す（リンクは残す） */
+#miniCalCard{ display:none !important; }
+
+/* 4) 体調メモカードの縮み＆はみ出し対策（100%幅 & 余白見直し） */
+.memoCard .content, .freeMemo .content{ padding:16px 18px; }
+.memoCard textarea, .freeMemo textarea{
+  width:100% !important;
+  box-sizing:border-box;
+  min-height: 120px;
+}
+
+/* 5) 「睡眠」「ヘルス」の入力欄サイズを揃えて1行に収めやすくする */
+#sleepFields .input.number{ padding:10px 12px; height:auto; }
+#sleepH, #sleepM{ width: 6ch; }
+
+#healthLine{
+  display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center;
+}
+#weight{  width: 7ch; }
+#bodyFat{ width: 5.5ch; }
+
+/* 6) セクション間の縦マージンを少し詰める（全体のリズムをタイトに） */
+.card{ margin-bottom: 14px; }
+/* ======================================================= */
