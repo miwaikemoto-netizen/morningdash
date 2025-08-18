@@ -114,9 +114,6 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
   #healthLine{ row-gap:8px; }
 }
 </style>
-<link rel="stylesheet" href="./morningdash_v17b_patch.css?v=1702">
-<link rel="stylesheet" href="./morningdash_v17b_patch.css?v=171">
-<link rel="stylesheet" href="./morningdash_v17c_patch.css?v=173">
 <link rel="stylesheet" href="./morningdash_v17c_patch.css?v=173">
   
 </head>
@@ -288,9 +285,9 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
   /* ==== chips ==== */
   const moods = [{v:"🙂",label:"良い"},{v:"😐",label:"ふつう"},{v:"🙁",label:"いまいち"}];
   const energies = ["❤️‍🔥元気","❤️まずまず","❤️‍🩹だるい"];
-  const group1 = ["首・肩こり","頭痛","腹痛／お腹の張り","腰の張り／腰痛","胃腸弱め（胃もたれ・下痢・便秘など）","むくみ","目の疲れ／ドライアイ","自律神経の乱れ","睡眠の質低下（浅い眠り・途中覚醒）","生理"];
+  const group1 = ["首・肩こり","頭痛","腹痛／お腹の張り","腰の張り／腰痛","胃腸弱め（胃もたれ・下痢・便秘など）","むくみ","目の疲れ／ドライアイ","自律神経の乱れ","睡眠の質低下（浅い眠り・途中覚醒）"];
   const group2 = ["冷え（手足の冷え・全身）","暑さバテ／熱っぽさ","喉の痛み・声枯れ","鼻水・鼻づまり","肌荒れ／かゆみ","花粉・アレルギー症状"];
-  const group3 = ["集中力低下","イライラ／不安感","だるさ／倦怠感","モチベーション低下","PMS（生理前症状）"];
+  const group3 = ["集中力低下","イライラ／不安感","だるさ／倦怠感","モチベーション低下","PMS（生理前症状）","生理"];
   const allSymptoms = [...group1,...group2,...group3];
 
   function buildChips(root, options, isActive, onClick){
