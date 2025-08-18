@@ -423,7 +423,9 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
       const memo=document.createElement("div"); memo.className="text"; if(l.note){ memo.textContent="メモ："+l.note; }
       const actions=document.createElement("div"); actions.className="row"; actions.style.marginTop="8px";
       const editBtn=document.createElement("button"); editBtn.className="btn small"; editBtn.textContent="編集";
-      editBtn.onclick=()=>{ currentDateKey=l.date; renderHeaderDate(new Date(l.date)); $("#editBadge").style.display="inline-block"; loadLogToForm(l); window.scrollTo({top:0,behavior:"smooth"}); };
+      editBtn.onclick=()=>{ currentDateKey=l.date; renderHeaderDate(new Date(l.date)); // 左の #calLink 以外のリンクを削除（右の重複ピル対策）
+document.querySelectorAll('.toolbar a').forEach(a => { if (a.id !== 'calLink') a.remove(); });
+$("#editBadge").style.display="inline-block"; loadLogToForm(l); window.scrollTo({top:0,behavior:"smooth"}); };
       const delBtn=document.createElement("button"); delBtn.className="btn small"; delBtn.textContent="削除";
       delBtn.onclick=()=>{ if(!confirm(`${l.date} の記録を削除しますか？`))return; const rest=loadAllLogs().filter(x=>x.date!==l.date); saveAllLogs(rest); renderHistory(); };
       actions.appendChild(editBtn); actions.appendChild(delBtn);
