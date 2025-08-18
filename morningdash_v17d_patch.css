@@ -34,3 +34,30 @@
 
 /* 念のため：ミニカレンダーカードは常に非表示 */
 #miniCalCard{ display: none !important; }
+/* ===== v17d finisher ===== */
+
+/* 1) 日付（08/18）を少し下げて、上に寄りすぎないようにする */
+.head{ padding-top: 10px; }                /* 全体の余白を少し増やす（必要なら±2px） */
+.bigDate{ margin-top: 36px !important; }   /* 28px → 36px。もう少し下げたければ 38〜40px */
+
+/* 2) 右側の曜日/時間を “日付に近づける”（左に寄せて少しだけ上へ） */
+.sideInfo{
+  margin-top: 12px !important;             /* 初期の40pxは解除して低めに */
+  transform: translate(-18px, -2px);       /* ←左へ18px／↑上へ2px（調整は -15〜-22px 目安） */
+  align-items: flex-end;                    /* 右揃えは維持（見出しの縦位置が揃いやすい） */
+}
+
+/* 3) 右側にカレンダーの重複ピルが出ちゃう場合の保険（JSで消す前提だがCSSでも隠す） */
+.toolbar .right a[href*="v12_calendar.html"]{ display:none !important; }
+
+/* 4) 自由メモが“ぎゅっ”となるのを防ぐ（横幅フル） */
+#note{ width: 100% !important; }
+
+/* 5) 念のため：ミニカレンダーカードが残っていても強制非表示 */
+#miniCalCard{ display:none !important; }
+
+/* 6) デバッグ用：このCSSが当たっているか一時確認したい時に有効化
+body::after{ content:"v17d"; position:fixed; top:6px; left:6px;
+  font:600 12px/1 -apple-system,system-ui; color:#999; background:#fff8;
+  padding:2px 6px; border-radius:6px; z-index:9999; }
+*/
