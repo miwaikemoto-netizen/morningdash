@@ -1,0 +1,29 @@
+/* v17c header tune: date lower + weekday/time closer & left-aligned */
+:root{
+  --md-hero-gap: 8px;            /* 左右の列のすき間をさらに詰める */
+}
+
+.md-hero{
+  align-items: flex-end;         /* 左右で下端を揃える */
+  gap: var(--md-hero-gap);
+}
+
+/* 大きい月/日を少し下げる（前回より上がってしまった分を戻す） */
+.bigMD, .date-big{
+  margin-top: 10px;              /* 好みによって 8〜14px で微調整OK */
+}
+
+/* 右列：曜日＋時間スタックを左寄せ＆日付に寄せる */
+.dateWrap{
+  align-items: flex-start;       /* 右列内を左寄せに */
+  row-gap: 2px;                  /* 行間をタイトに */
+  margin-top: 6px;               /* 全体を少し下げる（好みで 4〜10px） */
+  transform: translateX(-6px);   /* 右列の塊を左へ寄せる → 日付と距離を縮める
+                                    （-4〜-10px で微調整OK） */
+}
+
+.wday{ letter-spacing: .01em; }
+.clock{ letter-spacing: .01em; }
+
+/* MorningDash ゴーストタイトルが下がって見える場合の保険 */
+.brandGhost{ transform: translateY(-2px) scale(var(--md-brand-scale)); }
