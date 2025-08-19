@@ -105,3 +105,16 @@ ion-buttons[slot="end"],
 .toolbar button {
   display: none !important;
 }
+/* ===== v17 fixes (weekday/clock next to date) ===== */
+.md-hero{ align-items:flex-end; }         /* ベースラインを下に */
+.bigDate{ margin-top:28px; }              /* 日付は据え置き */
+.sideInfo{
+  margin-top:28px !important;            /* 日付の開始ラインに揃える */
+  align-items:flex-start;                 /* 左寄せ */
+  transform:translateX(8px);              /* 少しだけ右へ寄せる（0〜12pxで微調整可） */
+  gap:2px;
+}
+/* 右のカレンダーリンク保険で隠す（左の #calLink は残す） */
+.toolbar a:not(#calLink){ display:none !important; }
+/* 自由メモの横幅固定 */
+#note{ width:100% !important; min-width:100% !important; display:block; }
