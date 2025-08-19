@@ -267,7 +267,8 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
   const datePicker = $("#datePicker");
   datePicker.value = toInputDate(today);
   renderHeaderDate(today);
-  $("#editBadge").style.display = "none";
+  document.querySelectorAll('.toolbar a').forEach(a => { if (a.id !== 'calLink') a.remove(); });
+$("#editBadge").style.display = "none";
 
   datePicker.addEventListener("change", ()=>{
     const d = fromInputDate(datePicker.value);
