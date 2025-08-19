@@ -22,7 +22,7 @@
   --brand-scale:.58;
   --brand-opacity:.50;  /* 50% gray */
 }
-html,body{height:100%; background:linear-gradient(var(--bg1),var(--bg2)); color:var(--fg);}
+html,body{height:100%; background:linear-gradient(var(--bg1),var(--bg2)); color:#0f172a;}
 body{margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
 *,*::before,*::after{box-sizing:border-box}
 p,li,label,button,input,textarea,h1,h2,h3,.row,.card,.container{ line-height:var(--line-tight); }
@@ -69,8 +69,7 @@ h1{font-size:28px; margin:0}
 .brandGhost{
   position:absolute; right:14px; top:12px; opacity:var(--brand-opacity);
   transform:scale(var(--brand-scale)); transform-origin:top right; font-weight:800;
-  font-size:48px; letter-spacing:.01em; color:#0f172a;
-  mix-blend-mode:normal;
+  font-size:48px; letter-spacing:.01em; color:#0f172a; mix-blend-mode:normal;
 }
 .md-hero{
   position:relative; display:flex; justify-content:space-between; align-items:flex-start; gap:var(--hero-gap);
@@ -118,7 +117,7 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
 /* textarea (自由メモ) 安定表示 */
 #note{ min-height:112px; resize:vertical; width:100%; }
 
-/* mini calendar card (残っても隠す用の保険) */
+/* mini calendar card（保険で非表示） */
 #miniCalCard{ display:none !important; }
 
 /* モバイル微調整 */
@@ -128,7 +127,6 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
   #saveLogBtn{ align-self:flex-start; }
 }
 </style>
-<link rel="stylesheet" href="morningdash_v18.css">
 </head>
 
 <body>
@@ -162,7 +160,8 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
     <div class="toolbar">
       <div class="left">
         <a id="calLink" class="dateLink" href="#"><span class="icon">📅</span><span id="calText">カレンダー</span></a>
-        <a href="./Eveningdash.html" class="btn">🌙 夜の記録へ</a>
+        <!-- ★ 夜ページへ（ファイル名に合わせて修正） -->
+        <a href="./Evening.html" class="btn">🌙 夜の記録へ</a>
       </div>
       <div class="right">
         <input id="datePicker" type="date" class="input" style="padding:8px 10px">
@@ -254,7 +253,6 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
 <script>
 (function(){
   const $ = s => document.querySelector(s);
-  const $$ = s => Array.from(document.querySelectorAll(s));
 
   /* ==== 日付/時刻 ==== */
   const tz = "Asia/Tokyo";
@@ -271,6 +269,7 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
     $("#mdW").textContent = wdJP[d.getDay()];
     const link = `./Calendar.html?date=${toInputDate(d)}`;
     $("#calLink").href = link;
+    // 表示は固定で「カレンダー」
     $("#calText").textContent = "カレンダー";
   }
   function tickClock(){
@@ -353,9 +352,10 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
     if(state.weather.humidity!=null) lines.push("湿度："+Math.round(state.weather.humidity)+"%");
     small.innerHTML=lines.join("　");
     const wrap=document.createElement("div"); wrap.className="row"; wrap.style.alignItems="center";
-    wrap.appendChild(icon); wrap.appendChild(big); wrap.appendChild(small);
+    wrap.appendChild(icon); wrap.appendChild(big); appendChildSafe(wrap, small);
     wxBlock.appendChild(wrap);
   }
+  function appendChildSafe(parent, node){ try{ parent.appendChild(node); }catch(e){} }
   function fetchWeatherFromGeo(lat, lon){
     wxLoading.style.display="inline"; wxError.textContent="";
     const u=new URL("https://api.open-meteo.com/v1/forecast");
@@ -418,10 +418,7 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
 
   /* ==== 自動保存 & 保存ボタン ==== */
   let saveTimer=null;
-  function autoSave(){
-    clearTimeout(saveTimer);
-    saveTimer=setTimeout(saveNow, 300);
-  }
+  function autoSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(saveNow, 300); }
   function saveNow(){
     const payload={
       date: currentDateKey,
@@ -451,8 +448,6 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
       const actions=document.createElement("div"); actions.className="row"; actions.style.marginTop="8px";
       const editBtn=document.createElement("button"); editBtn.className="btn small"; editBtn.textContent="編集";
       editBtn.onclick=()=>{ currentDateKey=l.date; renderHeaderDate(new Date(l.date));
-        // 念のため右側の重複リンクは消す（保険）
-        document.querySelectorAll('.toolbar a').forEach(a => { if (a.id !== 'calLink') a.remove(); });
         $("#editBadge").style.display="inline-block"; loadLogToForm(l); window.scrollTo({top:0,behavior:"smooth"}); };
       const delBtn=document.createElement("button"); delBtn.className="btn small"; delBtn.textContent="削除";
       delBtn.onclick=()=>{ if(!confirm(`${l.date} の記録を削除しますか？`))return; const rest=loadAllLogs().filter(x=>x.date!==l.date); saveAllLogs(rest); renderHistory(); };
