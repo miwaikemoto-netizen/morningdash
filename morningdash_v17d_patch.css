@@ -1,101 +1,63 @@
-/* ===== v17 FINAL — Safari一発Fix（ヒーロー行/カレンダー/メモ/保存） ===== */
+/* =========================
+   MorningDash v17 まとめパッチ
+   （このファイル1枚で完結）
+   ========================= */
 
-/* 右に出てしまうカレンダーピルは常に隠す（左だけ使う） */
-.toolbar .right .dateLink,
-.toolbar a:not(#calLink):not([href=""]) { display:none !important; }
+/* --- HERO（年月日/曜日/時刻）レイアウト --- */
+.head{ position:relative; }                      /* スタックコンテキストを作る */
 
-/* 自由メモの縮み防止 */
-#note{ width:100% !important; min-height:112px; display:block; }
-
-/* ゴーストロゴは背面に */
-.brandGhost{ z-index:0; pointer-events:none; }
-
-/* --- ヒーロー行（08/19／曜日・時間／保存） --- */
 .md-hero{
-  display:flex !important;
-  align-items:flex-end;      /* 底を揃えて見出しのライン感を出す */
-  gap:12px;
-  flex-wrap:nowrap;
-}
-.bigDate{ margin-top:12px !important; }
-
-/* 右側のコンテナ（曜日・時間 + 保存）を横並びにする */
-.rightCol{
-  flex:1 1 auto;
-  min-width:0;               /* Safariの折り返し対策 */
-  display:flex !important;
-  flex-direction:row !important;
-  align-items:flex-end !important;
-  gap:12px;
-  margin:0 !important;
+  position:relative; z-index:1;                  /* 前景 */
+  display:flex; justify-content:space-between;
+  align-items:flex-start; gap:12px;
 }
 
-/* 曜日・時間は“日付のすぐ右”に左寄せで */
+.bigDate{
+  display:flex; align-items:flex-end; gap:4px;
+  margin-top:28px;
+}
+
+/* 右側の「曜日・時間」を日付のそばに */
 .sideInfo{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-  align-items:flex-start !important;
-  margin:0 0 6px 4px !important;  /* 日付との距離 */
-  transform:none !important;
+  display:flex; flex-direction:column; gap:4px;
+  align-items:flex-start;                        /* 左寄せ */
+  margin-top:6px !important;                     /* 日付に寄せる */
+  text-align:left;
 }
-.sideInfo .wday{ font-size:clamp(16px,4.5vw,22px); font-weight:800; line-height:1; }
-.sideInfo .clock{ font-size:clamp(16px,4.3vw,20px); font-style:italic; font-weight:800; }
+.sideInfo .wday{ font-weight:800; }
+.sideInfo .clock{ font-weight:800; font-style:italic; }
 
-/* 保存ボタンは行の右端へ（絶対配置は使わない） */
-.saveWrap{ margin-left:auto !important; }
-#saveLog{
-  position:static !important;
-  top:auto !important; right:auto !important; transform:none !important;
-  margin:0 !important;
-  white-space:nowrap;
-  border-radius:20px;
-}
-
-/* 小さめ画面の微調整（iPhone縦） */
-@media (max-width:420px){
-  .md-hero{ gap:10px; }
-  .rightCol{ gap:10px; }
-  .sideInfo{ margin-bottom:4px !important; }
-}
-/* ゴーストロゴをもっと奥＆少し上に。重なり感を弱める */
+/* 背景の “MorningDash” ゴースト見えない問題の決定版 */
 .brandGhost{
-  position:absolute;
-  top:-4px;                 /* ほんの少し上へ */
-  right:12px;
-  opacity:.26 !important;   /* 透過をやや薄く */
-  z-index:-1 !important;    /* 文字の“背面”に固定 */
+  position:absolute; right:12px; top:10px;
+  transform-origin:top right; font-weight:800;
+  font-size:48px; letter-spacing:.01em;
+  opacity:.5 !important;                         /* 50%透過 */
+  color:#808080 !important;                      /* 50%グレー */
+  z-index:0 !important;                          /* もう負のz-indexは使わない */
   pointer-events:none;
 }
-/* ツールバー内のアンカーは基本非表示 → 左の #calLink だけ表示 */
-.toolbar a{ display:none !important; }
-.toolbar a#calLink{ display:inline-flex !important; }
 
-/* 念押し：右側列にもしアンカーがあれば消す */
-.toolbar .right a{ display:none !important; }
-/* ---- 右側のカレンダー pill を確実に消す（JSの保険） ---- */
-.toolbar .right,
-.toolbar .right * {
-  display: none !important;
+/* --- ツールバー：右側のカレンダーを完全に隠す。左だけ残す --- */
+.toolbar{ display:flex; justify-content:space-between; gap:12px; margin:6px 2px 10px; }
+.toolbar .right{ display:none !important; }
+.toolbar a:not(#calLink){ display:none !important; } /* 念押し */
+
+/* --- 「自由メモ」縮み対策：常にカード幅いっぱいで表示 --- */
+#note{
+  display:block; width:100%; box-sizing:border-box;
+  min-height:48px;                               /* 1行に潰れない */
 }
 
-/* ---- 「MorningDash」ゴースト見やすく（透け過ぎ対策） ---- */
-.brandGhost{
-  opacity: .35 !important;
-  pointer-events: none;
-}
+/* --- ヘルス行の折返し最適化（そのまま踏襲） --- */
+#healthLine{ display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
+#healthLine span{ white-space:nowrap; }
 
-/* iPhone幅で曜日・時刻の行のズレを抑える微調整 */
-@media (max-width: 420px){
-  .md-hero{ align-items: flex-start; }
-  .sideInfo{ margin-top: 6px !important; align-items: flex-start; }
-}
-/* Morning Dash タイトルを強制表示 */
-header h1, .app-title {
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  color: #808080 !important;   /* 50%グレー */
-  font-size: 20px !important;
-  font-weight: bold;
+/* --- ミニカレンダーカードは常に非表示 --- */
+#miniCalCard{ display:none !important; }
+
+/* --- スマホ向け微調整 --- */
+@media (max-width:420px){
+  #healthLine{ row-gap:8px; }
+  .sideInfo{ margin-top:0 !important; }          /* さらに寄せる */
 }
