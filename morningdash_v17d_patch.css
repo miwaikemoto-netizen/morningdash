@@ -129,3 +129,23 @@ ion-buttons[slot="end"],
 @media (max-width:420px){
   .sideInfo{ transform:translateY(10px); } /* iPhoneでやや下げる */
 }
+/* ===== v17e quick patch ===== */
+
+/* ① 日付の“すぐ横”に曜日/時間を寄せる */
+.md-hero{ justify-content: flex-start !important; }
+.sideInfo{
+  align-items: flex-start !important;
+  margin-top: 10px !important;    /* 縦位置を少し下げる */
+  margin-left: 14px !important;   /* 日付からの横オフセット */
+}
+.sideInfo .wday{ line-height: 1; }
+.sideInfo .clock{ margin-top: 2px; }
+
+/* ② 右側に出てくる“謎のカレンダーピル”を常に隠す */
+.toolbar .right a{ display:none !important; }
+
+/* ④ 自由メモの縮み対策（常にフル幅） */
+#note{ width:100% !important; min-height:120px; display:block; }
+
+/* ボタン見栄え（すでにあるなら不要） */
+.btn.primary{ background:var(--accent); border-color:var(--accent); color:#fff; }
