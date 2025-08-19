@@ -1,283 +1,60 @@
-/* MorningDash v17d quick-fix
-   - Push hero down so big date doesn't overlap status bar
-   - Keep only left calendar pill; hide any accidental right link
-   - Pull weekday/time closer to the big date (slightly left & down)
-   - Keep mini calendar card hidden
-*/
+/* ===== v17 FINAL — Safari一発Fix（ヒーロー行/カレンダー/メモ/保存） ===== */
 
-/* 1) ヒーローの上に余白を追加（上部時刻との重なり回避） */
-.head{
-  padding-top: 28px; /* 必要なら 30〜34 に微調整OK */
-}
+/* 右に出てしまうカレンダーピルは常に隠す（左だけ使う） */
+.toolbar .right .dateLink,
+.toolbar a:not(#calLink):not([href=""]) { display:none !important; }
 
-/* 大きな月/日の出だし位置（少し下げ気味に） */
-.bigDate{
-  margin-top: 24px; /* 22〜28 の範囲で好み調整可 */
-}
+/* 自由メモの縮み防止 */
+#note{ width:100% !important; min-height:112px; display:block; }
 
-/* 2) もしツールバー右側にカレンダーピルが出たら隠す（左の1個だけ使う） */
-.toolbar .right a{
-  display: none !important;
-}
-
-/* 3) 曜日/時刻をもう少し日付に寄せる（左＆少し下） */
-.sideInfo{
-  margin-top: 14px !important;       /* 12〜18 あたりで微調整 */
-  transform: translate(-50px, 4px);   /* 左へ 8〜12px、下へ 2〜6px くらい */
-  align-items: flex-end;
-}
-
-/* ブランドゴーストの高さも少しだけ下げてバランス取り */
-.brandGhost{
-  top: 16px; /* 14〜18 で微調整可 */
-}
-
-/* 念のため：ミニカレンダーカードは常に非表示 */
-#miniCalCard{ display: none !important; }
-/* ===== v17d finisher ===== */
-
-/* 1) 日付（08/18）を少し下げて、上に寄りすぎないようにする */
-.head{ padding-top: 10px; }                /* 全体の余白を少し増やす（必要なら±2px） */
-.bigDate{ margin-top: 36px !important; }   /* 28px → 36px。もう少し下げたければ 38〜40px */
-
-/* 2) 右側の曜日/時間を “日付に近づける”（左に寄せて少しだけ上へ） */
-.sideInfo{
-  margin-top: 12px !important;             /* 初期の40pxは解除して低めに */
-  transform: translate(-18px, -2px);       /* ←左へ18px／↑上へ2px（調整は -15〜-22px 目安） */
-  align-items: flex-end;                    /* 右揃えは維持（見出しの縦位置が揃いやすい） */
-}
-
-/* 3) 右側にカレンダーの重複ピルが出ちゃう場合の保険（JSで消す前提だがCSSでも隠す） */
-.toolbar .right a[href*="v12_calendar.html"]{ display:none !important; }
-
-/* 4) 自由メモが“ぎゅっ”となるのを防ぐ（横幅フル） */
-#note{ width: 100% !important; }
-
-/* 5) 念のため：ミニカレンダーカードが残っていても強制非表示 */
-#miniCalCard{ display:none !important; }
-
-/* 6) デバッグ用：このCSSが当たっているか一時確認したい時に有効化
-body::after{ content:"v17d"; position:fixed; top:6px; left:6px;
-  font:600 12px/1 -apple-system,system-ui; color:#999; background:#fff8;
-  padding:2px 6px; border-radius:6px; z-index:9999; }
-*/
-/* ===== v17f fix ===== */
-
-/* 日付：もうOKなのでそのまま */
-.bigDate {
-  margin-top: 40px !important;
-}
-
-/* 曜日・時間：日付の横あたりに下げて左に寄せる */
-.sideInfo {
-  margin-top: 50px !important;          /* 下げる */
-  margin-left: -40px !important;        /* 左に寄せる */
-  transform: none !important;           /* 上下のズレ解除 */
-  align-items: flex-start !important;   /* 左寄せ */
-}
-
-/* 右カレンダーだけ非表示 */
-.toolbar .right a {
-  display: none !important;
-}
-
-/* 左のカレンダー（そのまま表示させる） */
-.toolbar .left a {
-  display: inline-flex !important;
-}
-/* 日付と曜日・時間を横並び */
-.dateRow {
-  display: flex !important;
-  align-items: baseline !important;
-  gap: 10px; /* 間隔 */
-}
-
-/* 曜日と時間の文字サイズ調整 */
-.sideInfo {
-  font-size: 0.9em !important;
-  margin: 0 !important;
-  color: #333; /* 好みで */
-}
-
-/* 右上カレンダーを完全非表示 */
-ion-buttons[slot="end"],
-.toolbar .right,
-.toolbar button {
-  display: none !important;
-}
-/* ===== v17 fixes (weekday/clock next to date) ===== */
-.md-hero{ align-items:flex-end; }         /* ベースラインを下に */
-.bigDate{ margin-top:28px; }              /* 日付は据え置き */
-.sideInfo{
-  margin-top:28px !important;            /* 日付の開始ラインに揃える */
-  align-items:flex-start;                 /* 左寄せ */
-  transform:translateX(8px);              /* 少しだけ右へ寄せる（0〜12pxで微調整可） */
-  gap:2px;
-}
-/* 右のカレンダーリンク保険で隠す（左の #calLink は残す） */
-.toolbar a:not(#calLink){ display:none !important; }
-/* 自由メモの横幅固定 */
-#note{ width:100% !important; min-width:100% !important; display:block; }
-/* v17e — 曜日/時間を日付のすぐ横へ */
-.md-hero{ gap:10px; align-items:flex-end; } /* 左右ブロックの隙間とベースライン */
-.sideInfo{
-  margin-top:8px !important;   /* 上からの余白（下げる） */
-  align-items:flex-start;       /* 左寄せ */
-  text-align:left;
-  transform:translateY(6px);    /* さらに少し下げる微調整 */
-}
-@media (max-width:420px){
-  .sideInfo{ transform:translateY(10px); } /* iPhoneでやや下げる */
-}
-/* ===== v17e quick patch ===== */
-
-/* ① 日付の“すぐ横”に曜日/時間を寄せる */
-.md-hero{ justify-content: flex-start !important; }
-.sideInfo{
-  align-items: flex-start !important;
-  margin-top: 10px !important;    /* 縦位置を少し下げる */
-  margin-left: 14px !important;   /* 日付からの横オフセット */
-}
-.sideInfo .wday{ line-height: 1; }
-.sideInfo .clock{ margin-top: 2px; }
-
-/* ② 右側に出てくる“謎のカレンダーピル”を常に隠す */
-.toolbar .right a{ display:none !important; }
-
-/* ④ 自由メモの縮み対策（常にフル幅） */
-#note{ width:100% !important; min-height:120px; display:block; }
-
-/* ボタン見栄え（すでにあるなら不要） */
-.btn.primary{ background:var(--accent); border-color:var(--accent); color:#fff; }
-/* 右側に現れるカレンダー pill を強制で隠す（保険） */
-.toolbar .right a{ display:none !important; }
-/* 自由メモが縮む問題の再発防止 */
-#note{
-  width:100% !important;
-  display:block;
-  min-height: 96px;
-}
-.save-button {
-  display: inline-block;
-  margin-top: 8px;
-  padding: 6px 14px;
-  background-color: #1e90ff;
-  color: white;
-  font-size: 14px;
-  font-weight: bold;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-}
-.save-button:hover {
-  background-color: #0d6efd;
-}
-/* === v17e Safari微調整：曜日/時間を日付のすぐ右へ & 重なり防止 === */
-.md-hero{
-  /* 右端まで広がらないよう、日付列 + 右列の2カラムに */
-  display:grid;
-  grid-template-columns:auto 1fr;
-  column-gap:12px;
-  align-items:end;
-}
-.rightCol{
-  justify-self:start;         /* 右端へ行かず、bigDateのすぐ右に置く */
-  align-items:flex-start;
-  gap:8px;
-  margin-top:0;
-}
-.sideInfo{
-  align-items:flex-start;
-  margin-top:0 !important;    /* Safariの余計な間延びを抑える */
-}
-.saveWrap .btn{ white-space:nowrap; } /* ボタンの折り返し防止 */
-
-/* 重なり順序：ゴーストロゴの下に、日付＆右Colを上に */
+/* ゴーストロゴは背面に */
 .brandGhost{ z-index:0; pointer-events:none; }
-.bigDate, .rightCol, .md-hero .year{ position:relative; z-index:1; }
 
-/* 小さめ画面での文字サイズと余白を微調整 */
-@media (max-width:420px){
-  .md-hero{ column-gap:10px; row-gap:2px; }
-  .sideInfo .wday{ font-size:18px; }
-  .sideInfo .clock{ font-size:16px; }
-}
-/* === v17e-fix: ヒーロー行を1列フレックスに戻す === */
+/* --- ヒーロー行（08/19／曜日・時間／保存） --- */
 .md-hero{
   display:flex !important;
-  align-items:flex-end;
+  align-items:flex-end;      /* 底を揃えて見出しのライン感を出す */
   gap:12px;
+  flex-wrap:nowrap;
 }
-.bigDate{ order:1; margin-top:0 !important; }
+.bigDate{ margin-top:12px !important; }
+
+/* 右側のコンテナ（曜日・時間 + 保存）を横並びにする */
+.rightCol{
+  flex:1 1 auto;
+  min-width:0;               /* Safariの折り返し対策 */
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:flex-end !important;
+  gap:12px;
+  margin:0 !important;
+}
+
+/* 曜日・時間は“日付のすぐ右”に左寄せで */
 .sideInfo{
-  order:2;
-  align-items:flex-start;
-  margin-top:0 !important;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  align-items:flex-start !important;
+  margin:0 0 6px 4px !important;  /* 日付との距離 */
+  transform:none !important;
 }
-.saveWrap{ 
-  order:3;
-  margin-left:auto;           /* 保存ボタンを右端へ */
-}
-.saveWrap .btn{ white-space:nowrap; }
+.sideInfo .wday{ font-size:clamp(16px,4.5vw,22px); font-weight:800; line-height:1; }
+.sideInfo .clock{ font-size:clamp(16px,4.3vw,20px); font-style:italic; font-weight:800; }
 
-/* ゴーストロゴの下に、日付/曜日/時間/保存を重ならないように */
-.brandGhost{ z-index:0; pointer-events:none; }
-.bigDate, .sideInfo, .saveWrap, .md-hero .year{ position:relative; z-index:1; }
-
-/* 小さめ画面の微調整 */
-@media (max-width:420px){
-  .sideInfo .wday{ font-size:18px; }
-  .sideInfo .clock{ font-size:16px; }
-}
-/* ===== v17e 一発レイアウトFix（CSSだけ） ===== */
-
-/* 調整しやすいように位置は変数化 */
-:root{
-  --hero-save-top: 56px;    /* 保存ボタンの縦位置（iPhone縦で微調整したければここ） */
-  --hero-save-right: 12px;  /* 右端からの距離 */
-}
-
-/* ヒーローの並び：左=日付 / 右=曜日+時刻（左寄せ） */
-.md-hero{ display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap; }
-.bigDate{ order:1; display:flex; align-items:flex-end; gap:4px; margin-top:12px; }
-.sideInfo{
-  order:2;
-  display:flex; flex-direction:column; gap:4px;
-  align-items:flex-start;         /* 左寄せにして“日付の右”へ */
-  margin-left:8px; margin-bottom:6px;
-}
-
-/* 保存ボタンを“右上”に固定配置（DOMの場所がどこでもここへ飛ばす） */
-.head{ position:relative; }
+/* 保存ボタンは行の右端へ（絶対配置は使わない） */
+.saveWrap{ margin-left:auto !important; }
 #saveLog{
-  position:absolute !important;
-  right:var(--hero-save-right); 
-  top:var(--hero-save-top);
-  z-index:2;
+  position:static !important;
+  top:auto !important; right:auto !important; transform:none !important;
+  margin:0 !important;
+  white-space:nowrap;
+  border-radius:20px;
 }
 
-/* 右側のカレンダーpillを消す（datePickerは残す） */
-.toolbar .right a{ display:none !important; }
-
-/* 自由メモが縮む問題の保険（入っていなければ効く） */
-#note{ min-height:112px; }
-
-/* スマホ幅の微調整 */
+/* 小さめ画面の微調整（iPhone縦） */
 @media (max-width:420px){
-  .md-hero{ gap:12px; }
-  .sideInfo{ margin-left:6px; }
-  #saveLog{ top: calc(var(--hero-save-top) - 2px); }
-}
-/* ===== v17f 保存ボタン右上Fix ===== */
-.head {
-  position: relative;
-}
-
-#saveLog {
-  position: absolute !important;
-  top: 8px;          /* 上からの距離 */
-  right: 12px;       /* 右端からの距離 */
-  z-index: 10;
-  transform: none !important;  /* 変な移動をリセット */
-  margin: 0 !important;
+  .md-hero{ gap:10px; }
+  .rightCol{ gap:10px; }
+  .sideInfo{ margin-bottom:4px !important; }
 }
