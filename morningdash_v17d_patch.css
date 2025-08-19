@@ -268,3 +268,16 @@ ion-buttons[slot="end"],
   .sideInfo{ margin-left:6px; }
   #saveLog{ top: calc(var(--hero-save-top) - 2px); }
 }
+/* ===== v17f 保存ボタン右上Fix ===== */
+.head {
+  position: relative;
+}
+
+#saveLog {
+  position: absolute !important;
+  top: 8px;          /* 上からの距離 */
+  right: 12px;       /* 右端からの距離 */
+  z-index: 10;
+  transform: none !important;  /* 変な移動をリセット */
+  margin: 0 !important;
+}
