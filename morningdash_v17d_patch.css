@@ -58,3 +58,18 @@
   .rightCol{ gap:10px; }
   .sideInfo{ margin-bottom:4px !important; }
 }
+/* ゴーストロゴをもっと奥＆少し上に。重なり感を弱める */
+.brandGhost{
+  position:absolute;
+  top:-4px;                 /* ほんの少し上へ */
+  right:12px;
+  opacity:.26 !important;   /* 透過をやや薄く */
+  z-index:-1 !important;    /* 文字の“背面”に固定 */
+  pointer-events:none;
+}
+/* ツールバー内のアンカーは基本非表示 → 左の #calLink だけ表示 */
+.toolbar a{ display:none !important; }
+.toolbar a#calLink{ display:inline-flex !important; }
+
+/* 念押し：右側列にもしアンカーがあれば消す */
+.toolbar .right a{ display:none !important; }
