@@ -202,3 +202,30 @@ ion-buttons[slot="end"],
   .sideInfo .wday{ font-size:18px; }
   .sideInfo .clock{ font-size:16px; }
 }
+/* === v17e-fix: ヒーロー行を1列フレックスに戻す === */
+.md-hero{
+  display:flex !important;
+  align-items:flex-end;
+  gap:12px;
+}
+.bigDate{ order:1; margin-top:0 !important; }
+.sideInfo{
+  order:2;
+  align-items:flex-start;
+  margin-top:0 !important;
+}
+.saveWrap{ 
+  order:3;
+  margin-left:auto;           /* 保存ボタンを右端へ */
+}
+.saveWrap .btn{ white-space:nowrap; }
+
+/* ゴーストロゴの下に、日付/曜日/時間/保存を重ならないように */
+.brandGhost{ z-index:0; pointer-events:none; }
+.bigDate, .sideInfo, .saveWrap, .md-hero .year{ position:relative; z-index:1; }
+
+/* 小さめ画面の微調整 */
+@media (max-width:420px){
+  .sideInfo .wday{ font-size:18px; }
+  .sideInfo .clock{ font-size:16px; }
+}
