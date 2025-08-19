@@ -149,3 +149,11 @@ ion-buttons[slot="end"],
 
 /* ボタン見栄え（すでにあるなら不要） */
 .btn.primary{ background:var(--accent); border-color:var(--accent); color:#fff; }
+/* 右側に現れるカレンダー pill を強制で隠す（保険） */
+.toolbar .right a{ display:none !important; }
+/* 自由メモが縮む問題の再発防止 */
+#note{
+  width:100% !important;
+  display:block;
+  min-height: 96px;
+}
