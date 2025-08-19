@@ -73,3 +73,20 @@
 
 /* 念押し：右側列にもしアンカーがあれば消す */
 .toolbar .right a{ display:none !important; }
+/* ---- 右側のカレンダー pill を確実に消す（JSの保険） ---- */
+.toolbar .right,
+.toolbar .right * {
+  display: none !important;
+}
+
+/* ---- 「MorningDash」ゴースト見やすく（透け過ぎ対策） ---- */
+.brandGhost{
+  opacity: .35 !important;
+  pointer-events: none;
+}
+
+/* iPhone幅で曜日・時刻の行のズレを抑える微調整 */
+@media (max-width: 420px){
+  .md-hero{ align-items: flex-start; }
+  .sideInfo{ margin-top: 6px !important; align-items: flex-start; }
+}
