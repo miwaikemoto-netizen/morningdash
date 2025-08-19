@@ -118,3 +118,14 @@ ion-buttons[slot="end"],
 .toolbar a:not(#calLink){ display:none !important; }
 /* 自由メモの横幅固定 */
 #note{ width:100% !important; min-width:100% !important; display:block; }
+/* v17e — 曜日/時間を日付のすぐ横へ */
+.md-hero{ gap:10px; align-items:flex-end; } /* 左右ブロックの隙間とベースライン */
+.sideInfo{
+  margin-top:8px !important;   /* 上からの余白（下げる） */
+  align-items:flex-start;       /* 左寄せ */
+  text-align:left;
+  transform:translateY(6px);    /* さらに少し下げる微調整 */
+}
+@media (max-width:420px){
+  .sideInfo{ transform:translateY(10px); } /* iPhoneでやや下げる */
+}
