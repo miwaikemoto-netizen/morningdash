@@ -14,11 +14,9 @@
   --card:#ffffff; --border:#e5e7eb;
   --radius:16px; --shadow:0 6px 20px rgba(2,8,23,.06);
 
-  /* rhythm */
   --line-tight:1.12;
   --card-gap:16px;
 
-  /* hero */
   --hero-gap:12px;
   --brand-scale:.55;
   --brand-opacity:.35;
@@ -73,21 +71,24 @@ h1{font-size:28px; margin:0}
   font-size:48px; letter-spacing:.01em;
 }
 .md-hero{
-  position:relative; display:flex; justify-content:space-between; align-items:flex-start; gap:var(--hero-gap);
+  position:relative; display:flex; justify-content:space-between; align-items:flex-end; gap:var(--hero-gap);
 }
 /* left block */
 .bigDate{display:flex; align-items:flex-end; gap:4px; margin-top:28px;}
 .bigMD{font-weight:800; font-size:clamp(44px,12vw,92px); letter-spacing:.01em}
 .mdSep{font-size:clamp(28px,8vw,56px); transform:translateY(-4px)}
-/* YEAR over big date (absolute) */
+/* YEAR over big date */
 .md-hero .year{
   position:absolute; left:0; top:0;
   font-size:clamp(16px,3.5vw,26px); font-weight:700; letter-spacing:.02em; color:#222;
 }
-/* right stack */
-.sideInfo{display:flex; flex-direction:column; gap:4px; align-items:flex-end; margin-top:40px !important;}
+
+/* right stack（曜日/時間の下に保存ボタン） */
+.rightCol{ display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
+.sideInfo{ display:flex; flex-direction:column; gap:4px; align-items:flex-start; margin-top:6px !important; }
 .sideInfo .wday{font-size:clamp(16px,4.5vw,24px); font-weight:800}
 .sideInfo .clock{font-size:clamp(16px,4.3vw,22px); font-style:italic; font-weight:800; letter-spacing:.02em}
+.saveWrap .btn{ border-radius:20px; }
 
 /* toolbar under date */
 .toolbar{display:flex; justify-content:space-between; gap:12px; margin:6px 2px 10px;}
@@ -96,8 +97,8 @@ h1{font-size:28px; margin:0}
 
 /* sections */
 h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
-/* weather title row keeps refresh on same line */
 .weatherTitle{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+
 /* inputs compact */
 .input.number{ padding:10px 12px; height:auto; }
 #sleepH,#sleepM{ width:6ch; }
@@ -107,15 +108,20 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
 #healthLine{ display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
 #healthLine span{ white-space:nowrap; }
 
-/* mini calendar card (if残っていても) 隠す */
+/* mini calendar card (if 残っていても) 隠す */
 #miniCalCard{ display:none !important; }
+
+/* 右側に出がちな重複カレンダーピルを確実に隠す */
+.toolbar .right .dateLink{ display:none !important; }
+
+/* 自由メモが縮まないように */
+#note{ display:block; width:100%; min-height:84px; }
 
 @media (max-width:420px){
   #healthLine{ row-gap:8px; }
 }
 </style>
-<link rel="stylesheet" href="./morningdash_v17f_patch.css?v=179">
-  
+<link rel="stylesheet" href="./morningdash_v17d_patch.css?v=174">
 </head>
 
 <body>
@@ -125,20 +131,25 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
       <div class="brandGhost">MorningDash</div>
       <div class="md-hero">
         <div class="year" id="mdY">2025</div>
+
         <div class="bigDate">
           <span class="bigMD" id="mdM">08</span><span class="mdSep">/</span><span class="bigMD" id="mdD">17</span>
         </div>
-        <div class="sideInfo">
-          <div class="wday" id="mdW">日曜日</div>
-          <div class="clock" id="mdT">11:46</div>
+
+        <!-- 右側：曜日/時間の下に保存ボタン -->
+        <div class="rightCol">
+          <div class="sideInfo">
+            <div class="wday" id="mdW">日曜日</div>
+            <div class="clock" id="mdT">11:46</div>
+          </div>
+          <div class="saveWrap">
+            <button id="saveLog" class="btn primary">この日の記録を保存</button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- ===== Toolbar: date picker + calendar link ===== -->
-    <div class="row" style="justify-content:flex-start; margin:8px 2px 6px;">
-  <button id="saveLog" class="btn primary">この日の記録を保存</button>
-</div>
     <div class="toolbar">
       <div class="left">
         <a id="calLink" class="dateLink" href="#">2025/08/17（カレンダー）</a>
@@ -248,7 +259,6 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
     $("#mdD").textContent = z2(d.getDate());
     $("#mdY").textContent = String(d.getFullYear());
     $("#mdW").textContent = wdJP[d.getDay()];
-    // カレンダーリンク（既存のv12_calendar.html に日付を渡す）
     const link = `./v12_calendar.html?date=${toInputDate(d)}`;
     $("#calLink").href = link;
     $("#calLink").textContent = `${d.getFullYear()}/${z2(d.getMonth()+1)}/${z2(d.getDate())}（カレンダー）`;
@@ -267,13 +277,20 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
   const datePicker = $("#datePicker");
   datePicker.value = toInputDate(today);
   renderHeaderDate(today);
+
+  // 初期表示時：右側の重複カレンダーピルを除去
   document.querySelectorAll('.toolbar a').forEach(a => { if (a.id !== 'calLink') a.remove(); });
-$("#editBadge").style.display = "none";
+
+  $("#editBadge").style.display = "none";
 
   datePicker.addEventListener("change", ()=>{
     const d = fromInputDate(datePicker.value);
     currentDateKey = toKey(d);
     renderHeaderDate(d);
+
+    // 変更時も右側の重複ピルを除去
+    document.querySelectorAll('.toolbar a').forEach(a => { if (a.id !== 'calLink') a.remove(); });
+
     $("#editBadge").style.display = (currentDateKey === todayKey) ? "none" : "inline-block";
     loadLogToForm(loadLog(currentDateKey));
   });
@@ -430,9 +447,8 @@ $("#editBadge").style.display = "none";
       const actions=document.createElement("div"); actions.className="row"; actions.style.marginTop="8px";
       const editBtn=document.createElement("button"); editBtn.className="btn small"; editBtn.textContent="編集";
       editBtn.onclick=()=>{ currentDateKey=l.date; renderHeaderDate(new Date(l.date));
-// 左の #calLink 以外のリンクを削除（右の重複ピル対策）
-document.querySelectorAll('.toolbar a').forEach(a => { if (a.id !== 'calLink') a.remove(); });
-$("#editBadge").style.display="inline-block"; loadLogToForm(l); window.scrollTo({top:0,behavior:"smooth"}); };
+        document.querySelectorAll('.toolbar a').forEach(a => { if (a.id !== 'calLink') a.remove(); });
+        $("#editBadge").style.display="inline-block"; loadLogToForm(l); window.scrollTo({top:0,behavior:"smooth"}); };
       const delBtn=document.createElement("button"); delBtn.className="btn small"; delBtn.textContent="削除";
       delBtn.onclick=()=>{ if(!confirm(`${l.date} の記録を削除しますか？`))return; const rest=loadAllLogs().filter(x=>x.date!==l.date); saveAllLogs(rest); renderHistory(); };
       actions.appendChild(editBtn); actions.appendChild(delBtn);
@@ -442,8 +458,8 @@ $("#editBadge").style.display="inline-block"; loadLogToForm(l); window.scrollTo(
   }
   $("#reloadHistory").addEventListener("click", renderHistory);
 
-  /* ==== export/import/save ==== */
-  $("#saveLog").addEventListener?.("click", ()=>{ autoSave(); alert(`${currentDateKey} の記録を保存しました`); });
+  /* ==== 保存ボタン ==== */
+  $("#saveLog").addEventListener("click", ()=>{ autoSave(); alert(`${currentDateKey} の記録を保存しました`); });
 
   /* ==== URL パラメータ取り込み ==== */
   const url = new URL(window.location.href);
