@@ -91,3 +91,45 @@
   z-index: 0 !important;       /* 前面要素と重ならない */
   pointer-events: none !important;
 }
+/* --- hero の最終調整（上書き） --- */
+.md-hero{
+  justify-content: flex-start !important; /* 右に押し出されないよう左基準 */
+  align-items: flex-end !important;
+  gap: 18px !important;
+}
+.bigDate{
+  margin-top: 28px !important;   /* 既定の高さそのまま */
+  flex: 0 0 auto !important;     /* 伸縮しない＝左に据え置き */
+}
+.sideInfo{
+  /* 曜日・時刻をひと段下げて、カレンダー行の高さに合わせる */
+  margin-top: 56px !important;
+  align-items: flex-start !important;
+}
+@media (max-width: 420px){
+  .sideInfo{
+    margin-top: 62px !important; /* スマホはもう少しだけ下げる */
+  }
+}
+
+/* “MorningDash” を50%グレーで薄く。重ならないよう控えめに */
+.brandGhost{
+  color: #808080 !important;   /* 50%グレー */
+  opacity: .22 !important;     /* ふんわり */
+  top: 14px !important;        /* 少し上に逃がす */
+  right: 14px !important;
+  z-index: 0 !important;       /* 前面要素と重ならない */
+  pointer-events: none !important;
+}
+/* sideInfo（曜日＋時刻）を保存ボタンと同じ高さに */
+.sideInfo{
+  margin-top: 92px !important;   /* 今よりさらに下げる */
+  align-items: flex-start !important;
+}
+
+/* スマホはさらに微調整 */
+@media (max-width: 420px){
+  .sideInfo{
+    margin-top: 98px !important;
+  }
+}
