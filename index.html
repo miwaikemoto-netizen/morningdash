@@ -69,6 +69,7 @@ h1{font-size:28px; margin:0}
   position:absolute; right:12px; top:10px; opacity:var(--brand-opacity);
   transform:scale(var(--brand-scale)); transform-origin:top right; font-weight:800;
   font-size:48px; letter-spacing:.01em;
+  pointer-events:none;  /* 透過見えつつ操作の邪魔をしない */
 }
 .md-hero{
   position:relative; display:flex; justify-content:space-between; align-items:flex-end; gap:var(--hero-gap);
@@ -108,10 +109,9 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
 #healthLine{ display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
 #healthLine span{ white-space:nowrap; }
 
-/* mini calendar card (if 残っていても) 隠す */
+/* mini calendar card（念のため）非表示 */
 #miniCalCard{ display:none !important; }
-
-/* 右側に出がちな重複カレンダーピルを確実に隠す */
+/* 右側の重複カレンダーピルをCSSでも抑止（JSでも除去する二段構え） */
 .toolbar .right .dateLink{ display:none !important; }
 
 /* 自由メモが縮まないように */
@@ -121,7 +121,7 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
   #healthLine{ row-gap:8px; }
 }
 </style>
-<link rel="stylesheet" href="./morningdash_v17d_patch.css?v=181">
+<link rel="stylesheet" href="./morningdash_v17d_patch.css?v=182">
 </head>
 
 <body>
@@ -152,7 +152,7 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
     <!-- ===== Toolbar: date picker + calendar link ===== -->
     <div class="toolbar">
       <div class="left">
-        <a id="calLink" class="dateLink" href="#">2025/08/17（カレンダー）</a>
+        <a id="calLink" class="dateLink" href="#">📅カレンダー</a>
       </div>
       <div class="right">
         <input id="datePicker" type="date" class="input" style="padding:8px 10px">
@@ -261,7 +261,7 @@ h2.section-title{font-size:clamp(18px,4.5vw,22px); margin:0 0 8px;}
     $("#mdW").textContent = wdJP[d.getDay()];
     const link = `./v12_calendar.html?date=${toInputDate(d)}`;
     $("#calLink").href = link;
-    $("#calLink").textContent = `${d.getFullYear()}/${z2(d.getMonth()+1)}/${z2(d.getDate())}（カレンダー）`;
+    $("#calLink").textContent = "📅カレンダー";
   }
   function tickClock(){
     const now = new Date();
