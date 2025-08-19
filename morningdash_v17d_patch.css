@@ -229,3 +229,42 @@ ion-buttons[slot="end"],
   .sideInfo .wday{ font-size:18px; }
   .sideInfo .clock{ font-size:16px; }
 }
+/* ===== v17e 一発レイアウトFix（CSSだけ） ===== */
+
+/* 調整しやすいように位置は変数化 */
+:root{
+  --hero-save-top: 56px;    /* 保存ボタンの縦位置（iPhone縦で微調整したければここ） */
+  --hero-save-right: 12px;  /* 右端からの距離 */
+}
+
+/* ヒーローの並び：左=日付 / 右=曜日+時刻（左寄せ） */
+.md-hero{ display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap; }
+.bigDate{ order:1; display:flex; align-items:flex-end; gap:4px; margin-top:12px; }
+.sideInfo{
+  order:2;
+  display:flex; flex-direction:column; gap:4px;
+  align-items:flex-start;         /* 左寄せにして“日付の右”へ */
+  margin-left:8px; margin-bottom:6px;
+}
+
+/* 保存ボタンを“右上”に固定配置（DOMの場所がどこでもここへ飛ばす） */
+.head{ position:relative; }
+#saveLog{
+  position:absolute !important;
+  right:var(--hero-save-right); 
+  top:var(--hero-save-top);
+  z-index:2;
+}
+
+/* 右側のカレンダーpillを消す（datePickerは残す） */
+.toolbar .right a{ display:none !important; }
+
+/* 自由メモが縮む問題の保険（入っていなければ効く） */
+#note{ min-height:112px; }
+
+/* スマホ幅の微調整 */
+@media (max-width:420px){
+  .md-hero{ gap:12px; }
+  .sideInfo{ margin-left:6px; }
+  #saveLog{ top: calc(var(--hero-save-top) - 2px); }
+}
