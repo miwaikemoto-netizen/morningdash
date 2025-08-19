@@ -172,3 +172,33 @@ ion-buttons[slot="end"],
 .save-button:hover {
   background-color: #0d6efd;
 }
+/* === v17e Safari微調整：曜日/時間を日付のすぐ右へ & 重なり防止 === */
+.md-hero{
+  /* 右端まで広がらないよう、日付列 + 右列の2カラムに */
+  display:grid;
+  grid-template-columns:auto 1fr;
+  column-gap:12px;
+  align-items:end;
+}
+.rightCol{
+  justify-self:start;         /* 右端へ行かず、bigDateのすぐ右に置く */
+  align-items:flex-start;
+  gap:8px;
+  margin-top:0;
+}
+.sideInfo{
+  align-items:flex-start;
+  margin-top:0 !important;    /* Safariの余計な間延びを抑える */
+}
+.saveWrap .btn{ white-space:nowrap; } /* ボタンの折り返し防止 */
+
+/* 重なり順序：ゴーストロゴの下に、日付＆右Colを上に */
+.brandGhost{ z-index:0; pointer-events:none; }
+.bigDate, .rightCol, .md-hero .year{ position:relative; z-index:1; }
+
+/* 小さめ画面での文字サイズと余白を微調整 */
+@media (max-width:420px){
+  .md-hero{ column-gap:10px; row-gap:2px; }
+  .sideInfo .wday{ font-size:18px; }
+  .sideInfo .clock{ font-size:16px; }
+}
