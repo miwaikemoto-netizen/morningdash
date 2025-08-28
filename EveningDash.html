@@ -21,13 +21,15 @@ h1{margin:4px 0 10px;font-size:34px;line-height:1.2;font-weight:800}
 h2{margin:0 0 10px;font-size:20px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35);padding:16px;margin:12px 0}
 .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.btn{appearance:none;border:1px solid var(--border);border-radius:14px;padding:12px 16px;background:rgba(255,255,255,.04);cursor:pointer;color:var(--fg);text-decoration:none;font-size:16px}
+.btn{appearance:none;border:1px solid var(--border);border-radius:14px;padding:8px 12px;background:rgba(255,255,255,.04);cursor:pointer;color:var(--fg);text-decoration:none;font-size:14px}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.primary:active{background:var(--accent-press)}
+.btn.small{padding:6px 10px;font-size:13px}
 .input, select, textarea{border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:rgba(255,255,255,.04);color:var(--fg);font-size:16px}
 select[multiple]{min-height:132px}
 textarea{width:100%;min-height:96px;resize:vertical}
 .small{font-size:13px;color:var(--muted)}
+.labelBig{font-size:15px;font-weight:600;margin-right:6px}
 .header{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:6px}
 .bigdate{display:flex;align-items:baseline;gap:6px}
 .bigdate .md{font-weight:800;font-size:42px}
@@ -40,11 +42,10 @@ hr{border:none;border-top:1px solid var(--border);margin:12px 0}
 .historyItem{padding:10px;border:1px dashed var(--border);border-radius:12px;margin-top:8px}
 label.checkbox{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:16px}
 label.checkbox input{transform:scale(1.2)}
-/* 天気表示大きめ */
-.wxLine{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.wxIcon{font-size:30px;line-height:1}
+/* 天気（朝寄せレイアウト） */
+.weatherTitle{display:flex;justify-content:space-between;align-items:center;gap:8px}
 #wxText{font-size:17px;font-weight:700}
-#useGeo{margin-left:4px}
+.wxIcon{font-size:30px;line-height:1}
 #musicRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 </style>
 </head>
@@ -78,22 +79,22 @@ label.checkbox input{transform:scale(1.2)}
       </div>
     </section>
 
-    <!-- ② 日記・記録 -->
+    <!-- ② 日記・記録（天気ブロックを朝寄せ） -->
     <section class="card" id="secDiary">
-      <h2>② 日記・記録</h2>
-
-      <!-- 天気/気圧 -->
-      <div id="wxRow" class="wxLine">
+      <div class="weatherTitle">
+        <h2>② 日記・記録</h2>
+        <button id="useGeo" class="btn small">再取得</button>
+      </div>
+      <div class="row">
         <div id="wxIcon" class="wxIcon">⏳</div>
         <div id="wxText">天気・気圧を取得中…</div>
-        <button id="useGeo" class="btn">📍 現在地で更新</button>
       </div>
 
       <hr>
 
       <!-- 感情（セレクト） -->
       <div class="row" style="align-items:center">
-        <label for="moodSel" class="small">感情</label>
+        <label for="moodSel" class="labelBig">感情</label>
         <select id="moodSel" class="input">
           <option value="">（未選択）</option>
           <option>最高</option>
@@ -106,7 +107,7 @@ label.checkbox input{transform:scale(1.2)}
 
       <!-- 体調（マルチセレクト） -->
       <div class="row" style="align-items:flex-start">
-        <label for="condSel" class="small" style="padding-top:6px">体調（複数可）</label>
+        <label for="condSel" class="labelBig">体調（複数可）</label>
         <select id="condSel" class="input" multiple>
           <option>首・肩こり</option><option>頭痛</option><option>腹痛/お腹の張り</option><option>腰の張り/腰痛</option>
           <option>自律神経の乱れ</option><option>胃腸弱め</option><option>むくみ</option><option>目の疲れ/ドライアイ</option>
@@ -287,8 +288,8 @@ label.checkbox input{transform:scale(1.2)}
         });
         var mapR={"#r_rollerBreath":"rollerBreath","#r_child":"child","#r_ear":"ear","#r_breath":"breath"};
         for(var sel in mapR){ var el=$(sel); if(el) el.checked = !!state.ritual[mapR[sel]]; }
-        var moodSel=$("#moodSel"); if(moodSel){ moodSel.value = state.mood || ""; }
-        var condSel=$("#condSel"); if(condSel){
+        if(moodSel){ moodSel.value = state.mood || ""; }
+        if(condSel){
           for(var i=0;i<condSel.options.length;i++){
             condSel.options[i].selected = state.condSel.indexOf(condSel.options[i].value)>-1;
           }
