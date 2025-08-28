@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Evening Dash (Debug)</title>
+<meta name="theme-color" content="#0b1220">
+<style>
+:root{
+  --bg:#090f1c; --bg2:#0b1220;
+  --fg:#e6edf7; --muted:#a7b4c8;
+  --card:#0f172a; --border:rgba(255,255,255,.12);
+  --accent:#60a5fa; --accent-press:#3b82f6;
+  --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.35);
+  --chip:#1e293b; --chip-on:#1d4ed8;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color: transparent}
+html,body{margin:0;height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--fg)}
+.container{max-width:900px;margin:0 auto;padding:16px 16px 92px}
+h1{margin:4px 0 10px;font-size:34px;line-height:1.2;font-weight:800}
+h2{margin:0 0 10px;font-size:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin:12px 0}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.btn{appearance:none;border:1px solid var(--border);border-radius:14px;padding:12px 16px;background:rgba(255,255,255,.04);cursor:pointer;color:var(--fg);text-decoration:none;font-size:16px}
+.small{font-size:13px;color:var(--muted)}
+.header{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.bigdate{display:flex;align-items:baseline;gap:6px}
+.bigdate .md{font-weight:800;font-size:42px}
+.bigdate .sep{font-size:30px;transform:translateY(-2px)}
+.bigdate .y{font-weight:700;font-size:16px;color:var(--muted)}
+.wday{font-weight:700}
+hr{border:none;border-top:1px solid var(--border);margin:12px 0}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{padding:12px 16px;border-radius:999px;background:var(--chip);border:1px solid var(--border);cursor:pointer;font-size:16px}
+.chip.on{background:var(--chip-on);border-color:transparent}
+.wxIcon{font-size:24px}
+.wxLine{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#log{white-space:pre-wrap;background:#0b1220;border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:10px;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-size:12px;max-height:240px;overflow:auto}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>🌙 Evening Dash（デバッグ）</h1>
+        <div class="bigdate">
+          <span class="md" id="mdM">--</span><span class="sep">/</span><span class="md" id="mdD">--</span>
+          <span class="y" id="mdY">----</span>
+          <span class="wday" id="mdW">---</span>
+        </div>
+      </div>
+      <div class="row">
+        <a href="./" class="btn">☀️ 朝の記録へ</a>
+        <a id="openCal" href="./Calendar.html" class="btn">📅 カレンダー</a>
+      </div>
+    </div>
+
+    <!-- 天気 -->
+    <section class="card">
+      <h2>天気・気圧</h2>
+      <div class="wxLine">
+        <div id="wxIcon" class="wxIcon">⏳</div>
+        <div id="wxText" class="small">取得中…</div>
+        <button id="useGeo" class="btn">📍 現在地</button>
+        <button id="useTokyo" class="btn">🗼 東京でテスト</button>
+      </div>
+    </section>
+
+    <!-- 感情／体調 -->
+    <section class="card">
+      <h2>感情・体調</h2>
+      <div>感情記録</div>
+      <div id="moodChips" class="chips" style="margin-bottom:8px">
+        <button class="chip">最高</button><button class="chip">良い</button><button class="chip">普通</button><button class="chip">いまいち</button><button class="chip">しんどい</button>
+      </div>
+      <div>体調記録（複数可）</div>
+      <div id="condChips" class="chips">
+        <button class="chip">首・肩こり</button><button class="chip">頭痛</button><button class="chip">腹痛/お腹の張り</button><button class="chip">腰の張り/腰痛</button>
+        <button class="chip">自律神経の乱れ</button><button class="chip">胃腸弱め</button><button class="chip">むくみ</button><button class="chip">目の疲れ/ドライアイ</button>
+        <button class="chip">睡眠の質低下</button><button class="chip">冷え</button><button class="chip">喉の痛み</button><button class="chip">鼻水/鼻づまり</button>
+        <button class="chip">肌荒れ/かゆみ</button><button class="chip">花粉/アレルギー</button>
+        <button class="chip">だるさ/倦怠感</button><button class="chip">イライラ/不安</button>
+        <button class="chip">モチベ低下</button><button class="chip">PMS</button><button class="chip">生理</button>
+      </div>
+    </section>
+
+    <!-- 診断ログ -->
+    <section class="card">
+      <h2>診断ログ</h2>
+      <div id="log"></div>
+    </section>
+  </div>
+
+<script>
+(function(){
+  function z2(n){ n = Number(n)||0; return (n<10?"0":"")+n; }
+  function $(s){ return document.querySelector(s); }
+  function log(){ try{ var out = $("#log"); var msg = Array.prototype.slice.call(arguments).join(" "); out.textContent += msg + "\\n"; console.log.apply(console, arguments);}catch(e){} }
+
+  window.onerror = function(msg, src, line, col, err){ log("JS-ERROR:", msg, "@", src, ":", line); };
+
+  document.addEventListener("DOMContentLoaded", function(){
+    try{
+      // 日付＆カレンダー
+      var d=new Date();
+      $("#mdM").textContent = z2(d.getMonth()+1);
+      $("#mdD").textContent = z2(d.getDate());
+      $("#mdY").textContent = d.getFullYear();
+      $("#mdW").textContent = ["日","月","火","水","木","金","土"][d.getDay()] + "曜日";
+      $("#openCal").href = "./Calendar.html?date=" + d.toISOString().slice(0,10);
+      log("boot ok");
+
+      // チップ（プリレンダー）バインド
+      (function(){
+        var mBtns = $("#moodChips").querySelectorAll(".chip");
+        for(var i=0;i<mBtns.length;i++){
+          (function(btn){
+            btn.addEventListener("click", function(){
+              for(var j=0;j<mBtns.length;j++){ mBtns[j].classList.remove("on"); }
+              btn.classList.add("on");
+            });
+          })(mBtns[i]);
+        }
+        var cBtns = $("#condChips").querySelectorAll(".chip");
+        for(var i=0;i<cBtns.length;i++){
+          (function(btn){
+            btn.addEventListener("click", function(){ btn.classList.toggle("on"); });
+          })(cBtns[i]);
+        }
+        log("chips ready:", mBtns.length, cBtns.length);
+      })();
+
+      // 天気/気圧
+      var TOKYO={lat:35.681236, lon:139.767125};
+      function wxIcon(code){ if(code>=61&&code<=65) return "🌧️"; if(code===0||code===1) return "☀️"; if(code===2) return "🌤️"; if(code===3) return "☁️"; return "🌦️"; }
+      function wxText(code){ var map={0:"快晴",1:"晴れ",2:"薄曇り",3:"曇り",45:"霧",48:"霧氷",51:"弱い霧雨",53:"霧雨",55:"強い霧雨",61:"弱い雨",63:"雨",65:"強い雨",71:"弱い雪",73:"雪",75:"大雪",95:"雷雨"}; return map[code]||"—"; }
+      function renderWx(obj){
+        if(!obj){ $("#wxIcon").textContent="⚠️"; $("#wxText").textContent="取得失敗"; return; }
+        $("#wxIcon").textContent = wxIcon(obj.code);
+        $("#wxText").textContent = Math.round(obj.temp)+"°C　"+wxText(obj.code)+"　気圧："+(obj.pressure!=null?Math.round(obj.pressure)+"hPa":"—");
+      }
+      function fetchWx(lat, lon){
+        var url="https://api.open-meteo.com/v1/forecast?latitude="+lat+"&longitude="+lon+"&current_weather=true&hourly=pressure_msl&timezone=Asia%2FTokyo";
+        log("fetch:", url);
+        return fetch(url).then(function(r){ log("resp:", r.status); return r.json(); }).then(function(data){
+          log("json ok");
+          var c=data.current_weather||{};
+          var times=(data.hourly&&data.hourly.time)||[];
+          var pArr=(data.hourly&&data.hourly.pressure_msl)||[];
+          var idx=-1; for(var i=0;i<times.length;i++){ if(times[i]===c.time){ idx=i; break; } }
+          var p = (idx>-1 && pArr) ? pArr[idx] : null;
+          var out={ temp:c.temperature, wind:c.windspeed, code:c.weathercode, pressure:p };
+          renderWx(out);
+          return out;
+        }).catch(function(e){ log("fetch err:", e && (e.message||e)); renderWx(null); });
+      }
+
+      function autoWx(){
+        if(navigator.geolocation){
+          log("geo: getCurrentPosition...");
+          navigator.geolocation.getCurrentPosition(
+            function(pos){ log("geo ok:", pos.coords.latitude, pos.coords.longitude); fetchWx(pos.coords.latitude, pos.coords.longitude); },
+            function(err){ log("geo err:", err && (err.code+":"+err.message)); fetchWx(TOKYO.lat, TOKYO.lon); },
+            {enableHighAccuracy:true, timeout:6000, maximumAge:600000}
+          );
+        }else{
+          log("geo unsupported -> Tokyo");
+          fetchWx(TOKYO.lat, TOKYO.lon);
+        }
+      }
+
+      $("#useGeo").addEventListener("click", function(){ log("btn geo"); autoWx(); });
+      $("#useTokyo").addEventListener("click", function(){ log("btn tokyo"); fetchWx(TOKYO.lat, TOKYO.lon); });
+
+      // 起動直後は自動取得
+      autoWx();
+
+    }catch(e){
+      log("boot error:", e && e.message);
+    }
+  });
+})();
+</script>
+</body>
+</html>
