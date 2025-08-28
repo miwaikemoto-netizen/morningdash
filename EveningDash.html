@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Evening Dash（夜の記録） v3.1</title>
+<title>Evening Dash</title>
 <meta name="theme-color" content="#0b1220">
 <style>
 :root{
@@ -51,14 +51,13 @@ label.checkbox input{transform:scale(1.2)}
 #musicRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .wxIcon{font-size:24px}
 .wxLine{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.badge{display:none} /* 以前の小さいバッジは非表示に */
 </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <div>
-        <h1>🌙 Evening Dash（夜の記録）</h1>
+        <h1>🌙 Evening Dash</h1>
         <div class="bigdate">
           <span class="md" id="mdM">08</span><span class="sep">/</span><span class="md" id="mdD">28</span>
           <span class="y" id="mdY">2025</span>
@@ -96,7 +95,7 @@ label.checkbox input{transform:scale(1.2)}
 
       <hr>
 
-      <!-- 感情・体調（見出しは通常サイズに） -->
+      <!-- 感情・体調 -->
       <div>感情記録</div>
       <div id="moodChips" class="chips" style="margin-bottom:8px"></div>
 
@@ -196,33 +195,40 @@ document.addEventListener('DOMContentLoaded', function(){
     diaryGood: "", diaryNext: "", diaryFree: ""
   };
 
-  function makeChips(rootSel, items, isSingle){
-    const root = $(rootSel); root.innerHTML = "";
+  function renderSingleChips(rootSel, items, getter, setter){
+    const root = $(rootSel); root.innerHTML="";
     items.forEach(txt=>{
       const b=document.createElement('button');
       b.className='chip'; b.textContent=txt;
+      if(getter()===txt) b.classList.add('on');
       b.addEventListener('click', ()=>{
-        if(isSingle){
-          if(state[rootSel]==txt){ state[rootSel]=""; } else { state[rootSel]=txt; }
-          // re-render single to reflect on/off
-          makeChips(rootSel, items, isSingle); autoSave();
-        }else{
-          const arr = state[rootSel] || (state[rootSel]=[]);
-          const i = arr.indexOf(txt);
-          if(i>-1) arr.splice(i,1); else arr.push(txt);
-          b.classList.toggle('on'); autoSave();
-        }
+        setter(getter()===txt ? "" : txt);
+        renderSingleChips(rootSel, items, getter, setter);
+        autoSave();
       });
-      // set initial on/off
-      if(isSingle ? state[rootSel]===txt : (state[rootSel]||[]).includes(txt)) b.classList.add('on');
       root.appendChild(b);
     });
   }
-  // bind mood/cond
-  Object.defineProperty(state, "#moodChips", { get(){ return state.mood; }, set(v){ state.mood=v; }});
-  Object.defineProperty(state, "#condChips", { get(){ return state.condSel; }, set(v){ state.condSel=v; }});
-  makeChips("#moodChips", moods, true);
-  makeChips("#condChips", conds, false);
+  function renderMultiChips(rootSel, items, getter, setter){
+    const root = $(rootSel); root.innerHTML="";
+    items.forEach(txt=>{
+      const b=document.createElement('button');
+      b.className='chip'; b.textContent=txt;
+      if(getter().includes(txt)) b.classList.add('on');
+      b.addEventListener('click', ()=>{
+        const arr = getter().slice();
+        const i = arr.indexOf(txt);
+        if(i>-1) arr.splice(i,1); else arr.push(txt);
+        setter(arr);
+        b.classList.toggle('on');
+        autoSave();
+      });
+      root.appendChild(b);
+    });
+  }
+
+  renderSingleChips("#moodChips", moods, ()=>state.mood, v=>{state.mood=v;});
+  renderMultiChips("#condChips", conds, ()=>state.condSel, v=>{state.condSel=v;});
 
   // Wire checkboxes (habits + rituals)
   const bind = (sel, obj, key) => $(sel).addEventListener("change",()=>{ obj[key] = $(sel).checked; autoSave(); });
@@ -276,20 +282,20 @@ document.addEventListener('DOMContentLoaded', function(){
     });
   }
 
-  // Weather/pressure with robust fallbacks (URL params > last-known > Tokyo)
+  // Weather/pressure with robust fallbacks + watchdog
   const WX_KEY = "evening_last_geo";
-  function setLastGeo(lat, lon){ try{ localStorage.setItem(WX_KEY, JSON.stringify({lat,lon})); }catch(e){} }
+  function setLastGeo(lat, lon){ try{ localStorage.setItem(WX_KEY, JSON.stringify({lat,lon,ts:Date.now()})); }catch(e){} }
   function getLastGeo(){ try{ return JSON.parse(localStorage.getItem(WX_KEY)||"null"); }catch(e){ return null; } }
   function parseParamFloat(name){ const v=new URLSearchParams(location.search).get(name); return v?parseFloat(v):null; }
   const TOKYO = {lat:35.681236, lon:139.767125};
 
+  const iconEl=$("#wxIcon"), textEl=$("#wxText");
   function wxIcon(code){ if(code>=61&&code<=65) return "🌧️"; if(code===0||code===1) return "☀️"; if(code===2) return "🌤️"; if(code===3) return "☁️"; return "🌦️"; }
   function wxText(code){ const map={0:"快晴",1:"晴れ",2:"薄曇り",3:"曇り",45:"霧",48:"霧氷",51:"弱い霧雨",53:"霧雨",55:"強い霧雨",61:"弱い雨",63:"雨",65:"強い雨",71:"弱い雪",73:"雪",75:"大雪",95:"雷雨"}; return map[code]||"—"; }
   function renderWx(){
-    const icon=$("#wxIcon"), text=$("#wxText");
-    if(!state.wx){ icon.textContent='⚠️'; text.textContent='天気/気圧の取得に失敗（位置情報を許可 or ?lat,?lon 指定で取得可能）'; return; }
-    icon.textContent = wxIcon(state.wx.code);
-    text.textContent = `${Math.round(state.wx.temp)}°C　${wxText(state.wx.code)}　気圧：${state.wx.pressure?Math.round(state.wx.pressure)+"hPa":"—"}`;
+    if(!state.wx){ iconEl.textContent='⚠️'; textEl.textContent='天気/気圧の取得に失敗（位置情報を許可するか、?lat & ?lon を付けてください）'; return; }
+    iconEl.textContent = wxIcon(state.wx.code);
+    textEl.textContent = `${Math.round(state.wx.temp)}°C　${wxText(state.wx.code)}　気圧：${state.wx.pressure?Math.round(state.wx.pressure)+"hPa":"—"}`;
   }
   function fetchWx(lat, lon){
     setLastGeo(lat, lon);
@@ -307,21 +313,22 @@ document.addEventListener('DOMContentLoaded', function(){
     }).catch(()=>{ renderWx(); });
   }
   (function initWeather(){
+    let finished=false;
+    const watchdog = setTimeout(()=>{
+      if(!finished){ const last=getLastGeo(); fetchWx((last&&last.lat)||TOKYO.lat, (last&&last.lon)||TOKYO.lon); finished=true; }
+    }, 5000);
     const qLat=parseParamFloat('lat'), qLon=parseParamFloat('lon');
-    if(qLat!=null && qLon!=null){ fetchWx(qLat, qLon); return; }
+    if(qLat!=null && qLon!=null){ fetchWx(qLat, qLon); finished=true; clearTimeout(watchdog); return; }
     if('geolocation' in navigator){
       navigator.geolocation.getCurrentPosition(
-        pos=>fetchWx(pos.coords.latitude, pos.coords.longitude),
-        ()=>{ const last=getLastGeo(); if(last){ fetchWx(last.lat,last.lon); } else { fetchWx(TOKYO.lat,TOKYO.lon); } },
-        {enableHighAccuracy:false, timeout:6000}
+        pos=>{ if(!finished){ fetchWx(pos.coords.latitude, pos.coords.longitude); finished=true; clearTimeout(watchdog);} },
+        ()=>{ if(!finished){ const last=getLastGeo(); fetchWx((last&&last.lat)||TOKYO.lat, (last&&last.lon)||TOKYO.lon); finished=true; clearTimeout(watchdog);} },
+        {enableHighAccuracy:false, timeout:4000}
       );
     }else{
-      const last=getLastGeo(); if(last){ fetchWx(last.lat,last.lon); } else { fetchWx(TOKYO.lat,TOKYO.lon); }
+      const last=getLastGeo(); fetchWx((last&&last.lat)||TOKYO.lat, (last&&last.lon)||TOKYO.lon); finished=true; clearTimeout(watchdog);
     }
   })();
-
-  // Goodnight (optional fun)
-  $("#playMusicBtn").addEventListener("click", ()=>{ $("#goodnight").style.display="block"; });
 
   // hydrate today's saved
   const saved = loadLog(toKey(new Date()));
@@ -342,6 +349,8 @@ document.addEventListener('DOMContentLoaded', function(){
     .forEach(([sel,grp,key])=>{ $(sel).checked = !!state[grp][key]; });
 
   // initial render
+  renderSingleChips("#moodChips", moods, ()=>state.mood, v=>{state.mood=v;});
+  renderMultiChips("#condChips", conds, ()=>state.condSel, v=>{state.condSel=v;});
   renderWx();
   renderHistory();
 
