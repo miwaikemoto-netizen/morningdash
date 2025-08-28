@@ -51,6 +51,7 @@ label.checkbox input{transform:scale(1.2)}
 #musicRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .wxIcon{font-size:24px}
 .wxLine{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#useGeo{margin-left:4px}
 </style>
 </head>
 <body>
@@ -66,7 +67,8 @@ label.checkbox input{transform:scale(1.2)}
       </div>
       <div class="row">
         <a href="./" class="btn">☀️ 朝の記録へ</a>
-        <a id="openCal" href="#" class="btn">📅 カレンダー</a>
+        <!-- 直接遷移できるようにデフォルトはCalendar.html（JSで?date=付加） -->
+        <a id="openCal" href="./Calendar.html" class="btn">📅 カレンダー</a>
       </div>
     </div>
 
@@ -91,6 +93,7 @@ label.checkbox input{transform:scale(1.2)}
       <div id="wxRow" class="wxLine">
         <div id="wxIcon" class="wxIcon">⏳</div>
         <div id="wxText" class="small">天気・気圧を取得中…</div>
+        <button id="useGeo" class="btn">📍 現在地で更新</button>
       </div>
 
       <hr>
@@ -122,19 +125,19 @@ label.checkbox input{transform:scale(1.2)}
     <section class="card" id="secSleep">
       <h2>③ 入眠儀式</h2>
       <div class="row" style="align-items:flex-start">
-        <label class="checkbox"><input type="checkbox" id="r_rollerBreath">ローラー呼吸 <span class="small">（みぞおち下に置き呼吸　2〜3分）</span></label>
+        <label class="checkbox"><input type="checkbox" id="r_rollerBreath">ローラー呼吸 <span class="small">（肩甲骨の下に置く 2〜3分）</span></label>
         <label class="checkbox"><input type="checkbox" id="r_child">チャイルドポーズ <span class="small">（1〜2分）</span></label>
         <label class="checkbox"><input type="checkbox" id="r_ear">耳まわし <span class="small">（前→後／上・中・下）</span></label>
         <label class="checkbox"><input type="checkbox" id="r_breath">肩すくめ呼吸 <span class="small">（吸=すくめる／吐=ストン）</span></label>
       </div>
     </section>
 
-    <!-- ④ 音楽・保存 -->
+    <!-- ④ 保存・音楽（順番を逆に） -->
     <section class="card" id="secMusic">
-      <h2>④ 音楽・操作</h2>
+      <h2>④ 操作</h2>
       <div id="musicRow">
-        <a id="playMusicBtn" class="btn primary" href="https://music.youtube.com/playlist?list=PLUwMnSYvjfDQ9B8qPyifyyfonuhTY3C6y&si=6ssi1DGhphTAT_k7" target="_blank" rel="noopener">🎵 音楽を再生</a>
         <button id="saveBtn" class="btn primary">💾 保存</button>
+        <a id="playMusicBtn" class="btn" href="https://music.youtube.com/playlist?list=PLUwMnSYvjfDQ9B8qPyifyyfonuhTY3C6y&si=6ssi1DGhphTAT_k7" target="_blank" rel="noopener">🎵 音楽を再生</a>
         <span class="small">※ YouTube Music の睡眠プレイリストを開きます。</span>
       </div>
       <div id="goodnight" class="">😪 おやすみ</div>
@@ -163,26 +166,22 @@ document.addEventListener('DOMContentLoaded', function(){
   const toKey = d => d.toLocaleDateString("ja-JP",{timeZone:tz});
 
   // Header date
-  const today = new Date();
   (function renderHeaderDate(d){
     $("#mdM").textContent = z2(d.getMonth()+1);
     $("#mdD").textContent = z2(d.getDate());
     $("#mdY").textContent = String(d.getFullYear());
     $("#mdW").textContent = wdJP[d.getDay()] + "曜日";
-  })(today);
+  })(new Date());
 
-  // Nav: Calendar (today)
-  (function(){ const iso = new Date().toISOString().slice(0,10); $("#openCal").href = `./Calendar.html?date=${iso}`; })();
+  // Calendar link enhancement (but default href already works)
+  (function(){ const el=$("#openCal"); const iso=new Date().toISOString().slice(0,10); el.href = `./Calendar.html?date=${iso}`; })();
 
   // Storage helpers
   const KEY = "evening_logs_v2";
   const loadAll = () => JSON.parse(localStorage.getItem(KEY)||"[]");
   const saveAll = arr => localStorage.setItem(KEY, JSON.stringify(arr));
   const loadLog = key => loadAll().find(x=>x.date===key) || null;
-  const upsert = payload => {
-    const rest = loadAll().filter(x=>x.date!==payload.date);
-    saveAll([payload, ...rest].sort((a,b)=> (a.date<b.date?1:-1)));
-  };
+  const upsert = payload => { const rest = loadAll().filter(x=>x.date!==payload.date); saveAll([payload, ...rest].sort((a,b)=> (a.date<b.date?1:-1))); };
 
   // ---------- Mood/Condition chips ----------
   const moods = ["最高","良い","普通","いまいち","しんどい"];
@@ -196,49 +195,39 @@ document.addEventListener('DOMContentLoaded', function(){
     diaryGood: "", diaryNext: "", diaryFree: ""
   };
 
-  function renderSingleChips(rootSel, items, getter, setter){
+  // Build chips once (no full re-render; avoids empty states)
+  function buildSingleChips(rootSel, items, getter, setter){
     const root = $(rootSel); root.innerHTML="";
     items.forEach(txt=>{
-      const b=document.createElement('button');
-      b.className='chip'; b.textContent=txt;
+      const b=document.createElement('button'); b.className='chip'; b.textContent=txt;
       if(getter()===txt) b.classList.add('on');
-      b.addEventListener('click', ()=>{
-        setter(getter()===txt ? "" : txt);
-        renderSingleChips(rootSel, items, getter, setter);
-        autoSave();
-      });
+      b.addEventListener('click', ()=>{ const val = getter()===txt ? "" : txt; setter(val); updateSingleChips(root, items, getter); autoSave(); });
       root.appendChild(b);
     });
   }
-  function renderMultiChips(rootSel, items, getter, setter){
+  function updateSingleChips(root, items, getter){
+    [...root.children].forEach(btn=>{ btn.classList.toggle('on', getter()===btn.textContent); });
+  }
+  function buildMultiChips(rootSel, items, getter, setter){
     const root = $(rootSel); root.innerHTML="";
     items.forEach(txt=>{
-      const b=document.createElement('button');
-      b.className='chip'; b.textContent=txt;
-      if(getter().includes(txt)) b.classList.add('on');
+      const b=document.createElement('button'); b.className='chip'; b.textContent=txt;
+      b.classList.toggle('on', getter().includes(txt));
       b.addEventListener('click', ()=>{
-        const arr = getter().slice();
-        const i = arr.indexOf(txt);
+        const arr = getter().slice(); const i = arr.indexOf(txt);
         if(i>-1) arr.splice(i,1); else arr.push(txt);
-        setter(arr);
-        b.classList.toggle('on');
-        autoSave();
+        setter(arr); b.classList.toggle('on'); autoSave();
       });
       root.appendChild(b);
     });
   }
-
-  renderSingleChips("#moodChips", moods, ()=>state.mood, v=>{state.mood=v;});
-  renderMultiChips("#condChips", conds, ()=>state.condSel, v=>{state.condSel=v;});
+  buildSingleChips("#moodChips", moods, ()=>state.mood, v=>{state.mood=v;});
+  buildMultiChips("#condChips", conds, ()=>state.condSel, v=>{state.condSel=v;});
 
   // Wire checkboxes (habits + rituals)
   const bind = (sel, obj, key) => $(sel).addEventListener("change",()=>{ obj[key] = $(sel).checked; autoSave(); });
-  bind("#h_bath", state.habits, "bath"); bind("#h_teeth", state.habits, "teeth"); bind("#h_skin", state.habits, "skin");
-  bind("#h_hair", state.habits, "hair"); bind("#h_special", state.habits, "special"); bind("#h_tomorrow", state.habits, "tomorrow");
-  bind("#r_rollerBreath", state.ritual, "rollerBreath");
-  bind("#r_child",        state.ritual, "child");
-  bind("#r_ear",          state.ritual, "ear");
-  bind("#r_breath",       state.ritual, "breath");
+  ["bath","teeth","skin","hair","special","tomorrow"].forEach((k,i)=> bind(["#h_bath","#h_teeth","#h_skin","#h_hair","#h_special","#h_tomorrow"][i], state.habits, k));
+  ["rollerBreath","child","ear","breath"].forEach((k,i)=> bind(["#r_rollerBreath","#r_child","#r_ear","#r_breath"][i], state.ritual, k));
 
   // Wire diary fields
   ["Good","Next","Free"].forEach(k=>{
@@ -290,18 +279,17 @@ document.addEventListener('DOMContentLoaded', function(){
     });
   }
 
-  // Weather/pressure with robust fallbacks + watchdog
+  // Weather/pressure
   const WX_KEY = "evening_last_geo";
   function setLastGeo(lat, lon){ try{ localStorage.setItem(WX_KEY, JSON.stringify({lat,lon,ts:Date.now()})); }catch(e){} }
   function getLastGeo(){ try{ return JSON.parse(localStorage.getItem(WX_KEY)||"null"); }catch(e){ return null; } }
-  function parseParamFloat(name){ const v=new URLSearchParams(location.search).get(name); return v?parseFloat(v):null; }
   const TOKYO = {lat:35.681236, lon:139.767125};
-
   const iconEl=$("#wxIcon"), textEl=$("#wxText");
+
   function wxIcon(code){ if(code>=61&&code<=65) return "🌧️"; if(code===0||code===1) return "☀️"; if(code===2) return "🌤️"; if(code===3) return "☁️"; return "🌦️"; }
   function wxText(code){ const map={0:"快晴",1:"晴れ",2:"薄曇り",3:"曇り",45:"霧",48:"霧氷",51:"弱い霧雨",53:"霧雨",55:"強い霧雨",61:"弱い雨",63:"雨",65:"強い雨",71:"弱い雪",73:"雪",75:"大雪",95:"雷雨"}; return map[code]||"—"; }
   function renderWx(){
-    if(!state.wx){ iconEl.textContent='⚠️'; textEl.textContent='天気/気圧の取得に失敗（位置情報を許可するか、?lat & ?lon を付けてください）'; return; }
+    if(!state.wx){ iconEl.textContent='⚠️'; textEl.textContent='天気/気圧の取得に失敗（📍ボタンで現在地を許可できます）'; return; }
     iconEl.textContent = wxIcon(state.wx.code);
     textEl.textContent = `${Math.round(state.wx.temp)}°C　${wxText(state.wx.code)}　気圧：${state.wx.pressure?Math.round(state.wx.pressure)+"hPa":"—"}`;
   }
@@ -320,23 +308,30 @@ document.addEventListener('DOMContentLoaded', function(){
       renderWx(); autoSave();
     }).catch(()=>{ renderWx(); });
   }
-  (function initWeather(){
-    let finished=false;
-    const watchdog = setTimeout(()=>{
-      if(!finished){ const last=getLastGeo(); fetchWx((last&&last.lat)||TOKYO.lat, (last&&last.lon)||TOKYO.lon); finished=true; }
-    }, 5000);
-    const qLat=parseParamFloat('lat'), qLon=parseParamFloat('lon');
-    if(qLat!=null && qLon!=null){ fetchWx(qLat, qLon); finished=true; clearTimeout(watchdog); return; }
+
+  function tryAutoWx(){
     if('geolocation' in navigator){
       navigator.geolocation.getCurrentPosition(
-        pos=>{ if(!finished){ fetchWx(pos.coords.latitude, pos.coords.longitude); finished=true; clearTimeout(watchdog);} },
-        ()=>{ if(!finished){ const last=getLastGeo(); fetchWx((last&&last.lat)||TOKYO.lat, (last&&last.lon)||TOKYO.lon); finished=true; clearTimeout(watchdog);} },
-        {enableHighAccuracy:false, timeout:4000}
+        pos=>fetchWx(pos.coords.latitude, pos.coords.longitude),
+        err=>{ const last=getLastGeo(); if(last){ fetchWx(last.lat,last.lon); } else { fetchWx(TOKYO.lat,TOKYO.lon); } },
+        {enableHighAccuracy:true, timeout:8000, maximumAge:600000}
       );
     }else{
-      const last=getLastGeo(); fetchWx((last&&last.lat)||TOKYO.lat, (last&&last.lon)||TOKYO.lon); finished=true; clearTimeout(watchdog);
+      const last=getLastGeo(); if(last){ fetchWx(last.lat,last.lon); } else { fetchWx(TOKYO.lat,TOKYO.lon); }
     }
-  })();
+  }
+  // manual button for iOS user gesture
+  $("#useGeo").addEventListener("click", ()=>{
+    if('geolocation' in navigator){
+      navigator.geolocation.getCurrentPosition(
+        pos=>fetchWx(pos.coords.latitude, pos.coords.longitude),
+        ()=>{ const last=getLastGeo(); if(last){ fetchWx(last.lat,last.lon); } else { fetchWx(TOKYO.lat,TOKYO.lon); } },
+        {enableHighAccuracy:true, timeout:10000, maximumAge:0}
+      );
+    }else{ fetchWx(TOKYO.lat,TOKYO.lon); }
+  });
+
+  tryAutoWx(); // kick off
 
   // hydrate today's saved
   const saved = loadLog(toKey(new Date()));
@@ -356,9 +351,8 @@ document.addEventListener('DOMContentLoaded', function(){
   [['#r_rollerBreath','ritual','rollerBreath'],['#r_child','ritual','child'],['#r_ear','ritual','ear'],['#r_breath','ritual','breath']]
     .forEach(([sel,grp,key])=>{ $(sel).checked = !!state[grp][key]; });
 
-  // initial render
-  renderSingleChips("#moodChips", moods, ()=>state.mood, v=>{state.mood=v;});
-  renderMultiChips("#condChips", conds, ()=>state.condSel, v=>{state.condSel=v;});
+  // initial renders
+  updateSingleChips($("#moodChips"), moods, ()=>state.mood);
   renderWx();
   renderHistory();
 
