@@ -12,7 +12,6 @@
   --card:#0f172a; --border:rgba(255,255,255,.12);
   --accent:#60a5fa; --accent-press:#3b82f6;
   --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.35);
-  --chip:#1e293b; --chip-on:#1d4ed8;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color: transparent}
 html,body{margin:0;height:100%}
@@ -20,12 +19,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Ar
 .container{max-width:900px;margin:0 auto;padding:16px 16px 92px}
 h1{margin:4px 0 10px;font-size:34px;line-height:1.2;font-weight:800}
 h2{margin:0 0 10px;font-size:20px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin:12px 0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35);padding:16px;margin:12px 0}
 .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .btn{appearance:none;border:1px solid var(--border);border-radius:14px;padding:12px 16px;background:rgba(255,255,255,.04);cursor:pointer;color:var(--fg);text-decoration:none;font-size:16px}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.primary:active{background:var(--accent-press)}
 .input, select, textarea{border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:rgba(255,255,255,.04);color:var(--fg);font-size:16px}
+select[multiple]{min-height:132px}
 textarea{width:100%;min-height:96px;resize:vertical}
 .small{font-size:13px;color:var(--muted)}
 .header{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:6px}
@@ -40,19 +40,12 @@ hr{border:none;border-top:1px solid var(--border);margin:12px 0}
 .historyItem{padding:10px;border:1px dashed var(--border);border-radius:12px;margin-top:8px}
 label.checkbox{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:16px}
 label.checkbox input{transform:scale(1.2)}
-
-/* 選択チップ（iPhoneで押しやすいサイズ） */
-.chips{display:flex;flex-wrap:wrap;gap:10px}
-.chip{padding:12px 16px;border-radius:999px;background:var(--chip);border:1px solid var(--border);cursor:pointer;font-size:16px}
-.chip.on{background:var(--chip-on);border-color:transparent}
-.chips:empty::after{content:"（ここに選択肢が表示されます）";color:var(--muted);font-size:14px}
-
-/* レイアウト細部 */
-#musicRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.wxIcon{font-size:24px}
-.wxLine{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+/* 天気表示大きめ */
+.wxLine{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.wxIcon{font-size:30px;line-height:1}
+#wxText{font-size:17px;font-weight:700}
 #useGeo{margin-left:4px}
-.hint{color:var(--muted);font-size:12px}
+#musicRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -61,9 +54,9 @@ label.checkbox input{transform:scale(1.2)}
       <div>
         <h1>🌙 Evening Dash</h1>
         <div class="bigdate">
-          <span class="md" id="mdM">08</span><span class="sep">/</span><span class="md" id="mdD">28</span>
-          <span class="y" id="mdY">2025</span>
-          <span class="wday" id="mdW">木曜日</span>
+          <span class="md" id="mdM">--</span><span class="sep">/</span><span class="md" id="mdD">--</span>
+          <span class="y" id="mdY">----</span>
+          <span class="wday" id="mdW">---</span>
         </div>
       </div>
       <div class="row">
@@ -85,26 +78,43 @@ label.checkbox input{transform:scale(1.2)}
       </div>
     </section>
 
-    <!-- ② 日記・記録（気圧+天気 自動取得） -->
+    <!-- ② 日記・記録 -->
     <section class="card" id="secDiary">
       <h2>② 日記・記録</h2>
 
-      <!-- 天気/気圧（最上段・自動取得） -->
+      <!-- 天気/気圧 -->
       <div id="wxRow" class="wxLine">
         <div id="wxIcon" class="wxIcon">⏳</div>
-        <div id="wxText" class="small">天気・気圧を取得中…</div>
+        <div id="wxText">天気・気圧を取得中…</div>
         <button id="useGeo" class="btn">📍 現在地で更新</button>
       </div>
-      <div class="hint">位置確認が出ないとき：iOS [設定]→[Safari]→[位置情報] を「許可」または「確認」に。</div>
 
       <hr>
 
-      <!-- 感情・体調 -->
-      <div>感情記録</div>
-      <div id="moodChips" class="chips" style="margin-bottom:8px"></div>
+      <!-- 感情（セレクト） -->
+      <div class="row" style="align-items:center">
+        <label for="moodSel" class="small">感情</label>
+        <select id="moodSel" class="input">
+          <option value="">（未選択）</option>
+          <option>最高</option>
+          <option>良い</option>
+          <option>普通</option>
+          <option>いまいち</option>
+          <option>しんどい</option>
+        </select>
+      </div>
 
-      <div>体調記録（複数可）</div>
-      <div id="condChips" class="chips"></div>
+      <!-- 体調（マルチセレクト） -->
+      <div class="row" style="align-items:flex-start">
+        <label for="condSel" class="small" style="padding-top:6px">体調（複数可）</label>
+        <select id="condSel" class="input" multiple>
+          <option>首・肩こり</option><option>頭痛</option><option>腹痛/お腹の張り</option><option>腰の張り/腰痛</option>
+          <option>自律神経の乱れ</option><option>胃腸弱め</option><option>むくみ</option><option>目の疲れ/ドライアイ</option>
+          <option>睡眠の質低下</option><option>冷え</option><option>喉の痛み</option><option>鼻水/鼻づまり</option>
+          <option>肌荒れ/かゆみ</option><option>花粉/アレルギー</option><option>だるさ/倦怠感</option><option>イライラ/不安</option>
+          <option>モチベ低下</option><option>PMS</option><option>生理</option>
+        </select>
+      </div>
 
       <hr>
 
@@ -133,13 +143,12 @@ label.checkbox input{transform:scale(1.2)}
       </div>
     </section>
 
-    <!-- ④ 操作（保存→音楽） -->
+    <!-- ④ 操作 -->
     <section class="card" id="secMusic">
       <h2>④ 操作</h2>
       <div id="musicRow">
         <button id="saveBtn" class="btn primary">💾 保存</button>
-        <a id="playMusicBtn" class="btn" href="https://music.youtube.com/playlist?list=PLUwMnSYvjfDQ9B8qPyifyyfonuhTY3C6y&si=6ssi1DGhphTAT_k7" target="_blank" rel="noopener">🎵 音楽を再生</a>
-        <span class="small">※ YouTube Music の睡眠プレイリストを開きます。</span>
+        <a id="playMusicBtn" class="btn" href="https://music.youtube.com/playlist?list=PLUwMnSYvjfDQ9B8qPyifyyfonuhTY3C6y" target="_blank" rel="noopener">🎵 音楽を再生</a>
       </div>
       <div id="goodnight" class="">😪 おやすみ</div>
     </section>
@@ -159,209 +168,171 @@ label.checkbox input{transform:scale(1.2)}
   </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function(){
-  const $ = s => document.querySelector(s);
-  const z2 = n => String(n).padStart(2,"0");
-  const tz = "Asia/Tokyo";
-  const wdJP = ["日","月","火","水","木","金","土"];
-  const toKey = d => d.toLocaleDateString("ja-JP",{timeZone:tz});
+(function(){
+  function z2(n){ n = Number(n)||0; return (n<10?"0":"")+n; }
+  function $(s){ return document.querySelector(s); }
 
-  // Header date
-  (function renderHeaderDate(d){
+  document.addEventListener("DOMContentLoaded", function(){
+    // 日付・カレンダー
+    var d=new Date();
     $("#mdM").textContent = z2(d.getMonth()+1);
     $("#mdD").textContent = z2(d.getDate());
-    $("#mdY").textContent = String(d.getFullYear());
-    $("#mdW").textContent = wdJP[d.getDay()] + "曜日";
-  })(new Date());
+    $("#mdY").textContent = d.getFullYear();
+    $("#mdW").textContent = ["日","月","火","水","木","金","土"][d.getDay()] + "曜日";
+    $("#openCal").href = "./Calendar.html?date=" + d.toISOString().slice(0,10);
 
-  // Calendar link enhancement
-  (function(){ const el=$("#openCal"); const iso=new Date().toISOString().slice(0,10); el.href = `./Calendar.html?date=${iso}`; })();
-
-  // Storage helpers
-  const KEY = "evening_logs_v2";
-  const loadAll = () => JSON.parse(localStorage.getItem(KEY)||"[]");
-  const saveAll = arr => localStorage.setItem(KEY, JSON.stringify(arr));
-  const loadLog = key => loadAll().find(x=>x.date===key) || null;
-  const upsert = payload => { const rest = loadAll().filter(x=>x.date!==payload.date); saveAll([payload, ...rest].sort((a,b)=> (a.date<b.date?1:-1))); };
-
-  // ---------- State ----------
-  const state = {
-    habits: { bath:false, teeth:false, skin:false, hair:false, special:false, tomorrow:false },
-    ritual: { rollerBreath:false, child:false, ear:false, breath:false },
-    mood: "", condSel: [],
-    wx: null,
-    diaryGood: "", diaryNext: "", diaryFree: ""
-  };
-
-  // ---------- Chips (build once) ----------
-  const moods = ["最高","良い","普通","いまいち","しんどい"];
-  const conds = ["首・肩こり","頭痛","腹痛/お腹の張り","腰の張り/腰痛","自律神経の乱れ","胃腸弱め","むくみ","目の疲れ/ドライアイ","睡眠の質低下","冷え","喉の痛み","鼻水/鼻づまり","肌荒れ/かゆみ","花粉/アレルギー","だるさ/倦怠感","イライラ/不安","モチベ低下","PMS","生理"];
-
-  function buildSingleChips(rootSel){
-    const root = $(rootSel); root.innerHTML="";
-    moods.forEach(txt=>{
-      const b=document.createElement('button'); b.className='chip'; b.textContent=txt;
-      b.addEventListener('click', ()=>{ state.mood = (state.mood===txt ? "" : txt); updateSingleChips(root); autoSave(); });
-      root.appendChild(b);
-    });
-    updateSingleChips(root);
-  }
-  function updateSingleChips(root){
-    Array.from(root.children).forEach(btn=>{ btn.classList.toggle('on', state.mood===btn.textContent); });
-  }
-  function buildMultiChips(rootSel){
-    const root = $(rootSel); root.innerHTML="";
-    conds.forEach(txt=>{
-      const b=document.createElement('button'); b.className='chip'; b.textContent=txt;
-      b.addEventListener('click', ()=>{
-        const i = state.condSel.indexOf(txt);
-        if(i>-1) state.condSel.splice(i,1); else state.condSel.push(txt);
-        b.classList.toggle('on'); autoSave();
-      });
-      root.appendChild(b);
-    });
-    updateMultiChips(root);
-  }
-  function updateMultiChips(root){
-    Array.from(root.children).forEach(btn=>{ btn.classList.toggle('on', state.condSel.includes(btn.textContent)); });
-  }
-
-  buildSingleChips("#moodChips");
-  buildMultiChips("#condChips");
-
-  // Wire checkboxes (habits + rituals)
-  const bind = (sel, obj, key) => $(sel).addEventListener("change",()=>{ obj[key] = $(sel).checked; autoSave(); });
-  ["bath","teeth","skin","hair","special","tomorrow"].forEach((k,i)=> bind(["#h_bath","#h_teeth","#h_skin","#h_hair","#h_special","#h_tomorrow"][i], state.habits, k));
-  ["rollerBreath","child","ear","breath"].forEach((k,i)=> bind(["#r_rollerBreath","#r_child","#r_ear","#r_breath"][i], state.ritual, k));
-
-  // Wire diary fields
-  ["Good","Next","Free"].forEach(k=>{ const id="#diary"+k; $(id).addEventListener("input", ()=>{ state["diary"+k] = $(id).value; autoSave(); }); });
-
-  // Save/history
-  function currentKey(){ return new Date().toLocaleDateString("ja-JP",{timeZone:tz}); }
-  function saveNow(){
-    const payload = {
-      date: currentKey(),
-      habits: state.habits, ritual: state.ritual,
-      mood: state.mood, condSel: state.condSel,
-      wx: state.wx,
-      diaryGood: state.diaryGood, diaryNext: state.diaryNext, diaryFree: state.diaryFree,
-      ts: Date.now()
-    };
-    upsert(payload); renderHistory();
-  }
-  let t=null; function autoSave(){ clearTimeout(t); t=setTimeout(saveNow, 200); }
-  $("#saveBtn").addEventListener("click", ()=>{ saveNow(); alert("保存しました"); });
-
-  function renderHistory(){
-    const root = $("#history"); const logs = loadAll(); root.innerHTML="";
-    if(!logs.length){ root.innerHTML = '<div class="small">まだ記録がありません</div>'; return; }
-    logs.forEach(l=>{
-      const box = document.createElement("div"); box.className="historyItem";
-      const lines = [];
-      lines.push(`<b>${l.date}</b>`);
-      const h = l.habits||{}; const r=l.ritual||{};
-      const htxt = Object.entries({お風呂:"bath",歯磨き:"teeth",スキンケア:"skin",ハンド/ヘア:"hair",スペシャルケア:"special",明日の準備:"tomorrow"})
-        .filter(([k,v]) => h[v]).map(([k])=>k).join(" / ") || "—";
-      const rtxt = Object.entries({
-        "ローラー呼吸":"rollerBreath",
-        "チャイルドポーズ":"child",
-        "耳まわし":"ear",
-        "肩すくめ呼吸":"breath"
-      }).filter(([k,v]) => r[v]).map(([k])=>k).join(" / ") || "—";
-      const press = (l.wx && l.wx.pressure!=null) ? Math.round(l.wx.pressure)+"hPa" : "—";
-      const wtemp = (l.wx && l.wx.temp!=null) ? Math.round(l.wx.temp)+"°C" : "—";
-      lines.push(`習慣：${htxt}　入眠儀式：${rtxt}`);
-      lines.push(`感情：${l.mood||"—"}　体調：${(l.condSel||[]).join("、")||"—"}　天気：${wtemp}・気圧：${press}`);
-      if(l.diaryGood) lines.push(`<div class="small">良かった：${l.diaryGood.replace(/\n/g," / ")}</div>`);
-      if(l.diaryNext) lines.push(`<div class="small">明日：${l.diaryNext}</div>`);
-      if(l.diaryFree) lines.push(`<div class="small">メモ：${l.diaryFree.replace(/\n/g," / ")}</div>`);
-      box.innerHTML = lines.join("<br>");
-      root.appendChild(box);
-    });
-  }
-
-  // Weather/pressure
-  const WX_KEY = "evening_last_geo";
-  function setLastGeo(lat, lon){ try{ localStorage.setItem(WX_KEY, JSON.stringify({lat,lon,ts:Date.now()})); }catch(e){} }
-  function getLastGeo(){ try{ return JSON.parse(localStorage.getItem(WX_KEY)||"null"); }catch(e){ return null; } }
-  const TOKYO = {lat:35.681236, lon:139.767125};
-  const iconEl=$("#wxIcon"), textEl=$("#wxText");
-
-  function wxIcon(code){ if(code>=61&&code<=65) return "🌧️"; if(code===0||code===1) return "☀️"; if(code===2) return "🌤️"; if(code===3) return "☁️"; return "🌦️"; }
-  function wxText(code){ const map={0:"快晴",1:"晴れ",2:"薄曇り",3:"曇り",45:"霧",48:"霧氷",51:"弱い霧雨",53:"霧雨",55:"強い霧雨",61:"弱い雨",63:"雨",65:"強い雨",71:"弱い雪",73:"雪",75:"大雪",95:"雷雨"}; return map[code]||"—"; }
-  function renderWx(){
-    if(!state.wx){ iconEl.textContent='⚠️'; textEl.textContent='天気/気圧の取得に失敗（📍ボタンで現在地を許可できます）'; return; }
-    iconEl.textContent = wxIcon(state.wx.code);
-    textEl.textContent = `${Math.round(state.wx.temp)}°C　${wxText(state.wx.code)}　気圧：${state.wx.pressure?Math.round(state.wx.pressure)+"hPa":"—"}`;
-  }
-  function fetchWx(lat, lon){
-    setLastGeo(lat, lon);
-    const u=new URL('https://api.open-meteo.com/v1/forecast');
-    u.searchParams.set('latitude', lat); u.searchParams.set('longitude', lon);
-    u.searchParams.set('current_weather','true');
-    u.searchParams.set('hourly','pressure_msl');
-    u.searchParams.set('timezone', tz);
-    fetch(u.toString()).then(r=>r.json()).then(data=>{
-      const c=data.current_weather||{};
-      const times=(data.hourly&&data.hourly.time)||[]; const idx=times.indexOf(c.time);
-      const p = (idx>-1 && data.hourly.pressure_msl) ? data.hourly.pressure_msl[idx] : null;
-      state.wx = { temp:c.temperature, wind:c.windspeed, code:c.weathercode, pressure:p };
-      renderWx(); autoSave();
-    }).catch(()=>{ renderWx(); });
-  }
-
-  function tryAutoWx(){
-    const last=getLastGeo();
-    if('geolocation' in navigator){
-      navigator.geolocation.getCurrentPosition(
-        pos=>fetchWx(pos.coords.latitude, pos.coords.longitude),
-        ()=>{ if(last){ fetchWx(last.lat,last.lon); } else { fetchWx(TOKYO.lat,TOKYO.lon); } },
-        {enableHighAccuracy:true, timeout:6000, maximumAge:600000}
-      );
-    }else{
-      if(last){ fetchWx(last.lat,last.lon); } else { fetchWx(TOKYO.lat,TOKYO.lon); }
+    // Storage（夜だけ独立）
+    var KEY="evening_logs_select_v1";
+    function loadAll(){ try{ var v=localStorage.getItem(KEY); return v?JSON.parse(v):[]; }catch(e){ return []; } }
+    function saveAll(arr){ try{ localStorage.setItem(KEY, JSON.stringify(arr)); }catch(e){} }
+    function upsert(payload){
+      var list = loadAll(); var i=-1;
+      for(var k=0;k<list.length;k++){ if(list[k].date===payload.date){ i=k; break; } }
+      if(i>-1){ list[i]=payload; } else { list.unshift(payload); }
+      list.sort(function(a,b){ return a.date<b.date?1:-1; });
+      saveAll(list);
     }
-  }
-  $("#useGeo").addEventListener("click", ()=>{
-    if('geolocation' in navigator){
-      navigator.geolocation.getCurrentPosition(
-        pos=>fetchWx(pos.coords.latitude, pos.coords.longitude),
-        ()=>{ const last=getLastGeo(); if(last){ fetchWx(last.lat,last.lon); } else { fetchWx(TOKYO.lat,TOKYO.lon); } },
-        {enableHighAccuracy:true, timeout:10000, maximumAge:0}
-      );
-    }else{ fetchWx(TOKYO.lat,TOKYO.lon); }
+    function toKey(dt){ return dt.toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo"}); }
+
+    // State
+    var state = {
+      habits:{bath:false,teeth:false,skin:false,hair:false,special:false,tomorrow:false},
+      ritual:{rollerBreath:false,child:false,ear:false,breath:false},
+      mood:"",
+      condSel:[],
+      wx:null,
+      diaryGood:"", diaryNext:"", diaryFree:""
+    };
+
+    // Bind selects
+    var moodSel=$("#moodSel");
+    var condSel=$("#condSel");
+    if(moodSel){ moodSel.addEventListener("change", function(){ state.mood = moodSel.value; autoSave(); }); }
+    if(condSel){ condSel.addEventListener("change", function(){
+      state.condSel = []; for(var i=0;i<condSel.options.length;i++){ var op=condSel.options[i]; if(op.selected) state.condSel.push(op.value); } autoSave();
+    }); }
+
+    // Checkbox binds
+    function bind(sel, obj, key){ var el=$(sel); if(!el) return; el.addEventListener("change", function(){ obj[key]=el.checked; autoSave(); }); }
+    var hb=["bath","teeth","skin","hair","special","tomorrow"];
+    var hs=["#h_bath","#h_teeth","#h_skin","#h_hair","#h_special","#h_tomorrow"];
+    for(var i=0;i<hb.length;i++) bind(hs[i], state.habits, hb[i]);
+    var rb=["rollerBreath","child","ear","breath"];
+    var rs=["#r_rollerBreath","#r_child","#r_ear","#r_breath"];
+    for(var i=0;i<rb.length;i++) bind(rs[i], state.ritual, rb[i]);
+
+    // Diary
+    ["Good","Next","Free"].forEach(function(k){
+      var el=$("#diary"+k);
+      if(el) el.addEventListener("input", function(){ state["diary"+k] = el.value; autoSave(); });
+    });
+
+    // Save & history
+    function saveNow(){
+      var payload = {
+        date: toKey(new Date()),
+        habits: state.habits, ritual: state.ritual,
+        mood: state.mood, condSel: state.condSel.slice(0),
+        wx: state.wx,
+        diaryGood: state.diaryGood, diaryNext: state.diaryNext, diaryFree: state.diaryFree,
+        ts: Date.now()
+      };
+      upsert(payload); renderHistory();
+    }
+    var t=null; function autoSave(){ if(t) clearTimeout(t); t=setTimeout(saveNow, 200); }
+    var saveBtn=$("#saveBtn"); if(saveBtn) saveBtn.addEventListener("click", function(){ saveNow(); alert("保存しました"); });
+
+    function renderHistory(){
+      var root=$("#history"); if(!root) return;
+      var logs = loadAll(); root.innerHTML="";
+      if(!(logs && logs.length)){ root.innerHTML='<div class="small">まだ記録がありません</div>'; return; }
+      for(var i=0;i<logs.length;i++){
+        var l=logs[i];
+        var box=document.createElement("div"); box.className="historyItem";
+        var h=l.habits||{}, r=l.ritual||{};
+        function on(o,k){ return o && o[k]; }
+        var htxt = (on(h,"bath")?"お風呂 / ":"") + (on(h,"teeth")?"歯磨き / ":"") + (on(h,"skin")?"スキンケア / ":"") + (on(h,"hair")?"ハンド/ヘア / ":"") + (on(h,"special")?"スペシャル / ":"") + (on(h,"tomorrow")?"明日準備":"");
+        if(htxt.replace(/\s|\/|　/g,"")==="") htxt="—";
+        var rtxt = (on(r,"rollerBreath")?"ローラー呼吸 / ":"") + (on(r,"child")?"チャイルドポーズ / ":"") + (on(r,"ear")?"耳まわし / ":"") + (on(r,"breath")?"肩すくめ呼吸":"");
+        if(rtxt.replace(/\s|\/|　/g,"")==="") rtxt="—";
+        var press = (l.wx && l.wx.pressure!=null) ? Math.round(l.wx.pressure)+"hPa" : "—";
+        var wtemp = (l.wx && l.wx.temp!=null) ? Math.round(l.wx.temp)+"°C" : "—";
+        var html = "<b>"+l.date+"</b><br>"+
+          "習慣："+htxt+"　入眠儀式："+rtxt+"<br>"+
+          "感情："+(l.mood||"—")+"　体調："+((l.condSel||[]).join("、")||"—")+"　天気："+wtemp+"・気圧："+press;
+        if(l.diaryGood) html += "<br><div class='small'>良かった："+l.diaryGood.replace(/\n/g," / ")+"</div>";
+        if(l.diaryNext) html += "<br><div class='small'>明日："+l.diaryNext+"</div>";
+        if(l.diaryFree) html += "<br><div class='small'>メモ："+l.diaryFree.replace(/\n/g," / ")+"</div>";
+        box.innerHTML = html;
+        root.appendChild(box);
+      }
+    }
+
+    // Hydrate today's saved
+    (function hydrate(){
+      var logs = loadAll(); var key = toKey(new Date()); var saved=null;
+      for(var i=0;i<logs.length;i++){ if(logs[i].date===key){ saved=logs[i]; break; } }
+      if(saved){
+        var k;
+        for(k in saved.habits){ if(saved.habits.hasOwnProperty(k)) state.habits[k]=!!saved.habits[k]; }
+        for(k in saved.ritual){ if(saved.ritual.hasOwnProperty(k)) state.ritual[k]=!!saved.ritual[k]; }
+        state.mood = saved.mood || "";
+        state.condSel = saved.condSel || [];
+        state.wx = saved.wx || null;
+        state.diaryGood = saved.diaryGood || "";
+        state.diaryNext = saved.diaryNext || "";
+        state.diaryFree = saved.diaryFree || "";
+        ["#h_bath","#h_teeth","#h_skin","#h_hair","#h_special","#h_tomorrow"].forEach(function(q){
+          var el=$(q); if(el){ var id=q.split("_")[1]; el.checked = !!state.habits[id]; }
+        });
+        var mapR={"#r_rollerBreath":"rollerBreath","#r_child":"child","#r_ear":"ear","#r_breath":"breath"};
+        for(var sel in mapR){ var el=$(sel); if(el) el.checked = !!state.ritual[mapR[sel]]; }
+        var moodSel=$("#moodSel"); if(moodSel){ moodSel.value = state.mood || ""; }
+        var condSel=$("#condSel"); if(condSel){
+          for(var i=0;i<condSel.options.length;i++){
+            condSel.options[i].selected = state.condSel.indexOf(condSel.options[i].value)>-1;
+          }
+        }
+      }
+      renderHistory();
+    })();
+
+    // 天気（auto + manual）
+    var TOKYO={lat:35.681236, lon:139.767125};
+    function wxIcon(code){ if(code>=61&&code<=65) return "🌧️"; if(code===0||code===1) return "☀️"; if(code===2) return "🌤️"; if(code===3) return "☁️"; return "🌦️"; }
+    function wxText(code){ var map={0:"快晴",1:"晴れ",2:"薄曇り",3:"曇り",45:"霧",48:"霧氷",51:"弱い霧雨",53:"霧雨",55:"強い霧雨",61:"弱い雨",63:"雨",65:"強い雨",71:"弱い雪",73:"雪",75:"大雪",95:"雷雨"}; return map[code]||"—"; }
+    function renderWx(obj){
+      var icon=$("#wxIcon"), text=$("#wxText");
+      if(!obj){ icon.textContent="⚠️"; text.textContent="天気/気圧の取得に失敗"; return; }
+      icon.textContent = wxIcon(obj.code);
+      text.textContent = Math.round(obj.temp)+"°C　"+wxText(obj.code)+"　気圧："+(obj.pressure!=null?Math.round(obj.pressure)+"hPa":"—");
+    }
+    function fetchWx(lat, lon){
+      var url="https://api.open-meteo.com/v1/forecast?latitude="+lat+"&longitude="+lon+"&current_weather=true&hourly=pressure_msl&timezone=Asia%2FTokyo";
+      return fetch(url).then(function(r){ return r.json(); }).then(function(data){
+        var c=data.current_weather||{};
+        var times=(data.hourly&&data.hourly.time)||[];
+        var pArr=(data.hourly&&data.hourly.pressure_msl)||[];
+        var idx=-1; for(var i=0;i<times.length;i++){ if(times[i]===c.time){ idx=i; break; } }
+        var p = (idx>-1 && pArr) ? pArr[idx] : null;
+        var out={ temp:c.temperature, wind:c.windspeed, code:c.weathercode, pressure:p };
+        state.wx = out; renderWx(out); autoSave(); return out;
+      }).catch(function(){ renderWx(null); });
+    }
+    function autoWx(){
+      if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(
+          function(pos){ fetchWx(pos.coords.latitude, pos.coords.longitude); },
+          function(){ fetchWx(TOKYO.lat, TOKYO.lon); },
+          {enableHighAccuracy:true, timeout:6000, maximumAge:600000}
+        );
+      }else{ fetchWx(TOKYO.lat, TOKYO.lon); }
+    }
+    $("#useGeo").addEventListener("click", function(){ autoWx(); });
+    autoWx();
+
   });
-
-  tryAutoWx(); // kick off
-
-  // hydrate today's saved
-  const saved = loadLog(toKey(new Date()));
-  if(saved){
-    Object.assign(state.habits, saved.habits||{});
-    Object.assign(state.ritual, saved.ritual||{});
-    state.mood = saved.mood||"";
-    state.condSel = saved.condSel||[];
-    state.wx = saved.wx||null;
-    state.diaryGood = saved.diaryGood||"";
-    state.diaryNext = saved.diaryNext||"";
-    state.diaryFree = saved.diaryFree||"";
-  }
-  // reflect checkboxes
-  [['#h_bath','habits','bath'],['#h_teeth','habits','teeth'],['#h_skin','habits','skin'],['#h_hair','habits','hair'],['#h_special','habits','special'],['#h_tomorrow','habits','tomorrow']]
-    .forEach(([sel,grp,key])=>{ $(sel).checked = !!state[grp][key]; });
-  [['#r_rollerBreath','ritual','rollerBreath'],['#r_child','ritual','child'],['#r_ear','ritual','ear'],['#r_breath','ritual','breath']]
-    .forEach(([sel,grp,key])=>{ $(sel).checked = !!state[grp][key]; });
-
-  // reflect chips after hydration
-  updateSingleChips(document.querySelector("#moodChips"));
-  updateMultiChips(document.querySelector("#condChips"));
-
-  // initial UI
-  renderWx();
-  renderHistory();
-
-}); // DOMContentLoaded
+})();
 </script>
 </body>
 </html>
