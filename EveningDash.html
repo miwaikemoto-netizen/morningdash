@@ -3,62 +3,62 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Evening Dash（夜の記録） v3</title>
+<title>Evening Dash（夜の記録） v3.1</title>
 <meta name="theme-color" content="#0b1220">
 <style>
 :root{
-  /* ダーク（ネイビー）テーマ */
   --bg:#090f1c; --bg2:#0b1220;
-  --fg:#e6edf7; --muted:#93a0b4;
-  --card:#0f172a; --border:rgba(255,255,255,.10);
+  --fg:#e6edf7; --muted:#a7b4c8;
+  --card:#0f172a; --border:rgba(255,255,255,.12);
   --accent:#60a5fa; --accent-press:#3b82f6;
   --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.35);
   --chip:#1e293b; --chip-on:#1d4ed8;
 }
-*{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--fg)}
+*{box-sizing:border-box;-webkit-tap-highlight-color: transparent}
+html,body{margin:0;height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--fg)}
 .container{max-width:900px;margin:0 auto;padding:16px 16px 92px}
-h1{margin:0 0 8px;font-size:28px}
+h1{margin:4px 0 10px;font-size:34px;line-height:1.2;font-weight:800}
 h2{margin:0 0 10px;font-size:20px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin:10px 0}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.btn{appearance:none;border:1px solid var(--border);border-radius:14px;padding:10px 14px;background:rgba(255,255,255,.04);cursor:pointer;color:var(--fg);text-decoration:none}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin:12px 0}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.btn{appearance:none;border:1px solid var(--border);border-radius:14px;padding:12px 16px;background:rgba(255,255,255,.04);cursor:pointer;color:var(--fg);text-decoration:none;font-size:16px}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn.primary:hover{background:var(--accent-press)}
-.input, select, textarea{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:rgba(255,255,255,.04);color:var(--fg);font-size:14px}
-textarea{width:100%;min-height:92px;resize:vertical}
-.small{font-size:12px;color:var(--muted)}
-.badge{border:1px solid var(--border);border-radius:999px;padding:6px 10px;font-size:12px;color:var(--muted)}
-.header{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.btn.primary:active{background:var(--accent-press)}
+.input, select, textarea{border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:rgba(255,255,255,.04);color:var(--fg);font-size:16px}
+textarea{width:100%;min-height:96px;resize:vertical}
+.small{font-size:13px;color:var(--muted)}
+.header{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:6px}
 .bigdate{display:flex;align-items:baseline;gap:6px}
-.bigdate .md{font-weight:800;font-size:40px}
-.bigdate .sep{font-size:28px;transform:translateY(-2px)}
+.bigdate .md{font-weight:800;font-size:42px}
+.bigdate .sep{font-size:30px;transform:translateY(-2px)}
 .bigdate .y{font-weight:700;font-size:16px;color:var(--muted)}
 .wday{font-weight:700}
 #goodnight{display:none;font-size:40px;text-align:center;margin-top:12px}
 footer{font-size:12px;color:var(--muted);margin-top:16px}
 hr{border:none;border-top:1px solid var(--border);margin:12px 0}
 .historyItem{padding:10px;border:1px dashed var(--border);border-radius:12px;margin-top:8px}
-label.checkbox{display:flex;align-items:center;gap:8px;cursor:pointer}
+label.checkbox{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:16px}
 label.checkbox input{transform:scale(1.2)}
 
-/* 選択チップ */
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{padding:8px 12px;border-radius:999px;background:var(--chip);border:1px solid var(--border);cursor:pointer;font-size:13px;color:var(--fg)}
+/* 選択チップ（iPhoneで押しやすいサイズ） */
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{padding:12px 16px;border-radius:999px;background:var(--chip);border:1px solid var(--border);cursor:pointer;font-size:16px}
 .chip.on{background:var(--chip-on);border-color:transparent}
+.chips:empty::after{content:"（ここに選択肢が表示されます）";color:var(--muted);font-size:14px}
 
 /* レイアウト細部 */
 #musicRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.hide{display:none !important}
-.ritual{display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:10px 14px}
-@media (max-width:640px){ .ritual{grid-template-columns:1fr} }
+.wxIcon{font-size:24px}
+.wxLine{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.badge{display:none} /* 以前の小さいバッジは非表示に */
 </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <div>
-        <div class="badge">Evening Dash</div>
+        <h1>🌙 Evening Dash（夜の記録）</h1>
         <div class="bigdate">
           <span class="md" id="mdM">08</span><span class="sep">/</span><span class="md" id="mdD">28</span>
           <span class="y" id="mdY">2025</span>
@@ -84,23 +84,23 @@ label.checkbox input{transform:scale(1.2)}
       </div>
     </section>
 
-    <!-- ② 日記・記録（気圧+天気を最上段に自動取得） -->
+    <!-- ② 日記・記録（気圧+天気 自動取得） -->
     <section class="card" id="secDiary">
       <h2>② 日記・記録</h2>
 
-      <!-- 自動取得ブロック（最上段） -->
-      <div id="wxRow" class="row">
-        <div id="wxIcon" style="font-size:22px">⏳</div>
-        <div id="wxTemp" class="small">天気・気圧を取得中…</div>
+      <!-- 天気/気圧（最上段・自動取得） -->
+      <div id="wxRow" class="wxLine">
+        <div id="wxIcon" class="wxIcon">⏳</div>
+        <div id="wxText" class="small">天気・気圧を取得中…</div>
       </div>
 
       <hr>
 
-      <!-- 感情（単一選択チップ）・体調（複数選択チップ） -->
-      <div class="small">感情記録</div>
+      <!-- 感情・体調（見出しは通常サイズに） -->
+      <div>感情記録</div>
       <div id="moodChips" class="chips" style="margin-bottom:8px"></div>
 
-      <div class="small">体調記録（複数可）</div>
+      <div>体調記録（複数可）</div>
       <div id="condChips" class="chips"></div>
 
       <hr>
@@ -119,20 +119,17 @@ label.checkbox input{transform:scale(1.2)}
       </div>
     </section>
 
-    <!-- ③ 入眠儀式（番号なしのチェック欄） -->
+    <!-- ③ 入眠儀式 -->
     <section class="card" id="secSleep">
       <h2>③ 入眠儀式</h2>
-
-      <div class="ritual">
+      <div class="row" style="align-items:flex-start">
         <label class="checkbox"><input type="checkbox" id="r_roll">フォームローラー</label>
-
         <label class="checkbox"><input type="checkbox" id="r_ear">耳まわし <span class="small">（前→後／上・中・下）</span></label>
-
         <label class="checkbox"><input type="checkbox" id="r_breath">肩すくめ呼吸 <span class="small">（吸=すくめる／吐=ストン）</span></label>
       </div>
     </section>
 
-    <!-- ④ 音楽・保存（保存は再生ボタンの隣） -->
+    <!-- ④ 音楽・保存 -->
     <section class="card" id="secMusic">
       <h2>④ 音楽・操作</h2>
       <div id="musicRow">
@@ -158,27 +155,23 @@ label.checkbox input{transform:scale(1.2)}
   </div>
 
 <script>
-(function(){
+document.addEventListener('DOMContentLoaded', function(){
   const $ = s => document.querySelector(s);
-  const $$ = s => Array.from(document.querySelectorAll(s));
   const z2 = n => String(n).padStart(2,"0");
   const tz = "Asia/Tokyo";
   const wdJP = ["日","月","火","水","木","金","土"];
   const toKey = d => d.toLocaleDateString("ja-JP",{timeZone:tz});
 
   // Header date
-  function renderHeaderDate(d){
+  const today = new Date();
+  (function renderHeaderDate(d){
     $("#mdM").textContent = z2(d.getMonth()+1);
     $("#mdD").textContent = z2(d.getDate());
     $("#mdY").textContent = String(d.getFullYear());
     $("#mdW").textContent = wdJP[d.getDay()] + "曜日";
-  }
+  })(today);
 
-  const today = new Date();
-  let currentKey = toKey(today);
-  renderHeaderDate(today);
-
-  // Nav: Calendar link = today
+  // Nav: Calendar (today)
   (function(){ const iso = new Date().toISOString().slice(0,10); $("#openCal").href = `./Calendar.html?date=${iso}`; })();
 
   // Storage helpers
@@ -199,35 +192,37 @@ label.checkbox input{transform:scale(1.2)}
     habits: { bath:false, teeth:false, skin:false, hair:false, special:false, tomorrow:false },
     ritual: { roll:false, ear:false, breath:false },
     mood: "", condSel: [],
-    wx: null, // {temp, wind, code, pressure}
+    wx: null,
     diaryGood: "", diaryNext: "", diaryFree: ""
   };
 
-  function chip(el){ el.classList.add('chip'); return el; }
-  function renderMood(){
-    const root=$("#moodChips"); root.innerHTML="";
-    moods.forEach(m=>{
-      const b=chip(document.createElement('button')); b.textContent=m;
-      if(state.mood===m) b.classList.add('on');
-      b.addEventListener('click',()=>{ state.mood = (state.mood===m?"":m); renderMood(); autoSave(); });
-      root.appendChild(b);
-    });
-  }
-  function renderCond(){
-    const root=$("#condChips"); root.innerHTML="";
-    conds.forEach(c=>{
-      const b=chip(document.createElement('button')); b.textContent=c;
-      if(state.condSel.includes(c)) b.classList.add('on');
-      b.addEventListener('click',()=>{
-        const i=state.condSel.indexOf(c);
-        if(i>-1) state.condSel.splice(i,1); else state.condSel.push(c);
-        b.classList.toggle('on');
-        autoSave();
+  function makeChips(rootSel, items, isSingle){
+    const root = $(rootSel); root.innerHTML = "";
+    items.forEach(txt=>{
+      const b=document.createElement('button');
+      b.className='chip'; b.textContent=txt;
+      b.addEventListener('click', ()=>{
+        if(isSingle){
+          if(state[rootSel]==txt){ state[rootSel]=""; } else { state[rootSel]=txt; }
+          // re-render single to reflect on/off
+          makeChips(rootSel, items, isSingle); autoSave();
+        }else{
+          const arr = state[rootSel] || (state[rootSel]=[]);
+          const i = arr.indexOf(txt);
+          if(i>-1) arr.splice(i,1); else arr.push(txt);
+          b.classList.toggle('on'); autoSave();
+        }
       });
+      // set initial on/off
+      if(isSingle ? state[rootSel]===txt : (state[rootSel]||[]).includes(txt)) b.classList.add('on');
       root.appendChild(b);
     });
   }
-  renderMood(); renderCond();
+  // bind mood/cond
+  Object.defineProperty(state, "#moodChips", { get(){ return state.mood; }, set(v){ state.mood=v; }});
+  Object.defineProperty(state, "#condChips", { get(){ return state.condSel; }, set(v){ state.condSel=v; }});
+  makeChips("#moodChips", moods, true);
+  makeChips("#condChips", conds, false);
 
   // Wire checkboxes (habits + rituals)
   const bind = (sel, obj, key) => $(sel).addEventListener("change",()=>{ obj[key] = $(sel).checked; autoSave(); });
@@ -235,15 +230,17 @@ label.checkbox input{transform:scale(1.2)}
   bind("#h_hair", state.habits, "hair"); bind("#h_special", state.habits, "special"); bind("#h_tomorrow", state.habits, "tomorrow");
   bind("#r_roll", state.ritual, "roll"); bind("#r_ear", state.ritual, "ear"); bind("#r_breath", state.ritual, "breath");
 
-  // Wire text fields
-  $("#diaryGood").addEventListener("input", ()=>{ state.diaryGood=$("#diaryGood").value; autoSave(); });
-  $("#diaryNext").addEventListener("input", ()=>{ state.diaryNext=$("#diaryNext").value; autoSave(); });
-  $("#diaryFree").addEventListener("input", ()=>{ state.diaryFree=$("#diaryFree").value; autoSave(); });
+  // Wire diary fields
+  ["Good","Next","Free"].forEach(k=>{
+    const id = "#diary"+k;
+    $(id).addEventListener("input", ()=>{ state["diary"+k] = $(id).value; autoSave(); });
+  });
 
   // Save/history
+  function currentKey(){ return toKey(new Date()); }
   function saveNow(){
     const payload = {
-      date: currentKey,
+      date: currentKey(),
       habits: state.habits, ritual: state.ritual,
       mood: state.mood, condSel: state.condSel,
       wx: state.wx,
@@ -279,15 +276,23 @@ label.checkbox input{transform:scale(1.2)}
     });
   }
 
-  // Weather/pressure via Open-Meteo
-  const wxIcon = $("#wxIcon"), wxTemp=$("#wxTemp");
-  function ico(code){ if(code>=61&&code<=65) return "🌧️"; if(code===0||code===1) return "☀️"; if(code===2) return "🌤️"; if(code===3) return "☁️"; return "🌦️"; }
-  function wxtxt(code){ const map={0:"快晴",1:"晴れ",2:"薄曇り",3:"曇り",45:"霧",48:"霧氷",51:"弱い霧雨",53:"霧雨",55:"強い霧雨",61:"弱い雨",63:"雨",65:"強い雨",71:"弱い雪",73:"雪",75:"大雪",95:"雷雨"}; return map[code]||"—"; }
-  function renderWx(){ if(!state.wx){ wxIcon.textContent='⚠️'; wxTemp.textContent='位置情報/天気の取得に失敗'; return; }
-    wxIcon.textContent = ico(state.wx.code);
-    wxTemp.textContent = `${Math.round(state.wx.temp)}°C　${wxtxt(state.wx.code)}　気圧：${state.wx.pressure?Math.round(state.wx.pressure)+"hPa":"—"}`;
+  // Weather/pressure with robust fallbacks (URL params > last-known > Tokyo)
+  const WX_KEY = "evening_last_geo";
+  function setLastGeo(lat, lon){ try{ localStorage.setItem(WX_KEY, JSON.stringify({lat,lon})); }catch(e){} }
+  function getLastGeo(){ try{ return JSON.parse(localStorage.getItem(WX_KEY)||"null"); }catch(e){ return null; } }
+  function parseParamFloat(name){ const v=new URLSearchParams(location.search).get(name); return v?parseFloat(v):null; }
+  const TOKYO = {lat:35.681236, lon:139.767125};
+
+  function wxIcon(code){ if(code>=61&&code<=65) return "🌧️"; if(code===0||code===1) return "☀️"; if(code===2) return "🌤️"; if(code===3) return "☁️"; return "🌦️"; }
+  function wxText(code){ const map={0:"快晴",1:"晴れ",2:"薄曇り",3:"曇り",45:"霧",48:"霧氷",51:"弱い霧雨",53:"霧雨",55:"強い霧雨",61:"弱い雨",63:"雨",65:"強い雨",71:"弱い雪",73:"雪",75:"大雪",95:"雷雨"}; return map[code]||"—"; }
+  function renderWx(){
+    const icon=$("#wxIcon"), text=$("#wxText");
+    if(!state.wx){ icon.textContent='⚠️'; text.textContent='天気/気圧の取得に失敗（位置情報を許可 or ?lat,?lon 指定で取得可能）'; return; }
+    icon.textContent = wxIcon(state.wx.code);
+    text.textContent = `${Math.round(state.wx.temp)}°C　${wxText(state.wx.code)}　気圧：${state.wx.pressure?Math.round(state.wx.pressure)+"hPa":"—"}`;
   }
   function fetchWx(lat, lon){
+    setLastGeo(lat, lon);
     const u=new URL('https://api.open-meteo.com/v1/forecast');
     u.searchParams.set('latitude', lat); u.searchParams.set('longitude', lon);
     u.searchParams.set('current_weather','true');
@@ -301,22 +306,28 @@ label.checkbox input{transform:scale(1.2)}
       renderWx(); autoSave();
     }).catch(()=>{ renderWx(); });
   }
-  if('geolocation' in navigator){
-    navigator.geolocation.getCurrentPosition(
-      pos=>fetchWx(pos.coords.latitude, pos.coords.longitude),
-      ()=>renderWx(),
-      {enableHighAccuracy:false, timeout:8000}
-    );
-  }else{ renderWx(); }
+  (function initWeather(){
+    const qLat=parseParamFloat('lat'), qLon=parseParamFloat('lon');
+    if(qLat!=null && qLon!=null){ fetchWx(qLat, qLon); return; }
+    if('geolocation' in navigator){
+      navigator.geolocation.getCurrentPosition(
+        pos=>fetchWx(pos.coords.latitude, pos.coords.longitude),
+        ()=>{ const last=getLastGeo(); if(last){ fetchWx(last.lat,last.lon); } else { fetchWx(TOKYO.lat,TOKYO.lon); } },
+        {enableHighAccuracy:false, timeout:6000}
+      );
+    }else{
+      const last=getLastGeo(); if(last){ fetchWx(last.lat,last.lon); } else { fetchWx(TOKYO.lat,TOKYO.lon); }
+    }
+  })();
 
-  // Goodnight (おまけ)
+  // Goodnight (optional fun)
   $("#playMusicBtn").addEventListener("click", ()=>{ $("#goodnight").style.display="block"; });
 
-  // Init (hydrate if saved)
-  const saved = loadLog(currentKey);
+  // hydrate today's saved
+  const saved = loadLog(toKey(new Date()));
   if(saved){
-    state.habits = Object.assign(state.habits, saved.habits||{});
-    state.ritual = Object.assign(state.ritual, saved.ritual||{});
+    Object.assign(state.habits, saved.habits||{});
+    Object.assign(state.ritual, saved.ritual||{});
     state.mood = saved.mood||"";
     state.condSel = saved.condSel||[];
     state.wx = saved.wx||null;
@@ -324,20 +335,17 @@ label.checkbox input{transform:scale(1.2)}
     state.diaryNext = saved.diaryNext||"";
     state.diaryFree = saved.diaryFree||"";
   }
-  // reflect UI
-  ['#h_bath','#h_teeth','#h_skin','#h_hair','#h_special','#h_tomorrow'].forEach((sel,i)=>{
-    const keys=['bath','teeth','skin','hair','special','tomorrow']; $(sel).checked = !!state.habits[keys[i]];
-  });
-  ['#r_roll','#r_ear','#r_breath'].forEach((sel,i)=>{
-    const keys=['roll','ear','breath']; $(sel).checked = !!state.ritual[keys[i]];
-  });
-  renderMood(); renderCond(); renderWx();
-  $("#diaryGood").value = state.diaryGood; $("#diaryNext").value = state.diaryNext; $("#diaryFree").value = state.diaryFree;
+  // reflect checkboxes
+  [['#h_bath','habits','bath'],['#h_teeth','habits','teeth'],['#h_skin','habits','skin'],['#h_hair','habits','hair'],['#h_special','habits','special'],['#h_tomorrow','habits','tomorrow']]
+    .forEach(([sel,grp,key])=>{ $(sel).checked = !!state[grp][key]; });
+  [['#r_roll','ritual','roll'],['#r_ear','ritual','ear'],['#r_breath','ritual','breath']]
+    .forEach(([sel,grp,key])=>{ $(sel).checked = !!state[grp][key]; });
 
-  // Reload button
-  $("#reloadBtn").addEventListener("click", renderHistory);
-  // initial history render
+  // initial render
+  renderWx();
   renderHistory();
-})();</script>
+
+}); // DOMContentLoaded
+</script>
 </body>
 </html>
