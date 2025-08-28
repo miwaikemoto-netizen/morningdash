@@ -122,7 +122,8 @@ label.checkbox input{transform:scale(1.2)}
     <section class="card" id="secSleep">
       <h2>③ 入眠儀式</h2>
       <div class="row" style="align-items:flex-start">
-        <label class="checkbox"><input type="checkbox" id="r_roll">フォームローラー</label>
+        <label class="checkbox"><input type="checkbox" id="r_rollerBreath">ローラー呼吸 <span class="small">（みぞおち下に置き呼吸　2〜3分）</span></label>
+        <label class="checkbox"><input type="checkbox" id="r_child">チャイルドポーズ <span class="small">（1〜2分）</span></label>
         <label class="checkbox"><input type="checkbox" id="r_ear">耳まわし <span class="small">（前→後／上・中・下）</span></label>
         <label class="checkbox"><input type="checkbox" id="r_breath">肩すくめ呼吸 <span class="small">（吸=すくめる／吐=ストン）</span></label>
       </div>
@@ -189,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
   const state = {
     habits: { bath:false, teeth:false, skin:false, hair:false, special:false, tomorrow:false },
-    ritual: { roll:false, ear:false, breath:false },
+    ritual: { rollerBreath:false, child:false, ear:false, breath:false },
     mood: "", condSel: [],
     wx: null,
     diaryGood: "", diaryNext: "", diaryFree: ""
@@ -234,7 +235,10 @@ document.addEventListener('DOMContentLoaded', function(){
   const bind = (sel, obj, key) => $(sel).addEventListener("change",()=>{ obj[key] = $(sel).checked; autoSave(); });
   bind("#h_bath", state.habits, "bath"); bind("#h_teeth", state.habits, "teeth"); bind("#h_skin", state.habits, "skin");
   bind("#h_hair", state.habits, "hair"); bind("#h_special", state.habits, "special"); bind("#h_tomorrow", state.habits, "tomorrow");
-  bind("#r_roll", state.ritual, "roll"); bind("#r_ear", state.ritual, "ear"); bind("#r_breath", state.ritual, "breath");
+  bind("#r_rollerBreath", state.ritual, "rollerBreath");
+  bind("#r_child",        state.ritual, "child");
+  bind("#r_ear",          state.ritual, "ear");
+  bind("#r_breath",       state.ritual, "breath");
 
   // Wire diary fields
   ["Good","Next","Free"].forEach(k=>{
@@ -268,8 +272,12 @@ document.addEventListener('DOMContentLoaded', function(){
       const h = l.habits||{}; const r=l.ritual||{};
       const htxt = Object.entries({お風呂:"bath",歯磨き:"teeth",スキンケア:"skin",ハンド/ヘア:"hair",スペシャルケア:"special",明日の準備:"tomorrow"})
         .filter(([k,v]) => h[v]).map(([k])=>k).join(" / ") || "—";
-      const rtxt = Object.entries({フォームローラー:"roll","耳まわし":"ear","肩すくめ呼吸":"breath"})
-        .filter(([k,v]) => r[v]).map(([k])=>k).join(" / ") || "—";
+      const rtxt = Object.entries({
+        "ローラー呼吸":"rollerBreath",
+        "チャイルドポーズ":"child",
+        "耳まわし":"ear",
+        "肩すくめ呼吸":"breath"
+      }).filter(([k,v]) => r[v]).map(([k])=>k).join(" / ") || "—";
       const press = (l.wx && l.wx.pressure!=null) ? Math.round(l.wx.pressure)+"hPa" : "—";
       const wtemp = (l.wx && l.wx.temp!=null) ? Math.round(l.wx.temp)+"°C" : "—";
       lines.push(`習慣：${htxt}　入眠儀式：${rtxt}`);
@@ -345,7 +353,7 @@ document.addEventListener('DOMContentLoaded', function(){
   // reflect checkboxes
   [['#h_bath','habits','bath'],['#h_teeth','habits','teeth'],['#h_skin','habits','skin'],['#h_hair','habits','hair'],['#h_special','habits','special'],['#h_tomorrow','habits','tomorrow']]
     .forEach(([sel,grp,key])=>{ $(sel).checked = !!state[grp][key]; });
-  [['#r_roll','ritual','roll'],['#r_ear','ritual','ear'],['#r_breath','ritual','breath']]
+  [['#r_rollerBreath','ritual','rollerBreath'],['#r_child','ritual','child'],['#r_ear','ritual','ear'],['#r_breath','ritual','breath']]
     .forEach(([sel,grp,key])=>{ $(sel).checked = !!state[grp][key]; });
 
   // initial render
