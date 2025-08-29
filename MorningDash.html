@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Morning Dash v24</title>
+<meta name="theme-color" content="#0b1220">
+<style>
+:root{
+  --bg:#090f1c; --bg2:#0b1220;
+  --fg:#e6edf7; --muted:#a7b4c8;
+  --card:#0f172a; --border:rgba(255,255,255,.12);
+  --accent:#60a5fa; --accent-press:#3b82f6;
+}
+/* Weather themes */
+body.theme-sunny{ --bg:#0b1220; --bg2:#13315c; }
+body.theme-cloudy{ --bg:#101522; --bg2:#1b2133; }
+body.theme-rain{ --bg:#0b1020; --bg2:#0e1730; }
+body.theme-snow{ --bg:#0a0f1a; --bg2:#16263d; }
+body.theme-storm{ --bg:#080b14; --bg2:#11182a; }
+*{box-sizing:border-box;-webkit-tap-highlight-color: transparent}
+html,body{margin:0;height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--fg);transition:background 0.5s ease}
+.container{max-width:900px;margin:0 auto;padding:16px 16px 92px}
+h1{margin:4px 0 4px;font-size:30px;line-height:1.2;font-weight:800;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+h2{margin:0 0 10px;font-size:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35);padding:16px;margin:12px 0}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.row.nw{flex-wrap:nowrap}
+.btn{appearance:none;border:1px solid var(--border);border-radius:14px;padding:8px 12px;background:rgba(255,255,255,.04);cursor:pointer;color:var(--fg);text-decoration:none;font-size:14px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:active{background:var(--accent-press)}
+.btn.small{padding:6px 10px;font-size:13px}
+.input, select, textarea{border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:rgba(255,255,255,.04);color:var(--fg);font-size:16px}
+select[multiple]{min-height:132px}
+textarea{width:100%;min-height:96px;resize:vertical}
+.small{font-size:13px;color:var(--muted)}
+.labelBig{font-size:15px;font-weight:600;margin-right:6px}
+.header{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.bigdate{display:flex;align-items:baseline;gap:8px}
+.bigdate .date{font-weight:800;font-size:32px}
+.bigdate .wday{font-weight:700}
+#year{font-size:16px;font-weight:400;color:var(--muted)}
+footer{font-size:12px;color:var(--muted);margin-top:16px}
+hr{border:none;border-top:1px solid var(--border);margin:12px 0}
+.historyItem{padding:10px;border:1px dashed var(--border);border-radius:12px;margin-top:8px}
+label.checkbox{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:16px}
+label.checkbox input{transform:scale(1.2)}
+.weatherTitle{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#wxMain{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.wxIcon{font-size:30px;line-height:1}
+#wxTemp{font-size:22px;font-weight:800}
+.wxLine{font-size:15px;font-weight:600;margin-top:6px}
+#navRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+/* コンパクト入力（スマホ1行対策） */
+.input.compact{width:120px}
+.input.compact.short{width:86px}
+@media (max-width:420px){ .input.compact{width:110px} .input.compact.short{width:78px} }
+</style>
+</head>
+<body class="theme-sunny">
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>☀️ Morning Dash <span id="year">2025</span></h1>
+        <div class="bigdate">
+          <span class="date" id="ymd">--/--</span>
+          <span class="wday" id="wday">---</span>
+        </div>
+      </div>
+      <div id="navRow">
+        <a href="./EveningDash.html" class="btn">🌙 夜の記録へ</a>
+        <a id="openCal" href="./Calendar.html" class="btn">📅 カレンダー</a>
+      </div>
+    </div>
+
+    <!-- ① 天気 -->
+    <section class="card" id="secWeather">
+      <div class="weatherTitle">
+        <h2>① 天気（自動取得）</h2>
+        <button id="useGeo" class="btn small">再取得</button>
+      </div>
+      <div id="wxMain">
+        <div id="wxIcon" class="wxIcon">⏳</div>
+        <div id="wxTemp">--°C</div>
+      </div>
+      <div id="wxLine1" class="wxLine">状況：—　降水確率：—</div>
+      <div id="wxLine2" class="wxLine">湿度：—　気圧：—</div>
+    </section>
+
+    <!-- ② 日記・記録 -->
+    <section class="card" id="secDiary">
+      <h2>② 日記・記録</h2>
+
+      <div class="row" style="align-items:center">
+        <label for="moodSel" class="labelBig">感情</label>
+        <select id="moodSel" class="input">
+          <option value="">（未選択）</option>
+          <option>最高</option><option>良い</option><option>普通</option><option>いまいち</option><option>しんどい</option>
+        </select>
+      </div>
+
+      <div class="row" style="align-items:flex-start">
+        <label for="condSel" class="labelBig">体調（複数可）</label>
+        <select id="condSel" class="input" multiple>
+          <option>首・肩こり</option><option>頭痛</option><option>腹痛/お腹の張り</option><option>腰の張り/腰痛</option>
+          <option>自律神経の乱れ</option><option>胃腸弱め</option><option>むくみ</option><option>目の疲れ/ドライアイ</option>
+          <option>睡眠の質低下</option><option>冷え</option><option>喉の痛み</option><option>鼻水/鼻づまり</option>
+          <option>肌荒れ/かゆみ</option><option>花粉/アレルギー</option><option>だるさ/倦怠感</option><option>イライラ/不安</option>
+          <option>モチベ低下</option><option>PMS</option><option>生理</option>
+        </select>
+      </div>
+
+      <!-- 睡眠（時間・分） -->
+      <div class="row nw">
+        <label class="labelBig" for="sleepH">睡眠</label>
+        <input id="sleepH" class="input compact short" type="number" min="0" placeholder="7">
+        <span>時間</span>
+        <input id="sleepM" class="input compact short" type="number" min="0" max="59" placeholder="30">
+        <span>分</span>
+      </div>
+
+      <!-- 体重 -->
+      <div class="row">
+        <label class="labelBig" for="weight">体重</label>
+        <input id="weight" class="input compact" type="number" step="0.1" placeholder="52.4">
+        <span>kg</span>
+      </div>
+      <!-- 体脂肪 -->
+      <div class="row">
+        <label class="labelBig" for="bodyFat">体脂肪</label>
+        <input id="bodyFat" class="input compact" type="number" step="0.1" placeholder="21.8">
+        <span>%</span>
+      </div>
+
+      <div style="margin-top:12px">
+        <label>📓 自由メモ</label>
+        <textarea id="freeMemo" placeholder="なんでもどうぞ"></textarea>
+      </div>
+    </section>
+
+    <!-- ③ 生活習慣チェック -->
+    <section class="card" id="secHabits">
+      <h2>③ 生活習慣チェック</h2>
+      <div class="row">
+        <label class="checkbox"><input type="checkbox" id="h_curtain"> カーテンを開ける</label>
+        <label class="checkbox"><input type="checkbox" id="h_bed"> 布団を直す</label>
+        <label class="checkbox"><input type="checkbox" id="h_change"> 着替えをする</label>
+        <label class="checkbox"><input type="checkbox" id="h_teeth"> 歯磨き</label>
+        <label class="checkbox"><input type="checkbox" id="h_skin"> スキンケア</label>
+        <label class="checkbox"><input type="checkbox" id="h_hair"> ヘアケア</label>
+      </div>
+    </section>
+
+    <!-- 💾 保存（③の下・履歴の上） -->
+    <section class="card" id="secSave">
+      <div class="row">
+        <button id="saveBtn" class="btn primary">💾 保存</button>
+      </div>
+      <div class="small">保存先：ブラウザ(localStorage)。同じURLならアップデートしても履歴は引き継がれます。</div>
+    </section>
+
+    <!-- 履歴 -->
+    <section class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2>履歴</h2>
+        <button id="reloadBtn" class="btn">再読込</button>
+      </div>
+      <div id="history"></div>
+    </section>
+  </div>
+
+<script>
+(function(){
+  function z2(n){ n = Number(n)||0; return (n<10?"0":"")+n; }
+  function $(s){ return document.querySelector(s); }
+  function nearestIndex(times, targetISO){
+    var best=-1, bestDiff=1e18; var t0 = new Date(targetISO).getTime();
+    for(var i=0;i<times.length;i++){ var dt=new Date(times[i]).getTime(); var d=Math.abs(dt - t0); if(d<bestDiff){ best=i; bestDiff=d; } }
+    return best;
+  }
+  function pressureTrend(pressArr, idx){
+    if(!(pressArr && pressArr.length) || idx<1) return "安定";
+    var prev = pressArr[idx-1], cur = pressArr[idx];
+    if(prev==null || cur==null) return "安定";
+    var diff = cur - prev;
+    if(diff > 1.5) return "上昇";
+    if(diff < -1.5) return "下降";
+    return "安定";
+  }
+  function themeFromCode(code){
+    if(code==null) return "theme-cloudy";
+    if(code>=95) return "theme-storm";
+    if(code>=71 && code<=86) return "theme-snow";
+    if((code>=61 && code<=67) || (code>=51 && code<=55)) return "theme-rain";
+    if(code===0 || code===1) return "theme-sunny";
+    if(code===2 || code===3 || code===45 || code===48) return "theme-cloudy";
+    return "theme-cloudy";
+  }
+  function applyTheme(code){
+    var cls = themeFromCode(code);
+    document.body.classList.remove("theme-sunny","theme-cloudy","theme-rain","theme-snow","theme-storm");
+    document.body.classList.add(cls);
+  }
+
+  document.addEventListener("DOMContentLoaded", function(){
+    // 日付
+    var d=new Date();
+    document.getElementById("year").textContent = d.getFullYear();
+    document.getElementById("ymd").textContent = z2(d.getMonth()+1)+"/"+z2(d.getDate());
+    document.getElementById("wday").textContent = ["日","月","火","水","木","金","土"][d.getDay()] + "曜日";
+    document.getElementById("openCal").href = "./Calendar.html?date=" + d.toISOString().slice(0,10);
+
+    // URLショートカット（sleepMin を H/Mに配分、体重・体脂肪）
+    var usp=new URLSearchParams(location.search);
+    if(usp.has("sleepMin")){
+      var sm=Number(usp.get("sleepMin"))||0;
+      document.getElementById("sleepH").value = Math.floor(sm/60);
+      document.getElementById("sleepM").value = sm%60;
+    }
+    if(usp.has("weight")) document.getElementById("weight").value = usp.get("weight");
+    if(usp.has("bodyFat")) document.getElementById("bodyFat").value = usp.get("bodyFat");
+
+    // Storage
+    var KEY="morning_logs_v24";
+    function loadAll(){ try{ var v=localStorage.getItem(KEY); return v?JSON.parse(v):[]; }catch(e){ return []; } }
+    function saveAll(arr){ try{ localStorage.setItem(KEY, JSON.stringify(arr)); }catch(e){} }
+    function toKey(dt){ return dt.toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo"}); }
+    function upsert(payload){
+      var list = loadAll(); var i=-1;
+      for(var k=0;k<list.length;k++){ if(list[k].date===payload.date){ i=k; break; } }
+      if(i>-1){ list[i]=payload; } else { list.unshift(payload); }
+      list.sort(function(a,b){ return a.date<b.date?1:-1; });
+      saveAll(list);
+    }
+
+    // State
+    var state = {
+      mood:"", condSel:[],
+      sleepH:"", sleepM:"", weight:"", bodyFat:"",
+      freeMemo:"",
+      habits:{ curtain:false, bed:false, change:false, teeth:false, skin:false, hair:false },
+      wx:null
+    };
+
+    // Binds
+    var moodSel=$("#moodSel"); if(moodSel) moodSel.addEventListener("change", function(){ state.mood = moodSel.value; autoSave(); });
+    var condSel=$("#condSel"); if(condSel) condSel.addEventListener("change", function(){
+      state.condSel = []; for(var i=0;i<condSel.options.length;i++){ var op=condSel.options[i]; if(op.selected) state.condSel.push(op.value); } autoSave();
+    });
+    ["sleepH","sleepM","weight","bodyFat","freeMemo"].forEach(function(id){
+      var el=$("#"+id); if(!el) return;
+      var evt = (id==="freeMemo")?"input":"change";
+      el.addEventListener(evt, function(){ state[id]=el.value; autoSave(); });
+    });
+    function bindCheck(id, key){ var el=$("#"+id); if(!el) return;
+      el.addEventListener("change", function(){ state.habits[key]=el.checked; autoSave(); });
+    }
+    bindCheck("h_curtain","curtain"); bindCheck("h_bed","bed"); bindCheck("h_change","change");
+    bindCheck("h_teeth","teeth"); bindCheck("h_skin","skin"); bindCheck("h_hair","hair");
+
+    // Save & history
+    function toMinutes(h,m){ h=Number(h)||0; m=Number(m)||0; return h*60+m; }
+    function saveNow(){
+      var payload = {
+        date: toKey(new Date()),
+        mood: state.mood, condSel: state.condSel.slice(0),
+        sleepMin: toMinutes(state.sleepH, state.sleepM),
+        weight: state.weight, bodyFat: state.bodyFat,
+        freeMemo: state.freeMemo, habits: state.habits,
+        wx: state.wx, ts: Date.now()
+      };
+      upsert(payload); renderHistory();
+    }
+    var t=null; function autoSave(){ if(t) clearTimeout(t); t=setTimeout(saveNow, 200); }
+    document.getElementById("saveBtn").addEventListener("click", function(){ saveNow(); alert("保存しました"); });
+    document.getElementById("reloadBtn").addEventListener("click", renderHistory);
+
+    function renderHistory(){
+      var root=$("#history"); if(!root) return;
+      var logs = loadAll(); root.innerHTML="";
+      if(!(logs && logs.length)){ root.innerHTML='<div class="small">まだ記録がありません</div>'; return; }
+      for(var i=0;i<logs.length;i++){
+        var l=logs[i];
+        var box=document.createElement("div"); box.className="historyItem";
+        var h=l.habits||{};
+        function on(o,k){ return o && o[k]; }
+        var htxt = (on(h,"curtain")?"カーテン / ":"") + (on(h,"bed")?"布団 / ":"") + (on(h,"change")?"着替え / ":"") + (on(h,"teeth")?"歯磨き / ":"") + (on(h,"skin")?"スキンケア / ":"") + (on(h,"hair")?"ヘアケア":"");
+        if(htxt.replace(/\s|\/|　/g,"")==="") htxt="—";
+        var press = (l.wx && l.wx.pressure!=null) ? Math.round(l.wx.pressure)+"hPa" : "—";
+        var hum = (l.wx && l.wx.humidity!=null) ? Math.round(l.wx.humidity)+"%" : "—";
+        var pprob = (l.wx && l.wx.pprob!=null) ? Math.round(l.wx.pprob)+"%" : "—";
+        var wtemp = (l.wx && l.wx.temp!=null) ? Math.round(l.wx.temp)+"°C" : "—";
+        var trend = l.wx && l.wx.trend || "—";
+        var html = "<b>"+l.date+"</b><br>"+
+          "感情："+(l.mood||"—")+"　体調："+((l.condSel||[]).join("、")||"—")+"<br>"+
+          "睡眠："+(l.sleepMin||"—")+"分　体重："+(l.weight||"—")+"kg　体脂肪："+(l.bodyFat||"—")+"%<br>"+
+          "天気："+wtemp+"・降水確率："+pprob+"・湿度："+hum+"・気圧："+press+" ["+trend+"]<br>"+
+          "習慣："+htxt;
+        if(l.freeMemo) html += "<br><div class='small'>メモ："+l.freeMemo.replace(/\n/g," / ")+"</div>";
+        box.innerHTML = html;
+        root.appendChild(box);
+      }
+    }
+
+    // 天気（温度/天候 + 湿度 + 気圧 + 降水確率 + 気圧傾向）＋背景テーマ
+    var TOKYO={lat:35.681236, lon:139.767125};
+    function wxIcon(code){ if(code>=95) return "⛈️"; if(code>=71&&code<=86) return "🌨️"; if(code>=61&&code<=67) return "🌧️"; if(code===0||code===1) return "☀️"; if(code===2) return "🌤️"; if(code===3) return "☁️"; return "🌦️"; }
+    function wxText(code){ var map={0:"快晴",1:"晴れ",2:"薄曇り",3:"曇り",45:"霧",48:"霧氷",51:"弱い霧雨",53:"霧雨",55:"強い霧雨",61:"弱い雨",63:"雨",65:"強い雨",71:"弱い雪",73:"雪",75:"大雪",95:"雷雨"}; return map[code]||"—"; }
+    function renderWx(obj){
+      var icon=$("#wxIcon"), temp=$("#wxTemp"), line1=$("#wxLine1"), line2=$("#wxLine2");
+      if(!obj){ icon.textContent="⚠️"; temp.textContent="--°C"; line1.textContent="状況：取得失敗　降水確率：—"; line2.textContent="湿度：—　気圧：—"; applyTheme(null); return; }
+      icon.textContent = wxIcon(obj.code);
+      temp.textContent = Math.round(obj.temp)+"°C";
+      line1.textContent = "状況："+wxText(obj.code)+"　降水確率："+(obj.pprob!=null?Math.round(obj.pprob)+"%":"—");
+      line2.textContent = "湿度："+(obj.humidity!=null?Math.round(obj.humidity)+"%":"—")+"　気圧："+(obj.pressure!=null?Math.round(obj.pressure)+"hPa":"—")+" ["+obj.trend+"]";
+      applyTheme(obj.code);
+    }
+    function fetchWx(lat, lon){
+      var url="https://api.open-meteo.com/v1/forecast?latitude="+lat+"&longitude="+lon+"&current_weather=true&hourly=pressure_msl,relative_humidity_2m,precipitation_probability&timezone=Asia%2FTokyo";
+      return fetch(url).then(function(r){ return r.json(); }).then(function(data){
+        var c=data.current_weather||{};
+        var times=(data.hourly&&data.hourly.time)||[];
+        var pArr=(data.hourly&&data.hourly.pressure_msl)||[];
+        var hArr=(data.hourly&&data.hourly.relative_humidity_2m)||[];
+        var prArr=(data.hourly&&data.hourly.precipitation_probability)||[];
+        var idx = (c.time && times && times.length) ? nearestIndex(times, c.time) : -1;
+        var p = (idx>-1 && pArr && pArr.length) ? pArr[idx] : null;
+        var h = (idx>-1 && hArr && hArr.length) ? hArr[idx] : null;
+        var pr = (idx>-1 && prArr && prArr.length) ? prArr[idx] : null;
+        var trend = (idx>-1) ? pressureTrend(pArr, idx) : "安定";
+        var out={ temp:c.temperature, code:c.weathercode, pressure:p, humidity:h, pprob:pr, trend:trend };
+        state.wx = out; renderWx(out); autoSave(); return out;
+      }).catch(function(){ renderWx(null); });
+    }
+    function autoWx(){
+      if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(
+          function(pos){ fetchWx(pos.coords.latitude, pos.coords.longitude); },
+          function(){ fetchWx(TOKYO.lat, TOKYO.lon); },
+          {enableHighAccuracy:true, timeout:6000, maximumAge:600000}
+        );
+      }else{ fetchWx(TOKYO.lat, TOKYO.lon); }
+    }
+    document.getElementById("useGeo").addEventListener("click", function(){ autoWx(); });
+    autoWx();
+
+    // 履歴初期描画
+    renderHistory();
+  });
+})();
+</script>
+</body>
+</html>
