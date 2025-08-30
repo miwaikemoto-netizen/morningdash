@@ -135,11 +135,35 @@ const TEMPLATE = {
   12:["庭木 定植ベスト","温州みかん 収穫","バラ 落葉処理→石灰硫黄合剤","寒肥準備","鉢物 防寒"]
 };
 const monthSel=document.getElementById('monthSel');
+// === 月→テーマ連動＆初期化 ===
+function applyTheme(){
+  // 月セレクトの値を <body data-month="..."> に反映
+  document.body.dataset.month = monthSel.value;
+}
+
+// 初期月：保存があればそれ、なければ今の月（9〜12の範囲）を採用
+(function initMonth(){
+  const now = new Date().getMonth() + 1; // 1-12
+  const saved = localStorage.getItem('gd_month');
+  if (saved) {
+    monthSel.value = saved;
+  } else {
+    monthSel.value = (now >= 9 && now <= 12) ? String(now) : '9';
+  }
+  applyTheme();
+  renderTasks();
+})();
+
+// 月変更時：保存→タスク更新→テーマ反映
+monthSel.addEventListener('change', () => {
+  localStorage.setItem('gd_month', monthSel.value);
+  renderTasks();
+  applyTheme();
+});
 const taskList=document.getElementById('taskList');
 function loadTasks(m){const raw=localStorage.getItem(TASK_KEY(m));if(raw){try{return JSON.parse(raw);}catch{}}return (TEMPLATE[m]||[]).map(l=>({label:l,done:false}));}
 function saveTasks(m,items){localStorage.setItem(TASK_KEY(m),JSON.stringify(items));}
 function renderTasks(){const m=parseInt(monthSel.value,10);const items=loadTasks(m);taskList.innerHTML="";items.forEach((t,i)=>{const li=document.createElement('li');const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!t.done;cb.onchange=()=>{const list=loadTasks(m);list[i].done=cb.checked;saveTasks(m,list);label.className=cb.checked?'line-through':''};const label=document.createElement('span');label.textContent=t.label;label.className=t.done?'line-through':'';li.appendChild(cb);li.appendChild(label);taskList.appendChild(li);});}
-monthSel.onchange=renderTasks;renderTasks();
 document.getElementById('addTaskBtn').onclick=()=>{const m=parseInt(monthSel.value,10);const label=prompt('追加するタスク:');if(!label)return;const list=loadTasks(m);list.push({label:label.trim(),done:false});saveTasks(m,list);renderTasks();};
 document.getElementById('resetChecksBtn').onclick=()=>{const m=parseInt(monthSel.value,10);if(!confirm('チェックを全て外しますか？'))return;const list=loadTasks(m).map(x=>({label:x.label,done:false}));saveTasks(m,list);renderTasks();};
 document.getElementById('restoreTplBtn').onclick=()=>{const m=parseInt(monthSel.value,10);if(!confirm('テンプレに戻しますか？'))return;const list=(TEMPLATE[m]||[]).map(l=>({label:l,done:false}));saveTasks(m,list);renderTasks();};
