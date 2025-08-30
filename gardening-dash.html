@@ -156,6 +156,7 @@ function applyTheme(){
 })();
 
 monthSel.addEventListener('change', () => {
+  document.body.dataset.month = monthSel.value;
   localStorage.setItem('gd_month', monthSel.value);
   renderTasks();
   applyTheme();
