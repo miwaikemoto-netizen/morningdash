@@ -5,41 +5,61 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gardening Dash｜9〜12月版（浜松）</title>
 <style>
-  :root{
-    --bg1:#0b1220; --bg2:#111827;
-    --card:#162034; --border:#2a3854;
-    --fg:#e6edf7; --muted:#a7b4c8;
-    --accent:#60a5fa;
-    --radius:14px; --shadow:0 10px 30px rgba(0,0,0,.35);
+  /* ===== 月ごとのテーマ色 ===== */
+  body.theme-auto[data-month="9"] {
+    --bg1:#f6f9f2; --bg2:#e9f0df;
+    --card:#ffffff; --border:#d4dec6;
+    --fg:#0f172a; --muted:#5b6b86;
+    --accent:#eab308;
   }
+  body.theme-auto[data-month="10"] {
+    --bg1:#fff7ed; --bg2:#ffe4c7;
+    --card:#ffffff; --border:#fcd7b3;
+    --fg:#3f2010; --muted:#885f4d;
+    --accent:#fb923c;
+  }
+  body.theme-auto[data-month="11"] {
+    --bg1:#f9f7fb; --bg2:#efe9f4;
+    --card:#ffffff; --border:#dbc8e7;
+    --fg:#2a132f; --muted:#7a637f;
+    --accent:#c084fc;
+  }
+  body.theme-auto[data-month="12"] {
+    --bg1:#f3f7fb; --bg2:#e4eff9;
+    --card:#ffffff; --border:#c6dbed;
+    --fg:#0f172a; --muted:#496078;
+    --accent:#3b82f6;
+  }
+
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  body{margin:0;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial}
+  body{margin:0;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:var(--fg);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial}
   .wrap{max-width:960px;margin:0 auto;padding:16px 20px 48px}
   header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin:8px 0 16px}
   h1{font-size:20px;margin:0}
   select, input, textarea, button{
-    background:#0f172a;color:var(--fg);border:1px solid var(--border);border-radius:10px;
+    background:#fff;color:var(--fg);border:1px solid var(--border);border-radius:10px;
     padding:10px 12px;font-size:14px;
   }
-  section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 14px;margin:14px 0}
+  section{background:var(--card);border:1px solid var(--border);border-radius:14px;
+          box-shadow:0 6px 16px rgba(0,0,0,.1);padding:14px 14px;margin:14px 0}
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .controls{display:flex;gap:8px;align-items:center}
+  .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .btn{cursor:pointer}
-  .btn.primary{background:#2563eb;border-color:#1d4ed8}
-  .btn.ghost{background:#0f172a;border-color:var(--border)}
+  .btn.primary{background:var(--accent); border-color:transparent; color:#fff; font-weight:600}
+  .btn.ghost{background:transparent;border:1px solid var(--border)}
   ul{list-style:none;margin:0;padding:0}
   li{display:flex;gap:10px;align-items:flex-start;margin:8px 0}
-  input[type=checkbox]{width:18px;height:18px;margin-top:2px;accent-color:#4f46e5}
-  .line-through{text-decoration:line-through;color:#98a2b3}
+  input[type=checkbox]{width:18px;height:18px;margin-top:2px;accent-color:var(--accent)}
+  .line-through{text-decoration:line-through;color:var(--muted)}
   table{width:100%;border-collapse:separate;border-spacing:0 8px}
-  th,td{padding:8px 10px;background:#0f172a;border:1px solid var(--border)}
-  th{font-weight:600;color:#cbd5e1}
-  td a{color:#93c5fd;text-decoration:underline}
+  th,td{padding:8px 10px;background:#fff;border:1px solid var(--border)}
+  th{font-weight:600;color:var(--fg)}
+  td a{color:var(--accent);text-decoration:underline}
   .hint{color:var(--muted);font-size:12px;margin-top:6px}
-  .section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 </style>
 </head>
-<body>
+<body class="theme-auto" data-month="9">
   <div class="wrap">
     <header>
       <h1>Gardening Dash｜2025 秋冬（浜松）</h1>
@@ -56,35 +76,33 @@
     </header>
 
     <section id="tasksSec">
-      <div class="section-title">
-        <h2 style="margin:0;font-size:18px">今月のチェックリスト</h2>
-        <div class="controls">
-          <button class="btn primary" id="addTaskBtn">タスク追加</button>
-          <button class="btn ghost" id="resetChecksBtn">全チェック解除</button>
-          <button class="btn ghost" id="restoreTplBtn" title="テンプレ初期値に戻す">テンプレに戻す</button>
-        </div>
-      </div>
+      <h2 style="margin:0 0 8px;font-size:18px">今月のチェックリスト</h2>
       <ul id="taskList"></ul>
-      <div class="hint">※ チェックや追加入力は自動保存（localStorage）。端末とブラウザごとに保存されます。</div>
+      <div class="controls" style="margin-top:6px">
+        <button class="btn primary" id="addTaskBtn">タスク追加</button>
+        <button class="btn ghost" id="resetChecksBtn">全チェック解除</button>
+        <button class="btn ghost" id="restoreTplBtn">テンプレに戻す</button>
+      </div>
+      <div class="hint">チェックや追加は自動保存（localStorage）。</div>
     </section>
 
     <section id="logSec">
       <h2 style="margin:0 0 8px;font-size:18px">日々の記録</h2>
-      <div class="row" style="gap:12px">
+      <div class="row">
         <label style="flex:1 1 200px">日付<br><input type="datetime-local" id="f_date"></label>
-        <label style="flex:1 1 200px">天気・気温<br><input type="text" id="f_weather" placeholder="例：晴れ 29℃"></label>
+        <label style="flex:1 1 200px">天気・気温<br><input type="text" id="f_weather"></label>
       </div>
-      <div class="row" style="gap:12px;margin-top:6px">
-        <label style="flex:1 1 240px">作業内容<br><textarea id="f_work" rows="2" placeholder="例：水やり／球根植付け 等"></textarea></label>
-        <label style="flex:1 1 240px">気づき<br><textarea id="f_memo" rows="2" placeholder="例：葉色が薄い／夕方は快適 等"></textarea></label>
+      <div class="row" style="margin-top:6px">
+        <label style="flex:1 1 240px">作業内容<br><textarea id="f_work" rows="2"></textarea></label>
+        <label style="flex:1 1 240px">気づき<br><textarea id="f_memo" rows="2"></textarea></label>
       </div>
-      <div class="row" style="gap:12px;margin-top:6px">
-        <label style="flex:1 1 180px">対象植物No.<br><input type="text" id="f_plant" placeholder="例：R-012"></label>
-        <label style="flex:1 1 320px">写真リンク<br><input type="url" id="f_photo" placeholder="https://..."></label>
+      <div class="row" style="margin-top:6px">
+        <label style="flex:1 1 180px">対象植物No.<br><input type="text" id="f_plant"></label>
+        <label style="flex:1 1 320px">写真リンク<br><input type="url" id="f_photo"></label>
       </div>
-      <div class="row" style="gap:8px;margin-top:10px">
+      <div class="row" style="margin-top:10px">
         <button class="btn primary" id="addLogBtn">追加</button>
-        <button class="btn ghost" id="exportBtn">CSVを書き出す</button>
+        <button class="btn ghost" id="exportBtn">CSV書き出し</button>
       </div>
 
       <div style="overflow:auto;margin-top:10px">
@@ -103,220 +121,42 @@
           <tbody></tbody>
         </table>
       </div>
-      <div class="hint">CSVの列順：日付, 天気・気温, 作業内容, 気づき, 対象植物No., 写真リンク</div>
-    </section>
-
-    <section>
-      <h3 style="margin:0 0 6px;font-size:16px">使い方（超ざっくり）</h3>
-      <ol style="margin:0 0 6px 18px;padding:0">
-        <li>上の「月」を選ぶ → 今月のチェックリストをポチポチ。</li>
-        <li>作業したら下の「日々の記録」にサッと入力 → 追加。</li>
-        <li>まとめたい時は「CSVを書き出す」。</li>
-      </ol>
-      <div class="hint">GitHubに置くときは、このファイルを <code>gardening-dash.html</code> として追加すればOK（Pagesを有効化するとURLで開けます）。</div>
     </section>
   </div>
 
 <script>
-// ===== 基本設定 =====
-const YEAR = new Date().getFullYear(); // 今年
-const MONTHS = [9,10,11,12];
+const YEAR = new Date().getFullYear();
 const TASK_KEY = (m)=>`gd_tasks_${YEAR}_${m}`;
 const LOG_KEY = ()=>`gd_logs_${YEAR}`;
-
-// 月テンプレ（あなたの計画を反映）
 const TEMPLATE = {
-  9: [
-    "バラ 夏剪定（軽め）／樹形リフレッシュ",
-    "バラ 液肥 週1開始（リン酸高め・〜10月）",
-    "バラ 消毒（夏剪定後：殺菌＋必要で殺虫）",
-    "温州みかん 液肥（実肥）",
-    "宿根草 植付け・株分け（ゲラニウム／アストランティア／アキレア等）",
-    "秋まき一年草 直播（ニゲラ／オルラヤ／リナリア等）",
-    "秋花メンテ（ダリア／ガウラ／サルビア：花がら切り・支柱整理）"
-  ],
-  10: [
-    "球根 植付け（チューリップ／スイセン／ムスカリ／クロッカス）",
-    "寄せ植え（南側・場所未定プランの球根）",
-    "バラ 秋花を楽しむ（中下旬）",
-    "バラ 花後の弱剪定＆花がら切り",
-    "バラ 液肥 週1継続（下旬で終了）",
-    "バラ 消毒（秋花後に殺菌）",
-    "常緑低木 植付けOK（ドドナエア／シルバープリペット等）",
-    "冬野菜 苗定植（ブロッコリー／キャベツ／白菜／玉ねぎ）",
-    "ハーブ 収穫・ドライ保存へ切替（耐寒弱は整理）"
-  ],
-  11: [
-    "落葉樹 植付け（ハナミズキ／ガマズミ／モミジ 等）",
-    "バラ リセット（病葉除去→殺菌散布）",
-    "バラ 元肥 少量（※寒肥は冬本番に）",
-    "宿根草 切戻し＆マルチング（腐葉土／ワラ）",
-    "球根 遅植え分の処理（忘れ分の救済）",
-    "屋上 カンナ／コロカシア 地上部整理・防風対策"
-  ],
-  12: [
-    "庭木 定植ベスト（落葉／常緑）※寒波前に",
-    "温州みかん 収穫（剪定は収穫後〜1月）",
-    "バラ 落葉→全葉落とし",
-    "バラ 石灰硫黄合剤（12月下旬〜1月・休眠期）",
-    "寒肥の準備（12月下旬〜：バラ／果樹）",
-    "鉢物 防寒（軒下へ移動・二重鉢／マルチング）",
-    "屋上 フェルト鉢 風よけ・固定"
-  ]
+  9:["バラ 夏剪定／液肥開始","バラ 消毒（剪定後）","温州みかん 液肥","宿根草 植付け・株分け","秋まき一年草 直播"],
+  10:["球根 植付け（チューリップ等）","寄せ植え実施","バラ 秋花鑑賞→花がら切り","液肥 継続（下旬終了）","冬野菜 苗定植"],
+  11:["落葉樹 植付け（ハナミズキ等）","バラ リセット（病葉整理＋殺菌）","宿根草 切戻し＆マルチ","球根 遅植え分対応"],
+  12:["庭木 定植ベスト","温州みかん 収穫","バラ 落葉処理→石灰硫黄合剤","寒肥準備","鉢物 防寒"]
 };
+const monthSel=document.getElementById('monthSel');
+const taskList=document.getElementById('taskList');
+function loadTasks(m){const raw=localStorage.getItem(TASK_KEY(m));if(raw){try{return JSON.parse(raw);}catch{}}return (TEMPLATE[m]||[]).map(l=>({label:l,done:false}));}
+function saveTasks(m,items){localStorage.setItem(TASK_KEY(m),JSON.stringify(items));}
+function renderTasks(){const m=parseInt(monthSel.value,10);const items=loadTasks(m);taskList.innerHTML="";items.forEach((t,i)=>{const li=document.createElement('li');const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!t.done;cb.onchange=()=>{const list=loadTasks(m);list[i].done=cb.checked;saveTasks(m,list);label.className=cb.checked?'line-through':''};const label=document.createElement('span');label.textContent=t.label;label.className=t.done?'line-through':'';li.appendChild(cb);li.appendChild(label);taskList.appendChild(li);});}
+monthSel.onchange=renderTasks;renderTasks();
+document.getElementById('addTaskBtn').onclick=()=>{const m=parseInt(monthSel.value,10);const label=prompt('追加するタスク:');if(!label)return;const list=loadTasks(m);list.push({label:label.trim(),done:false});saveTasks(m,list);renderTasks();};
+document.getElementById('resetChecksBtn').onclick=()=>{const m=parseInt(monthSel.value,10);if(!confirm('チェックを全て外しますか？'))return;const list=loadTasks(m).map(x=>({label:x.label,done:false}));saveTasks(m,list);renderTasks();};
+document.getElementById('restoreTplBtn').onclick=()=>{const m=parseInt(monthSel.value,10);if(!confirm('テンプレに戻しますか？'))return;const list=(TEMPLATE[m]||[]).map(l=>({label:l,done:false}));saveTasks(m,list);renderTasks();};
 
-// ===== 月タスクUI =====
-const monthSel = document.getElementById('monthSel');
-const taskList = document.getElementById('taskList');
-const addTaskBtn = document.getElementById('addTaskBtn');
-const resetChecksBtn = document.getElementById('resetChecksBtn');
-const restoreTplBtn = document.getElementById('restoreTplBtn');
-
-// 初期月は現在月が9-12に入っていればそれ、そうでなければ9月に
-const nowM = new Date().getMonth()+1;
-monthSel.value = MONTHS.includes(nowM) ? String(nowM) : "9";
-
-function loadTasks(m){
-  const raw = localStorage.getItem(TASK_KEY(m));
-  if(raw){
-    try{ return JSON.parse(raw); }catch{}
-  }
-  // 初回はテンプレから
-  return (TEMPLATE[m]||[]).map(label=>({label, done:false}));
-}
-function saveTasks(m, items){
-  localStorage.setItem(TASK_KEY(m), JSON.stringify(items));
-}
-function renderTasks(){
-  const m = parseInt(monthSel.value,10);
-  const items = loadTasks(m);
-  taskList.innerHTML = "";
-  items.forEach((t, i)=>{
-    const li = document.createElement('li');
-    const cb = document.createElement('input');
-    cb.type = 'checkbox'; cb.checked = !!t.done;
-    cb.addEventListener('change', ()=>{
-      const list = loadTasks(m); list[i].done = cb.checked; saveTasks(m, list);
-      label.className = cb.checked ? 'line-through' : '';
-    });
-    const label = document.createElement('span');
-    label.textContent = t.label;
-    label.className = t.done ? 'line-through' : '';
-    li.appendChild(cb); li.appendChild(label);
-    taskList.appendChild(li);
-  });
-}
-monthSel.addEventListener('change', renderTasks);
-addTaskBtn.addEventListener('click', ()=>{
-  const m = parseInt(monthSel.value,10);
-  const label = prompt('この月にタスクを追加：');
-  if(!label) return;
-  const list = loadTasks(m); list.push({label:label.trim(), done:false}); saveTasks(m, list); renderTasks();
-});
-resetChecksBtn.addEventListener('click', ()=>{
-  const m = parseInt(monthSel.value,10);
-  if(!confirm(`${m}月のチェックを全て外します。`)) return;
-  const list = loadTasks(m).map(x=>({label:x.label, done:false})); saveTasks(m, list); renderTasks();
-});
-restoreTplBtn.addEventListener('click', ()=>{
-  const m = parseInt(monthSel.value,10);
-  if(!confirm(`${m}月のリストをテンプレ初期値に戻します。`)) return;
-  const list = (TEMPLATE[m]||[]).map(label=>({label, done:false}));
-  saveTasks(m, list); renderTasks();
-});
-
-// ===== 日々の記録 =====
-const f_date = document.getElementById('f_date');
-const f_weather = document.getElementById('f_weather');
-const f_work = document.getElementById('f_work');
-const f_memo = document.getElementById('f_memo');
-const f_plant = document.getElementById('f_plant');
-const f_photo = document.getElementById('f_photo');
-const addLogBtn = document.getElementById('addLogBtn');
-const exportBtn = document.getElementById('exportBtn');
-const logTableBody = document.querySelector('#logTable tbody');
-
+// logs
+const f_date=document.getElementById('f_date'),f_weather=document.getElementById('f_weather'),f_work=document.getElementById('f_work'),f_memo=document.getElementById('f_memo'),f_plant=document.getElementById('f_plant'),f_photo=document.getElementById('f_photo');
+const addLogBtn=document.getElementById('addLogBtn'),exportBtn=document.getElementById('exportBtn'),logTableBody=document.querySelector('#logTable tbody');
 function pad(n){return String(n).padStart(2,'0');}
-function nowLocalISOString(){
-  const d = new Date();
-  const y = d.getFullYear(); const m = pad(d.getMonth()+1); const da = pad(d.getDate());
-  const h = pad(d.getHours()); const mi = pad(d.getMinutes());
-  return `${y}-${m}-${da}T${h}:${mi}`;
-}
-f_date.value = nowLocalISOString();
-
-function loadLogs(){
-  const raw = localStorage.getItem(LOG_KEY());
-  if(!raw) return [];
-  try{ return JSON.parse(raw); }catch{ return []; }
-}
-function saveLogs(list){ localStorage.setItem(LOG_KEY(), JSON.stringify(list)); }
-let logs = loadLogs();
-
-function renderLogs(){
-  logTableBody.innerHTML = "";
-  logs.forEach((l, idx)=>{
-    const tr = document.createElement('tr');
-    const link = l.photo ? `<a href="${l.photo}" target="_blank" rel="noreferrer">開く</a>` : "";
-    tr.innerHTML = `
-      <td>${l.dateDisplay}</td>
-      <td>${l.weather||""}</td>
-      <td>${l.work||""}</td>
-      <td>${l.memo||""}</td>
-      <td>${l.plant||""}</td>
-      <td>${link}</td>
-      <td><button class="btn ghost" data-del="${idx}">削除</button></td>
-    `;
-    logTableBody.appendChild(tr);
-  });
-  // delete handlers
-  document.querySelectorAll('button[data-del]').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{
-      const i = parseInt(e.currentTarget.getAttribute('data-del'),10);
-      logs.splice(i,1); saveLogs(logs); renderLogs();
-    });
-  });
-}
+f_date.value=(function(){const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;})();
+function loadLogs(){const raw=localStorage.getItem(LOG_KEY());if(!raw)return[];try{return JSON.parse(raw);}catch{return[];}}
+function saveLogs(list){localStorage.setItem(LOG_KEY(),JSON.stringify(list));}
+let logs=loadLogs();
+function renderLogs(){logTableBody.innerHTML="";logs.forEach((l,idx)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${l.dateDisplay}</td><td>${l.weather||""}</td><td>${l.work||""}</td><td>${l.memo||""}</td><td>${l.plant||""}</td><td>${l.photo?`<a href='${l.photo}' target='_blank'>開く</a>`:""}</td><td><button data-del='${idx}'>削除</button></td>`;logTableBody.appendChild(tr);});document.querySelectorAll('button[data-del]').forEach(btn=>{btn.onclick=()=>{logs.splice(parseInt(btn.dataset.del),1);saveLogs(logs);renderLogs();};});}
 renderLogs();
-
-addLogBtn.addEventListener('click', ()=>{
-  const d = new Date(f_date.value);
-  if(isNaN(d.getTime())){ alert('日付を入れてね'); return; }
-  const disp = `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  const entry = {
-    dateISO: d.toISOString(),
-    dateDisplay: disp,
-    weather: f_weather.value.trim(),
-    work: f_work.value.trim(),
-    memo: f_memo.value.trim(),
-    plant: f_plant.value.trim(),
-    photo: f_photo.value.trim()
-  };
-  logs.unshift(entry); saveLogs(logs); renderLogs();
-  f_work.value = ""; f_memo.value=""; f_plant.value=""; f_photo.value="";
-});
-
-// CSV export
-function escapeCSV(s){
-  if(s==null) s="";
-  s = String(s);
-  return (s.includes(',') || s.includes('"') || s.includes('\n'))
-    ? `"${s.replace(/"/g,'""')}"` : s;
-}
-exportBtn.addEventListener('click', ()=>{
-  const header = ["日付","天気・気温","作業内容","気づき","対象植物No.","写真リンク"];
-  const rows = logs.slice().reverse().map(l=>[l.dateDisplay,l.weather,l.work,l.memo,l.plant,l.photo]);
-  const lines = [header.join(",")].concat(rows.map(r=>r.map(escapeCSV).join(","))).join("\n");
-  const blob = new Blob([lines],{type:"text/csv;charset=utf-8;"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `gardening_log_${YEAR}.csv`;
-  document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(url);
-});
-
-// 最後に初回タスク描画
-renderTasks();
+addLogBtn.onclick=()=>{const d=new Date(f_date.value);if(isNaN(d.getTime())){alert('日付を入れてね');return;}const disp=`${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;const entry={dateDisplay:disp,weather:f_weather.value.trim(),work:f_work.value.trim(),memo:f_memo.value.trim(),plant:f_plant.value.trim(),photo:f_photo.value.trim()};logs.unshift(entry);saveLogs(logs);renderLogs();f_work.value=f_memo.value=f_plant.value=f_photo.value="";};
+function escapeCSV(s){if(!s)return"";s=String(s);return (s.includes(',')||s.includes('"')||s.includes('\n'))?`"${s.replace(/"/g,'""')}"`:s;}
+exportBtn.onclick=()=>{const header=["日付","天気・気温","作業内容","気づき","対象植物No.","写真リンク"];const rows=logs.slice().reverse().map(l=>[l.dateDisplay,l.weather,l.work,l.memo,l.plant,l.photo]);const lines=[header.join(",")].concat(rows.map(r=>r.map(escapeCSV).join(","))).join("\n");const blob=new Blob([lines],{type:"text/csv;charset=utf-8;"});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`gardening_log_${YEAR}.csv`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);};
 </script>
 </body>
 </html>
