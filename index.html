@@ -149,5 +149,61 @@ label.checkbox input{transform:scale(1.2)}
   });
 })();
 </script>
+<script>
+/* --- iOSショートカット取り込み 最小ブリッジ --- */
+(function(){
+  function $(s){ return document.querySelector(s); }
+  function onReady(fn){ 
+    if (document.readyState!=='loading') fn();
+    else document.addEventListener('DOMContentLoaded', fn);
+  }
+  const usp = new URLSearchParams(location.search);
+  if (![...usp.keys()].length) return; // クエリ無しなら何もしない
+
+  // 受け付けるキー（あなたの既存ショートカットと互換）:
+  // sleepMin（総分） / sleepHours + sleepMinutes
+  // weight / bodyFat
+  onReady(function(){
+    let touched = false;
+
+    // 睡眠
+    if (usp.has('sleepMin')) {
+      const sm = Math.max(0, Math.floor(Number(usp.get('sleepMin'))||0));
+      const h = Math.floor(sm/60), m = sm%60;
+      const H = $('#sleepH'), M = $('#sleepM');
+      if (H) H.value = h; if (M) M.value = m; touched = true;
+    } else {
+      const h = usp.get('sleepHours'), m = usp.get('sleepMinutes');
+      const H = $('#sleepH'), M = $('#sleepM');
+      if (h!=null && H) { H.value = Math.max(0, Math.floor(Number(h)||0)); touched = true; }
+      if (m!=null && M) { M.value = Math.min(59, Math.max(0, Math.floor(Number(m)||0))); touched = true; }
+    }
+
+    // 体重・体脂肪（, 小数も許容）
+    if (usp.has('weight')) {
+      const v = Number(String(usp.get('weight')).replace(',', '.'));
+      const el = $('#weight'); if (!isNaN(v) && el) { el.value = v; touched = true; }
+    }
+    if (usp.has('bodyFat')) {
+      const v = Number(String(usp.get('bodyFat')).replace(',', '.'));
+      const el = $('#bodyFat'); if (!isNaN(v) && el) { el.value = v; touched = true; }
+    }
+
+    // 視覚確認（簡易トースト）
+    if (touched) {
+      let t = document.createElement('div');
+      t.textContent = 'ショートカットから反映しました';
+      Object.assign(t.style, {position:'fixed',left:'50%',bottom:'16px',transform:'translateX(-50%)',background:'#111c',color:'#fff',padding:'10px 14px',borderRadius:'12px',boxShadow:'0 6px 16px #0006',fontSize:'14px',zIndex:9999});
+      document.body.appendChild(t); setTimeout(()=>t.remove(),1800);
+    }
+
+    // 任意：URLのクエリを消してブックマークを汚さない
+    if (history.replaceState) {
+      const clean = location.pathname + location.hash; // クエリ無しに
+      history.replaceState(null, '', clean);
+    }
+  });
+})();
+</script>
 </body>
 </html>
