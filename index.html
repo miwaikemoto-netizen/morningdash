@@ -207,6 +207,28 @@ label.checkbox input{transform:scale(1.2)}
     function autoWx(){if(navigator.geolocation){navigator.geolocation.getCurrentPosition(pos=>fetchWx(pos.coords.latitude,pos.coords.longitude),()=>fetchWx(TOKYO.lat,TOKYO.lon),{enableHighAccuracy:true,timeout:6000,maximumAge:600000});}else{fetchWx(TOKYO.lat,TOKYO.lon);}}
     $("#useGeo").addEventListener("click",autoWx);autoWx();renderHistory();
   });
+      // URLパラメータ取り込み（ショートカット連携用）
+    const url = new URL(window.location.href);
+    const qp = k => url.searchParams.get(k);
+
+    // 睡眠（分単位を 時間+分 に変換）
+    if (qp("sleepMin") != null) {
+      const sm = parseInt(qp("sleepMin"), 10) || 0;
+      const h = Math.floor(sm / 60);
+      const m = sm % 60;
+      document.getElementById("sleepH").value = h;
+      document.getElementById("sleepM").value = m;
+    }
+
+    // 体重
+    if (qp("weight") != null) {
+      document.getElementById("weight").value = parseFloat(qp("weight")) || "";
+    }
+
+    // 体脂肪率
+    if (qp("bodyFat") != null) {
+      document.getElementById("bodyFat").value = parseFloat(qp("bodyFat")) || "";
+    }
 })();
 </script>
 </body>
