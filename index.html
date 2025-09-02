@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Morning Dash</title>
 <meta name="theme-color" content="#d6f0ff" id="themeColor">
-<meta name="x-build-id" content="MorningDash full-history text build">
+<meta name="x-build-id" content="MorningDash merge-history build">
 <style>
 :root{--md-bg:#88c8ff;--md-bg2:#d6f0ff;--fg:#0e1726;--card:#ffffffd9;--border:#0000001a;--accent:#2563eb;--accent-press:#1d4ed8}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -71,6 +71,7 @@ label.checkbox input{transform:scale(1.2)}
     </div>
   </div>
 
+  <!-- ① 天気 -->
   <section class="card" id="secWeather">
     <div class="weatherTitle">
       <h2>① 天気（自動取得）</h2>
@@ -81,6 +82,7 @@ label.checkbox input{transform:scale(1.2)}
     <div id="wxLine2" class="wxLine">湿度：—　気圧：—</div>
   </section>
 
+  <!-- ② 日記・記録 -->
   <section class="card" id="secDiary">
     <h2>② 日記・記録</h2>
     <div class="row">
@@ -117,6 +119,7 @@ label.checkbox input{transform:scale(1.2)}
     <div style="margin-top:12px"><label for="freeMemo">📓 自由メモ</label><textarea id="freeMemo" placeholder="なんでもどうぞ"></textarea></div>
   </section>
 
+  <!-- ③ 生活習慣チェック -->
   <section class="card" id="secHabits"><h2>③ 生活習慣チェック</h2>
     <div class="row">
       <label class="checkbox"><input type="checkbox" id="h_curtain"> カーテンを開ける</label>
@@ -152,7 +155,7 @@ label.checkbox input{transform:scale(1.2)}
     $("#wday").textContent=["日","月","火","水","木","金","土"][d.getDay()]+"曜日";
     $("#openCal").href="./Calendar.html?date="+d.toISOString().slice(0,10);
 
-    // ショートカット取り込み + ラベル
+    // ── ショートカット取り込み + ラベル ─────────────────────────
     function updateLabels(){
       const h=Number($("#sleepH").value)||0, m=Number($("#sleepM").value)||0;
       $("#sleepLabel").textContent=(h||m)?("　→ "+h+"時間"+m+"分"):"";
@@ -176,23 +179,59 @@ label.checkbox input{transform:scale(1.2)}
       const el=$("#"+id); if(el) el.addEventListener("input",updateLabels);
     });
 
-    // 履歴保存/表示
+    // ── ストレージ基盤 ────────────────────────────────────────
     const KEY="morning_logs_index_gradient";
     const loadAll=()=>{try{const v=localStorage.getItem(KEY);return v?JSON.parse(v):[]}catch(e){return[]}};
     const saveAll=(a)=>{try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}};
     const toKey=(dt)=>dt.toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo"});
-    const upsert=(p)=>{const a=loadAll();const i=a.findIndex(x=>x.date===p.date); if(i>-1)a[i]=p; else a.unshift(p); a.sort((x,y)=>x.date<y.date?1:-1); saveAll(a);};
+    const uniq=(arr)=>Array.from(new Set(arr));
 
-    function pickHabits(){
-      return {
-        curtain: $("#h_curtain").checked,
-        bed:     $("#h_bed").checked,
-        change:  $("#h_change").checked,
-        teeth:   $("#h_teeth").checked,
-        skin:    $("#h_skin").checked,
-        hair:    $("#h_hair").checked
+    // ── マージ規則（上書きでなく追記） ──────────────────────────
+    function mergePayload(oldP, newP){
+      const out = {...oldP};
+
+      // 単項目：空でなければ上書き、空なら旧値維持
+      const take = (key, isEmptyFn = v => (v==null || v==="")) => {
+        if(!isEmptyFn(newP[key])) out[key] = newP[key];
       };
+      take('mood');
+      take('sleepH', v => !Number.isFinite(v));
+      take('sleepM', v => !Number.isFinite(v));
+      take('weight', v => v==null || Number.isNaN(v));
+      take('bodyFat', v => v==null || Number.isNaN(v));
+
+      // conditions：結合＋ユニーク
+      const oldCond = Array.isArray(oldP.conditions) ? oldP.conditions : [];
+      const newCond = Array.isArray(newP.conditions) ? newP.conditions : [];
+      out.conditions = uniq([...oldCond, ...newCond].filter(Boolean));
+
+      // habits：各項目は OR
+      const hKeys = ['curtain','bed','change','teeth','skin','hair'];
+      const oldH = oldP.habits || {};
+      const newH = newP.habits || {};
+      out.habits = {};
+      hKeys.forEach(k => { out.habits[k] = Boolean(oldH[k]) || Boolean(newH[k]); });
+
+      // memo：新規が空でなければ時刻タグ付きで追記
+      const nowTag = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
+      if(newP.memo && String(newP.memo).trim()){
+        const base = (oldP.memo && String(oldP.memo).trim()) ? oldP.memo.trim() + "\n" : "";
+        out.memo = base + `【${nowTag}】 ` + String(newP.memo).trim();
+      }else{
+        out.memo = oldP.memo || "";
+      }
+
+      // 天気は常に最新を採用
+      out.wx = newP.wx || oldP.wx || null;
+
+      // タイムスタンプ更新・dateはそのまま
+      out.ts = Date.now();
+      out.date = oldP.date || newP.date;
+
+      return out;
     }
+
+    // ── 履歴表示 ────────────────────────────────────────────
     function renderHistory(){
       const root=$("#history"); root.innerHTML="";
       const logs=loadAll(); if(!logs.length){root.innerHTML='<div class="small">まだ記録がありません</div>';return;}
@@ -209,7 +248,7 @@ label.checkbox input{transform:scale(1.2)}
         const sleep= (l.sleepH||l.sleepM) ? ('<span class="badge">睡眠：'+(l.sleepH||0)+'時間'+(l.sleepM||0)+'分</span>') : '';
         const wb   = (l.weight||l.bodyFat) ? ('<span class="badge">体重・体脂肪：'+(l.weight?l.weight+'kg':'—')+' / '+(l.bodyFat?Number(l.bodyFat).toFixed(1)+'%':'—')+'</span>') : '';
         const habits = l.habits ? Object.entries(l.habits).filter(([k,v])=>v).map(([k,_])=>({curtain:'カーテン',bed:'布団',change:'着替え',teeth:'歯磨き',skin:'スキン',hair:'ヘア'}[k])).join('・') : '';
-        const memo = l.memo ? ('<div class="hline">📝 '+(l.memo||'').replace(/</g,'&lt;').slice(0,80)+'</div>') : '';
+        const memo = l.memo ? ('<div class="hline">📝 '+(l.memo||'').replace(/</g,'&lt;').replace(/\n/g,'<br>')+'</div>') : '';
 
         box.innerHTML = '<b>'+l.date+'</b>'
           +'　天気：'+wtemp+'・降水確率：'+pprob+'・湿度：'+hum+'・気圧：'+press+' ['+trend+']'
@@ -220,7 +259,7 @@ label.checkbox input{transform:scale(1.2)}
     }
     document.getElementById("reloadBtn").addEventListener("click",renderHistory);
 
-    // 天気 + 背景
+    // ── 天気 + 背景 ─────────────────────────────────────────
     const state={wx:null}; window.state = state;
     const fallback={lat:35.681236,lon:139.767125}; // 東京駅
     function themeFromCode(code){
@@ -280,7 +319,7 @@ label.checkbox input{transform:scale(1.2)}
     document.getElementById("useGeo").addEventListener("click",autoWx);
     autoWx();
 
-    // 保存ボタン：全部まとめて保存
+    // ── 保存（マージ保存） ────────────────────────────────────
     document.getElementById("saveBtn").addEventListener("click",function(){
       const payload = {
         date: toKey(new Date()),
@@ -292,12 +331,27 @@ label.checkbox input{transform:scale(1.2)}
         weight: $("#weight").value ? Number($("#weight").value) : null,
         bodyFat: $("#bodyFat").value ? Number($("#bodyFat").value) : null,
         memo: $("#freeMemo").value || "",
-        habits: {curtain:$("#h_curtain").checked,bed:$("#h_bed").checked,change:$("#h_change").checked,teeth:$("#h_teeth").checked,skin:$("#h_skin").checked,hair:$("#h_hair").checked},
+        habits: {
+          curtain: $("#h_curtain").checked,
+          bed:     $("#h_bed").checked,
+          change:  $("#h_change").checked,
+          teeth:   $("#h_teeth").checked,
+          skin:    $("#h_skin").checked,
+          hair:    $("#h_hair").checked
+        },
         ts: Date.now()
       };
-      upsert(payload);
+
+      const all = loadAll();
+      const idx = all.findIndex(x => x.date === payload.date);
+      const merged = (idx >= 0) ? mergePayload(all[idx], payload) : payload;
+
+      if(idx >= 0) all[idx] = merged; else all.unshift(merged);
+      all.sort((a,b)=>a.date < b.date ? 1 : -1);
+      saveAll(all);
+
       renderHistory();
-      alert("保存しました");
+      alert("保存（追記）しました");
     });
 
     // 初回履歴表示
